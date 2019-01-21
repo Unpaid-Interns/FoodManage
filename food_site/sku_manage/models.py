@@ -29,4 +29,4 @@ class SKU(models.Model):
 	comment = models.TextField()
 
 	def __str__(self):
-		return "{name}: {unit_size} * {units_per_case}".format(self.name, self.unit_size, self.units_per_case) 
+		return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case) 
