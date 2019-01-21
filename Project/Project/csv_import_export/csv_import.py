@@ -5,7 +5,7 @@ import csv_data
 test = "skus"
 # test = "ingredients"
 # test = "product_lines"
-test = "sku_ingredients" # NOT YET IMPLEMENTED
+# test = "sku_ingredients" # NOT YET IMPLEMENTED
 
 headerDict = {
     "skus.csv": ["Number", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
