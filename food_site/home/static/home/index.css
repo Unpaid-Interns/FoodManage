@@ -1,0 +1,16 @@
+body {
+	background-color: black;
+	text-align: center;
+	font-family: verdana;
+}
+
+h1 {
+	color: lightblue;
+	text-align: center;
+	font-family: verdana;
+}
+
+a {
+	color: white;
+	font-family: verdana;
+}
