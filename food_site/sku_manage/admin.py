@@ -14,7 +14,7 @@ class SkuAdmin(admin.ModelAdmin):
 		(None, {'fields': ['name', 'product_line']}),
 		('UPC Information', {'fields': ['case_upc', 'unit_upc']}),
 		('Size Information', {'fields': ['unit_size', 'units_per_case']}),
-		('', {'fields': ['comment']}),
+		('Comments', {'fields': ['comment'], 'classes': ['collapse']}),
 	]
 	inlines = [IngredientQtyInline]
 
