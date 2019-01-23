@@ -1,7 +1,7 @@
 import sys
 import csv
-import CSVData
-import models
+from importer import CSVData
+# from sku_manage import models
 
 # test = "skus"
 # test = "ingredients"
@@ -32,7 +32,7 @@ class CSVImport():
                     print("Parsing failed for: " + filename)
             else:
                 print("Invalid file prefix for: " + filename)
-        self.commit_to_database()
+        # self.commit_to_database()
 
     def add_filename(self, filename):
         self.filenames.append(filename)
@@ -50,12 +50,19 @@ class CSVImport():
     def set_filenames(self, filename_array):
         self.filenames = filename_array
 
-    def commit_to_database(self):
-        for p in self.data_dict:
-            models_array = []
-            for i in self.data_dict[p]:
-                models_array.append(i.convert_to_database_model())
-            models.SKU.object.bulk_create(models_array)
+    # def commit_to_database(self):
+    #     for p in self.data_dict:
+    #         models_array = []
+    #         for i in self.data_dict[p]:
+    #             models_array.append(i.convert_to_database_model())
+    #         if(p == "skus"):
+    #             models.SKU.objects.bulk_create(models_array)
+    #         if(p == "ingredients"):
+    #             models.Ingredient.objects.bulk_create(models_array)
+    #         if(p == "product_lines"):
+    #             models.ProductLine.objects.bulk_create(models_array)
+    #         if(p == "sku_ingredients"):
+    #             models.IngredientQty.objects.bulk_create(models_array)
 
 def parser(filename):
     file_prefix, valid = prefix_check(filename)

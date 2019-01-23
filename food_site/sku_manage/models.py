@@ -28,10 +28,9 @@ class SKU(models.Model):
 	comment = models.TextField()
 
 	def __str__(self):
-		return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case) 
+		return "{name}s: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case)
 
 class IngredientQty(models.Model):
 	sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
 	quantity = models.DecimalField(max_digits=20, decimal_places=10)
-	

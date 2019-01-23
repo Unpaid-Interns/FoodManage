@@ -2,14 +2,15 @@ import CSVImport
 import CSVExport
 import CSVData
 
-# test = "import"
-test = "export"
+test = "import"
+# test = "export"
 
 if __name__ == '__main__':
     if test == "import":
         print("CLASS TEST STARTING...")
         importer = CSVImport.CSVImport()
-        filenames = ["skus.csv", "ingredients.csv", "product_lines.csv", "sku_ingredients.csv"]
+        # filenames = ["skus.csv", "ingredients.csv", "product_lines.csv", "sku_ingredients.csv"]
+        filenames = ["ingredients.csv"]
         importer.set_filenames(filenames)
         importer.parse()
 
@@ -42,7 +43,7 @@ if __name__ == '__main__':
         data.append(item2)
         data.append(item3)
         data.append(item4)
-        exporter.export_to_csv(data)
+        exporter.export_to_csv("skus", data)
 
         # ingredients.csv export
         data = []
@@ -56,7 +57,7 @@ if __name__ == '__main__':
         data.append(item2)
         data.append(item3)
         data.append(item4)
-        exporter.export_to_csv(data)
+        exporter.export_to_csv("ingredients", data)
 
         # product_lines.csv export
         data = []
@@ -70,7 +71,7 @@ if __name__ == '__main__':
         data.append(item2)
         data.append(item3)
         data.append(item4)
-        exporter.export_to_csv(data)
+        exporter.export_to_csv("product_lines", data)
 
         # sku_ingredients.csv export
         data = []
@@ -79,9 +80,9 @@ if __name__ == '__main__':
         item1 = CSVData.SKUIngredientData(str(1), str(11), str(80085))
         item2 = CSVData.SKUIngredientData(str(2), str(22), str(8008135))
         item3 = CSVData.SKUIngredientData(str(3), str(33), str(5812))
-        item4 = CSVData.SKUIngredientData(str(4), str(44), str(17))
+        item4 = CSVData.SKUIngredientData(str(4), str(44), str(12))
         data.append(item1)
         data.append(item2)
         data.append(item3)
         data.append(item4)
-        exporter.export_to_csv(data)
+        exporter.export_to_csv("sku_ingredients", data)

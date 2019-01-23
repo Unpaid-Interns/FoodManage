@@ -1,7 +1,5 @@
-import sys
 import csv
 import CSVData
-import CSVImport
 
 test = "skus"
 # test = "ingredients"
@@ -15,14 +13,14 @@ class CSVExport():
     def __init__(self):
         pass
 
-    def export_to_csv(self, data):
-        export_csv(data)
+    def export_to_csv(self, filename, data):
+        export_csv(filename, data)
 
 
-def export_csv(data):
-    with open(test + ".csv", 'w', newline='') as csvfile:
+def export_csv(filename, data):
+    with open(filename + ".csv", 'w', newline='') as csvfile:
         dataWriter = csv.writer(csvfile, quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        dataWriter.writerow(headerDict[test + ".csv"])
+        dataWriter.writerow(headerDict[filename + ".csv"])
         for item in data:
             # print(item.exportData)
             dataWriter.writerow(item.exportData)
@@ -78,5 +76,5 @@ if __name__ == '__main__':
         data.append(item2)
         data.append(item3)
         data.append(item4)
-    export_csv(data)
+    export_csv(test + ".csv", data)
     print("EXPORT TEST FINISHED.")
