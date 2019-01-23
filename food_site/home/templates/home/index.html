@@ -1,0 +1,16 @@
+
+<!-- home/templates/index.html -->
+<!DOCTYPE html>
+<html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <title>HypoMeals</title>
+	<link rel="stylesheet" type="text/css" href="{% static "home/index.css" %}">
+    </head>
+    <body>
+	<img src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
+        <h1>Welcome to Hypothetical Meals, your top world provider of sadness!</h1>
+	<a class="btn btn-primary" href="/admin">Login</a>
+    </body>
+</html>
