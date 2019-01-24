@@ -1,2 +1,5 @@
 **/__pycache__/*
 **/db.sqlite3
+site_env/*
+food_site/static/*
+
