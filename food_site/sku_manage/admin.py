@@ -5,6 +5,7 @@ from .models import Ingredient, ProductLine, SKU, IngredientQty
 class IngredientAdmin(admin.ModelAdmin):
 	fields = ['name', 'number', 'package_size', 'cost', 'vendor_info', 'comment']
 	list_display = ('name', 'number', 'package_size', 'cost')
+	search_fields = ['name', 'number']
 
 class IngredientQtyInline(admin.TabularInline):
 	model = IngredientQty
@@ -19,6 +20,8 @@ class SkuAdmin(admin.ModelAdmin):
 	]
 	inlines = [IngredientQtyInline]
 	list_display = ('__str__', 'sku_num', 'product_line')
+	list_filter = ['product_line']
+	search_fields = ['name', 'sku_num']
 
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(SKU, SkuAdmin)
