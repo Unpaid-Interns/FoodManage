@@ -1,5 +1,5 @@
 from decimal import Decimal
-# from sku_manage import models
+from sku_manage import models
 
 headerDict = {
     "skus.csv": ["Number", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
@@ -38,10 +38,10 @@ class SKUData:
                + ", Count per case = " + self.case_count + ", Product Line = " + self.product_line + \
                ", Comment = '" + self.comment + "'"
 
-    # def convert_to_database_model(self):
-    #     return models.SKU(sku_num=int(self.sku_number), name=self.name, case_upc=Decimal(self.case_upc),
-    #                       unit_upc=Decimal(self.unit_upc), unit_size=self.unit_size,
-    #                       units_per_case=int(self.case_count), product_line=self.product_line, comment=self.comment)
+    def convert_to_database_model(self):
+        return models.SKU(sku_num=int(self.sku_number), name=self.name, case_upc=Decimal(self.case_upc),
+                          unit_upc=Decimal(self.unit_upc), unit_size=self.unit_size,
+                          units_per_case=int(self.case_count), product_line=self.product_line, comment=self.comment)
 
 
 class IngredientData:
@@ -65,9 +65,9 @@ class IngredientData:
                + self.vendor_info + ", Package Size = " + self.package_size + ", Cost = " + self.cost \
                + ", Comment = '" + self.comment + "'"
 
-    # def convert_to_database_model(self):
-    #     return models.Ingredient(number=int(self.number), name=self.name, vendor_info=self.vendor_info,
-    #                              package_size=self.package_size, cost=Decimal(self.cost), comment=self.comment)
+    def convert_to_database_model(self):
+        return models.Ingredient(number=int(self.number), name=self.name, vendor_info=self.vendor_info,
+                                 package_size=self.package_size, cost=Decimal(self.cost), comment=self.comment)
 
 
 class ProductLineData:
@@ -79,8 +79,8 @@ class ProductLineData:
     def __str__(self):
         return "ProductLineDataObject: Name = " + self.name
 
-    # def convert_to_database_model(self):
-    #     return models.ProductLine(name=self.name)
+    def convert_to_database_model(self):
+        return models.ProductLine(name=self.name)
 
 
 class SKUIngredientData:
@@ -97,9 +97,9 @@ class SKUIngredientData:
         return "SKUIngredientDataObject: SKU Number = " + self.sku_number + ", Ingredient Number = " \
                + self.ingredient_number + ", Quantity = " + self.quantity
 
-    # def convert_to_database_model(self):
-    #     return models.IngredientQty(sku=int(self.sku_number), ingredient=int(self.ingredient_number),
-    #                                 quantity=Decimal(self.quantity))
+    def convert_to_database_model(self):
+        return models.IngredientQty(sku=int(self.sku_number), ingredient=int(self.ingredient_number),
+                                    quantity=Decimal(self.quantity))
 
 
 class BundledData:
