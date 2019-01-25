@@ -1,0 +1,25 @@
+
+<!-- home/templates/invalidlogin.html -->
+<!DOCTYPE html>
+<html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <title>HypoMeals</title>
+        <link rel="stylesheet" type="text/css" href="{% static "home/index.css" %}">
+    </head>
+    <body>
+        <img src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
+        <h1>Invalid username / password combination!</h1>
+        <a class="btn btn-primary" href="/admin">Admin Login</a>
+        <h2>User Login</h2>
+        <form action="/authin">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="text" placeholder="Username" name="username" required>
+        <input type="password" placeholder="Password" name="password" required>
+        <input type="submit" value="Login">
+        </form>
+    </body>
+</html>
+

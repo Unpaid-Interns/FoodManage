@@ -13,12 +13,12 @@
         <h1>Welcome to Hypothetical Meals, your top world provider of sadness!</h1>
 	<a class="btn btn-primary" href="/admin">Admin Login</a>
 	<h2>User Login</h2>
-	<form method="post">
+	<form action="/authin">
 	{% csrf_token %}
 	{{ form.as_p }}
 	<input type="text" placeholder="Username" name="username" required>
 	<input type="password" placeholder="Password" name="password" required>
-	<a class="btn btn-primary" href="/authin">Login</a>
+	<input type="submit" value="Login">
 	</form>
     </body>
 </html>
