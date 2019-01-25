@@ -13,7 +13,7 @@ def authin(request):
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
 		login(request, user)
-		response = redirect('/admin')
+		response = redirect('/data')
 		return response
 	else:
 		response = redirect('/invalidlogin')

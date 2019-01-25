@@ -1,0 +1,18 @@
+<!-- sku_manage/templates/data.html -->
+<!DOCTYPE html>
+<html>
+	{% load staticfiles %}
+	{% load static %}
+	<head>
+		<meta charset="utf-8">
+        	<title>HypoMeals</title>
+        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}">
+	</head>
+	<body>
+		<h1>Data shown below:<h1>
+		<u1>
+		{% for Ingredient in Ingredient_list %}
+			<li>{{ Ingredient.name }}</li>
+		{% endfor %}
+	</body>
+<html>
