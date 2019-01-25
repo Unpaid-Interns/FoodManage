@@ -6,10 +6,10 @@ headerDict = {
                  "Comment"],
     "ingredients.csv": ["Number", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
-    "sku_ingredients.csv": ["SKU Number", "Ingredient Number", "Quantity"]
+    "formula.csv": ["SKU Number", "Ingredient Number", "Quantity"]
 }
 
-validFilePrefixes = ["skus", "ingredients", "product_lines", "sku_ingredients"]
+validFilePrefixes = ["skus", "ingredients", "product_lines", "formula"]
 
 
 class SKUData:
@@ -41,7 +41,7 @@ class SKUData:
     def convert_to_database_model(self):
         return models.SKU(sku_num=int(self.sku_number), name=self.name, case_upc=Decimal(self.case_upc),
                           unit_upc=Decimal(self.unit_upc), unit_size=self.unit_size,
-                          units_per_case=int(self.case_count), product_line=self.product_line, comment=self.comment)
+                          units_per_case=int(self.case_count), product_line=models.ProductLine(name=self.name), comment=self.comment)
 
 
 class IngredientData:
@@ -100,29 +100,3 @@ class SKUIngredientData:
     def convert_to_database_model(self):
         return models.IngredientQty(sku=int(self.sku_number), ingredient=int(self.ingredient_number),
                                     quantity=Decimal(self.quantity))
-
-
-class BundledData:
-    def __init__(self):
-        self.sku = None
-        self.ingredient = None
-        self.productLine = None
-        self.skuIngredient = None
-
-    def __init__(self, sku, skuIngredient, productLine, ingredient):
-        self.sku = sku
-        self.ingredient = ingredient
-        self.productLine = productLine
-        self.skuIngredient = skuIngredient
-
-    def add_sku_data(self, sku):
-        self.sku = sku
-
-    def add_skuIngredient_data(self, skuIngredient):
-        self.skuIngredient = skuIngredient
-
-    def add_productLine_data(self, productLine):
-        self.productLine = productLine
-
-    def add_ingredient_data(self, ingredient):
-        self.ingredient = ingredient
