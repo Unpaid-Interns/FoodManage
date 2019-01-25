@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from exporter import CSVTester
+from exporter import CSVExportTester
 
 # Create your views here.
 def index(request):
-	CSVTester.run()
+	CSVExportTester.run()
 	return HttpResponse("This is the export view.")

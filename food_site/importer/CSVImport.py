@@ -2,6 +2,7 @@ import sys
 import csv
 from importer import CSVData
 from sku_manage import models
+from decimal import Decimal
 
 # test = "skus"
 # test = "ingredients"
@@ -58,18 +59,40 @@ class CSVImport():
         self.filenames = filename_array
 
     def commit_to_database(self):
-        for p in self.data_dict:
-            models_array = []
-            for i in self.data_dict[p]:
-                models_array.append(i.convert_to_database_model())
-            if (p == "skus"):
-                models.SKU.objects.bulk_create(models_array)
-            if (p == "ingredients"):
-                models.Ingredient.objects.bulk_create(models_array)
-            if (p == "product_lines"):
-                models.ProductLine.objects.bulk_create(models_array)
-            if (p == "formula"):
-                models.IngredientQty.objects.bulk_create(models_array)
+        models_array = []
+        for i in self.data_dict["product_lines"]:
+            models_array.append(i.convert_to_database_model())
+        models.ProductLine.objects.bulk_create(models_array)
+
+        models_array.clear()
+        for i in self.data_dict["skus"]:
+            models_array.append(i.convert_to_database_model())
+        models.SKU.objects.bulk_create(models_array)
+        sku_array = models_array
+
+        models_array.clear()
+        for i in self.data_dict["ingredients"]:
+            models_array.append(i.convert_to_database_model())
+        models.Ingredient.objects.bulk_create(models_array)
+        ingredients_array = models_array
+
+        models_array.clear()
+        for i in self.data_dict["formula"]:
+            models_array.append(i.convert_to_database_model(sku_array, ingredients_array))
+        models.IngredientQty.objects.bulk_create(models_array)
+
+        # for p in self.data_dict:
+        #     models_array = []
+        #     for i in self.data_dict[p]:
+        #         models_array.append(i.convert_to_database_model())
+        #     if (p == "skus"):
+        #         models.SKU.objects.bulk_create(models_array)
+        #     if (p == "ingredients"):
+        #         models.Ingredient.objects.bulk_create(models_array)
+        #     if (p == "product_lines"):
+        #         models.ProductLine.objects.bulk_create(models_array)
+        #     if (p == "formula"):
+        #         models.IngredientQty.objects.bulk_create(models_array)
 
 
 def parser(filename):
@@ -148,7 +171,7 @@ def product_lines_parser_helper(row, num_records_imported):
     return CSVData.ProductLineData(row[0])
 
 
-def sku_ingredients_parser_helper(row, num_records_imported):
+def formula_parser_helper(row, num_records_imported):
     if len(row) != 3:
         return ("ERROR: Problem with number of entries in Formula CSV file at row #"
                 + (num_records_imported + 1) + ", needs 3 entries but has " + str(row.__len__))
@@ -158,7 +181,8 @@ def sku_ingredients_parser_helper(row, num_records_imported):
 def check_for_identical_record(record, file_prefix):
     # Returns blank string if no identical record found
     # Could use filter to check for same name and ID but not other fields
-    record_converted = record.convert_to_database_model()
+    if(file_prefix != "formula"):
+        record_converted = record.convert_to_database_model()
     if (file_prefix == "skus"):
         models_list = models.SKU.objects.filter(name=record_converted.name)
         for item in models_list:
@@ -168,10 +192,10 @@ def check_for_identical_record(record, file_prefix):
                     record_converted.units_per_case and item.product_line == record_converted.product_line and
                     item.comment == record_converted.comment):
                 return "identical"
-        list2 = models.SKU.objects.filter(name=record_converted.name, sku_num=record_converted.sku_num)
+        list2 = models.SKU.objects.filter(case_upc=record_converted.case_upc, sku_num=record_converted.sku_num)
         if (len(list2) > 0):
-            return "ERROR: Non-identical conflicting SKU record found with name '" + list2[
-                0].name + "' and SKU number '" \
+            return "ERROR: Non-identical conflicting SKU record found with Case UPC '" + list2[
+                0].case_upc + "' and SKU number '" \
                    + str(list2[0].sku_num)
     if (file_prefix == "ingredients"):
         models_list = models.Ingredient.objects.filter(name=record.name)
@@ -194,10 +218,10 @@ def check_for_identical_record(record, file_prefix):
         if (len(list2) > 0):
             return "ERROR: Non-identical conflicting Product Line record found with name '" + list2[0].name
     if (file_prefix == "formula"):
-        models_list = models.IngredientQty.objects.filter(sku=record.sku_number)
+        models_list = models.IngredientQty.objects.filter(quantity=Decimal(record.quantity))
         for item in models_list:
-            if (item.sku == record_converted.sku and item.ingredient == record_converted.ingredient
-                    and item.quantity == record_converted.quantity):
+            if (item.sku.sku_num == int(record.sku_number) and item.ingredient.number == int(record.ingredient_number)
+                    and item.quantity == Decimal(record.quantity)):
                 return "identical"
         # Do we need to check or non-identical match here?
     return ""
@@ -208,28 +232,33 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
     for record in record_list:
         row_num += 1
         if (file_prefix == "skus"):
-            if (new_record.name == record.name):
-                return "ERROR: Duplicate name '" + new_record.name + "' in SKU CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported)
+            # if (new_record.name == record.name):
+            #     return "ERROR: Duplicate name '" + new_record.name + "' in SKU CSV file at lines '" \
+            #            + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
             if (new_record.sku_number == record.sku_number):
-                return "ERROR: Duplicate SKU number '" + new_record.sku_number + "' in SKU CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported)
+                return "ERROR: Duplicate SKU number(s) '" + new_record.sku_number + "' in SKU CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
+            if (new_record.case_upc == record.case_upc):
+                return "ERROR: Duplicate Case UPC number(s) '" + new_record.case_upc + "' in SKU CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
         if (file_prefix == "ingredients"):
             if (new_record.name == record.name):
                 return "ERROR: Duplicate name '" + new_record.name + "' in Ingredients CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported)
+                       + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
             if (new_record.number == record.number):
-                return "ERROR: Duplicate number '" + new_record.number + "' in Ingredients CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported)
+                return "ERROR: Duplicate Ingredient number '" + new_record.number + \
+                       "' in Ingredients CSV file at lines '" + str(row_num) + "' and '" \
+                       + str(num_records_imported) + "'"
         if (file_prefix == "product_lines"):
             if (new_record.name == record.name):
                 return "ERROR: Duplicate name '" + new_record.name + "' in Product Lines CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported)
+                       + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
         if (file_prefix == "formula"):
-            if (new_record.sku == record.sku and new_record.ingredient == record.ingredient):
+            if (new_record.sku_number == record.sku_number and
+                    new_record.ingredient_number == record.ingredient_number):
                 return "ERROR: Matching SKU/Ingredient pairing '" + new_record.sku + " / " + new_record.ingredient \
                        + "' in Formula CSV file at lines '" + str(row_num) + "' and '" \
-                       + str(num_records_imported)
+                       + str(num_records_imported+1) + "'"
     return ""
 
 

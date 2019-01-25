@@ -97,6 +97,16 @@ class SKUIngredientData:
         return "SKUIngredientDataObject: SKU Number = " + self.sku_number + ", Ingredient Number = " \
                + self.ingredient_number + ", Quantity = " + self.quantity
 
-    def convert_to_database_model(self):
-        return models.IngredientQty(sku=int(self.sku_number), ingredient=int(self.ingredient_number),
+    def convert_to_database_model(self, sku_list, ingredient_list):
+        # return models.IngredientQty(sku=int(self.sku_number), ingredient=int(self.ingredient_number),
+        #                             quantity=Decimal(self.quantity))
+        chosen_sku_model = None
+        chosen_ing_model = None
+        for sku_model in sku_list:
+            if sku_model.sku_num == int(self.sku_number):
+                chosen_sku_model = sku_model
+        for ing_model in ingredient_list:
+            if ing_model.number == int(self.ingredient_number):
+                chosen_ing_model = ing_model
+        return models.IngredientQty(sku=chosen_sku_model, ingredient=chosen_ing_model,
                                     quantity=Decimal(self.quantity))

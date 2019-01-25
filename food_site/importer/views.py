@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from importer import CSVTester
+from importer import CSVImportTester
 
 # Create your views here.
 def index(request):
-	CSVTester.run()
+	CSVImportTester.run()
 	return HttpResponse("This is the import view.")

@@ -56,7 +56,6 @@ def run():
     print("PRODUCT LINES EXPORT TEST STARTING...")
     item1 = models.ProductLine(name="Product 1")
     item2 = models.ProductLine(name="Product 2")
-    print(item2.name)
     item3 = models.ProductLine(name="Product 3")
     item4 = models.ProductLine(name="Product 4")
     data.append(item1)
@@ -65,16 +64,20 @@ def run():
     data.append(item4)
     exporter.export_to_csv("product_lines", data)
 
-    # sku_ingredients.csv export
-    # data = []
-    # # sku number, ingredient number, quantity
-    # print("SKU INGREDIENTS EXPORT TEST STARTING...")
-    # item1 = CSVData.SKUIngredientData(str(1), str(11), str(80085))
-    # item2 = CSVData.SKUIngredientData(str(2), str(22), str(8008135))
-    # item3 = CSVData.SKUIngredientData(str(3), str(33), str(5812))
-    # item4 = CSVData.SKUIngredientData(str(4), str(44), str(12))
-    # data.append(item1)
-    # data.append(item2)
-    # data.append(item3)
-    # data.append(item4)
-    # exporter.export_to_csv("formula", data)
+    # formula.csv export
+    data = []
+    # sku number, ingredient number, quantity
+    print("SKU INGREDIENTS EXPORT TEST STARTING...")
+    item1 = models.IngredientQty(sku=models.SKU(sku_num=1), ingredient=models.Ingredient(number=11),
+                                 quantity=Decimal(80085))
+    item2 = models.IngredientQty(sku=models.SKU(sku_num=2), ingredient=models.Ingredient(number=22),
+                                 quantity=Decimal(80085135))
+    item3 = models.IngredientQty(sku=models.SKU(sku_num=3), ingredient=models.Ingredient(number=33),
+                                 quantity=Decimal(5812))
+    item4 = models.IngredientQty(sku=models.SKU(sku_num=4), ingredient=models.Ingredient(number=44),
+                                 quantity=Decimal(12))
+    data.append(item1)
+    data.append(item2)
+    data.append(item3)
+    data.append(item4)
+    exporter.export_to_csv("formula", data)

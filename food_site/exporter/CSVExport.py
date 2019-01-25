@@ -46,8 +46,8 @@ def export_csv(filename, data):
             if filename.startswith("product_lines"):
                 exportData.append(item.name)
             if filename.startswith("formula"):
-                exportData.append(item.sku.name)
-                exportData.append(item.ingredient.name)
+                exportData.append(item.sku.sku_num)
+                exportData.append(item.ingredient.number)
                 exportData.append(str(item.quantity))
             if len(exportData) > 0:
                 dataWriter.writerow(exportData)
