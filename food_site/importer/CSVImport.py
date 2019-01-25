@@ -1,8 +1,7 @@
 import sys
 import csv
 from importer import CSVData
-
-# from sku_manage import models
+from sku_manage import models
 
 # test = "skus"
 # test = "ingredients"
@@ -40,8 +39,7 @@ class CSVImport():
                         'ingredients', 'product_lines', or 'sku_ingredients'")
                 import_completed_successfully = False
         if import_completed_successfully:
-            pass
-            # self.commit_to_database()
+            self.commit_to_database()
 
     def add_filename(self, filename):
         self.filenames.append(filename)
@@ -59,22 +57,24 @@ class CSVImport():
     def set_filenames(self, filename_array):
         self.filenames = filename_array
 
-    # def commit_to_database(self):
-    #     for p in self.data_dict:
-    #         models_array = []
-    #         for i in self.data_dict[p]:
-    #             models_array.append(i.convert_to_database_model())
-    #         if(p == "skus"):
-    #             models.SKU.objects.bulk_create(models_array)
-    #         if(p == "ingredients"):
-    #             models.Ingredient.objects.bulk_create(models_array)
-    #         if(p == "product_lines"):
-    #             models.ProductLine.objects.bulk_create(models_array)
-    #         if(p == "sku_ingredients"):
-    #             models.IngredientQty.objects.bulk_create(models_array)
+    def commit_to_database(self):
+        for p in self.data_dict:
+            models_array = []
+            for i in self.data_dict[p]:
+                models_array.append(i.convert_to_database_model())
+            if(p == "skus"):
+                models.SKU.objects.bulk_create(models_array)
+            if(p == "ingredients"):
+                models.Ingredient.objects.bulk_create(models_array)
+            if(p == "product_lines"):
+                models.ProductLine.objects.bulk_create(models_array)
+            if(p == "sku_ingredients"):
+                models.IngredientQty.objects.bulk_create(models_array)
 
 
 def parser(filename):
+    # Returns: parsed data, number records imported, bool indicating success, and error message
+
     # Check for valid prefix in file name
     file_prefix, valid = prefix_check(filename)
     if not valid:
@@ -94,6 +94,7 @@ def parser(filename):
         header_check_complete = False
         header_issue = ""
         for row in data_reader:
+            # Make sure header is correct
             if not header_check_complete:
                 header_valid, header_issue = header_check(row, header_correct)
                 header_check_complete = True
@@ -102,78 +103,133 @@ def parser(filename):
                 print("HEADER INVALID: Terminating import...")
                 print(header_issue)
                 return None, None, False, header_issue
+
+            # Call appropriate helper method
             method_to_call = getattr(sys.modules[__name__], file_prefix + "_parser_helper")
             temp_data = method_to_call(row, num_records_imported)
             if isinstance(temp_data, str):
                 return None, None, False, temp_data
-            if check_for_identical_record(temp_data, file_prefix):
-                if check_for_match_name_or_id:
-                    parsed_data.append(temp_data, file_prefix)
+
+            # Check for matching database records
+            database_record_check = check_for_identical_record(temp_data, file_prefix)
+            if(database_record_check == ""):
+                matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix)
+                if(matching_check == ""):
+                    # parsed_data.append(temp_data, file_prefix)
+                    parsed_data.append(temp_data)
                     num_records_imported += 1
                 else:
-                    return None, None, False, "ERROR: Duplicate name/ID in csv file"
-
+                    return None, None, False, matching_check
+            elif(database_record_check == "identical"):
+                pass
+            else:
+                return None, None, False, database_record_check
     return parsed_data, num_records_imported, True, ""
 
 
 def skus_parser_helper(row, num_records_imported):
     if len(row) != 8:
-        return ("ERROR: Problem with number of entries in row #" + (num_records_imported + 1) +
-                ", needs 8 entries and has " + row.__len__)
+        return ("ERROR: Problem with number of entries in SKU CSV file at row #" + (num_records_imported + 1) +
+                ", needs 8 entries but has " + str(row.__len__))
     return CSVData.SKUData(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
 
 
-def ingredients_parser_helper(row):
+def ingredients_parser_helper(row, num_records_imported):
+    if len(row) != 6:
+        return ("ERROR: Problem with number of entries in Ingredients CSV file at row #" + (num_records_imported + 1) +
+                ", needs 6 entries but has " + str(row.__len__))
     return CSVData.IngredientData(row[0], row[1], row[2], row[3], row[4], row[5])
 
 
-def product_lines_parser_helper(row):
+def product_lines_parser_helper(row, num_records_imported):
+    if len(row) != 1:
+        return ("ERROR: Problem with number of entries in Product Lines CSV file at row #" + (num_records_imported + 1)
+                + ", needs 1 entries but has " + str(row.__len__))
     return CSVData.ProductLineData(row[0])
 
 
-def sku_ingredients_parser_helper(row):
+def sku_ingredients_parser_helper(row, num_records_imported):
+    if len(row) != 3:
+        return ("ERROR: Problem with number of entries in SKU_Ingredients CSV file at row #"
+                + (num_records_imported + 1) + ", needs 3 entries but has " + str(row.__len__))
     return CSVData.SKUIngredientData(row[0], row[1], row[2])
 
 
-def check_for_identical_record(record):
-    # TODO: check database to see if COMPLETELY IDENTICAL record already exists here
-    # Returns True if no identical record found
+def check_for_identical_record(record, file_prefix):
+    # Returns blank string if no identical record found
     # Could use filter to check for same name and ID but not other fields
     record_converted = record.convert_to_database_model()
-    if (p == "skus"):
-        list = models.SKU.objects.filter(name=record.name)
-        for item in list:
+    if (file_prefix == "skus"):
+        models_list = models.SKU.objects.filter(name=record_converted.name)
+        for item in models_list:
             if (item.name == record_converted.name and item.sku_num == record_converted.sku_num and
                     item.case_upc == record_converted.case_upc and item.unit_upc == record_converted.unit_upc
                     and item.unit_size == record_converted.unit_size and item.units_per_case ==
                     record_converted.units_per_case and item.product_line == record_converted.product_line and
                     item.comment == record_converted.comment):
-                return False
-    if (p == "ingredients"):
-        list = models.Ingredient.objects.filter(name=record.name)
-        for item in list:
+                return "identical"
+        list2 = models.SKU.objects.filter(name=record_converted.name, sku_num=record_converted.sku_num)
+        if(len(list2) > 0):
+            return "ERROR: Non-identical conflicting SKU record found with name '" + list2[0].name + "' and SKU number '" \
+                   + str(list2[0].sku_num)
+    if (file_prefix == "ingredients"):
+        models_list = models.Ingredient.objects.filter(name=record.name)
+        for item in models_list:
             if (item.name == record_converted.name and item.number == record_converted.number
                     and item.vendor_info == record_converted.vendor_info and
                     item.package_size == record_converted.package_size and item.cost == record_converted.cost
                     and item.comment == record_converted.comment):
-                return False
-    if (p == "product_lines"):
-        list = models.ProductLine.objects.filter(name=record.name)
-        for item in list:
+                return "identical"
+        list2 = models.Ingredient.objects.filter(name=record_converted.name, number=record_converted.number)
+        if(len(list2) > 0):
+            return "ERROR: Non-identical conflicting Ingredient record found with name '" + list2[0].name + \
+                   "' and number '" + str(list2[0].number)
+    if (file_prefix == "product_lines"):
+        models_list = models.ProductLine.objects.filter(name=record.name)
+        for item in models_list:
             if (item.name == record_converted.name):
-                return False
-    if (p == "sku_ingredients"):
-        list = models.IngredientQty.objects.filter(sku=record.sku_number)
-        for item in list:
+                return "identical"
+        list2 = models.ProductLine.objects.filter(name=record_converted.name)
+        if(len(list2) > 0):
+            return "ERROR: Non-identical conflicting Product Line record found with name '" + list2[0].name
+    if (file_prefix == "sku_ingredients"):
+        models_list = models.IngredientQty.objects.filter(sku=record.sku_number)
+        for item in models_list:
             if (item.sku == record_converted.sku and item.ingredient == record_converted.ingredient
                     and item.quantity == record_converted.quantity):
-                return False
-    return True
+                return "identical"
+        # Do we need to check or non-identical match here?
+    return ""
 
 
-def check_for_match_name_or_id():
-    # TODO: Figure out what is supposed to be done here exactly and do it
-    return True
+def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records_imported):
+    row_num = 0
+    for record in record_list:
+        row_num += 1
+        if (file_prefix == "skus"):
+            if(new_record.name == record.name):
+                return "ERROR: Duplicate name '" + new_record.name + "' in SKU CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported)
+            if(new_record.sku_number == record.sku_number):
+                return "ERROR: Duplicate SKU number '" + new_record.sku_number + "' in SKU CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported)
+        if (file_prefix == "ingredients"):
+            if (new_record.name == record.name):
+                return "ERROR: Duplicate name '" + new_record.name + "' in Ingredients CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported)
+            if (new_record.number == record.number):
+                return "ERROR: Duplicate number '" + new_record.number + "' in Ingredients CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported)
+        if (file_prefix == "product_lines"):
+            if (new_record.name == record.name):
+                return "ERROR: Duplicate name '" + new_record.name + "' in Product Lines CSV file at lines '" \
+                       + str(row_num) + "' and '" + str(num_records_imported)
+        if (file_prefix == "sku_ingredients"):
+            if(new_record.sku == record.sku and new_record.ingredient == record.ingredient):
+                return "ERROR: Matching SKU/Ingredient pairing '" + new_record.sku + " / " + new_record.ingredient \
+                       + "' in SKU Ingredient CSV file at lines '" + str(row_num) + "' and '" \
+                       + str(num_records_imported)
+    return ""
 
 
 def header_check(header, headerCorrect):
