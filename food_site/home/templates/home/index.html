@@ -11,6 +11,14 @@
     <body>
 	<img src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
         <h1>Welcome to Hypothetical Meals, your top world provider of sadness!</h1>
-	<a class="btn btn-primary" href="/admin">Login</a>
+	<a class="btn btn-primary" href="/admin">Admin Login</a>
+	<h2>User Login</h2>
+	<form method="post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<input type="text" placeholder="Username" name="username" required>
+	<input type="password" placeholder="Password" name="password" required>
+	<a class="btn btn-primary" href="/authin">Login</a>
+	</form>
     </body>
 </html>
