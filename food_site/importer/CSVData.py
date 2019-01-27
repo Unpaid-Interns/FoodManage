@@ -38,10 +38,10 @@ class SKUData:
                + ", Count per case = " + self.case_count + ", Product Line = " + self.product_line + \
                ", Comment = '" + self.comment + "'"
 
-    def convert_to_database_model(self, product_line_dict):
+    def convert_to_database_model(self, chosen_product_line):
         return models.SKU(sku_num=int(self.sku_number), name=self.name, case_upc=Decimal(self.case_upc),
                           unit_upc=Decimal(self.unit_upc), unit_size=self.unit_size,
-                          units_per_case=int(self.case_count), product_line=product_line_dict[self.product_line],
+                          units_per_case=int(self.case_count), product_line=chosen_product_line,
                           comment=self.comment)
 
 
@@ -98,16 +98,6 @@ class SKUIngredientData:
         return "SKUIngredientDataObject: SKU Number = " + self.sku_number + ", Ingredient Number = " \
                + self.ingredient_number + ", Quantity = " + self.quantity
 
-    def convert_to_database_model(self, sku_list, ingredient_list):
-        # return models.IngredientQty(sku=int(self.sku_number), ingredient=int(self.ingredient_number),
-        #                             quantity=Decimal(self.quantity))
-        chosen_sku_model = None
-        chosen_ing_model = None
-        for sku_model in sku_list:
-            if sku_model.sku_num == int(self.sku_number):
-                chosen_sku_model = sku_model
-        for ing_model in ingredient_list:
-            if ing_model.number == int(self.ingredient_number):
-                chosen_ing_model = ing_model
-        return models.IngredientQty(sku=chosen_sku_model, ingredient=chosen_ing_model,
+    def convert_to_database_model(self, chosen_sku, chosen_ingredient):
+        return models.IngredientQty(sku=chosen_sku, ingredient=chosen_ingredient,
                                     quantity=Decimal(self.quantity))
