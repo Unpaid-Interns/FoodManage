@@ -38,10 +38,11 @@ class SKUData:
                + ", Count per case = " + self.case_count + ", Product Line = " + self.product_line + \
                ", Comment = '" + self.comment + "'"
 
-    def convert_to_database_model(self):
+    def convert_to_database_model(self, product_line_dict):
         return models.SKU(sku_num=int(self.sku_number), name=self.name, case_upc=Decimal(self.case_upc),
                           unit_upc=Decimal(self.unit_upc), unit_size=self.unit_size,
-                          units_per_case=int(self.case_count), product_line=models.ProductLine(name=self.name), comment=self.comment)
+                          units_per_case=int(self.case_count), product_line=product_line_dict[self.product_line],
+                          comment=self.comment)
 
 
 class IngredientData:

@@ -60,13 +60,15 @@ class CSVImport():
 
     def commit_to_database(self):
         models_array = []
+        product_line_dict = dict()
         for i in self.data_dict["product_lines"]:
             models_array.append(i.convert_to_database_model())
+            product_line_dict[i.name] = i.convert_to_database_model()
         models.ProductLine.objects.bulk_create(models_array)
 
         models_array.clear()
         for i in self.data_dict["skus"]:
-            models_array.append(i.convert_to_database_model())
+            models_array.append(i.convert_to_database_model(product_line_dict))
         models.SKU.objects.bulk_create(models_array)
         sku_array = models_array
 
@@ -76,10 +78,10 @@ class CSVImport():
         models.Ingredient.objects.bulk_create(models_array)
         ingredients_array = models_array
 
-        models_array.clear()
-        for i in self.data_dict["formula"]:
-            models_array.append(i.convert_to_database_model(sku_array, ingredients_array))
-        models.IngredientQty.objects.bulk_create(models_array)
+        # models_array.clear()
+        # for i in self.data_dict["formula"]:
+        #     models_array.append(i.convert_to_database_model(sku_array, ingredients_array))
+        # models.IngredientQty.objects.bulk_create(models_array)
 
         # for p in self.data_dict:
         #     models_array = []
@@ -181,49 +183,49 @@ def formula_parser_helper(row, num_records_imported):
 def check_for_identical_record(record, file_prefix):
     # Returns blank string if no identical record found
     # Could use filter to check for same name and ID but not other fields
-    if(file_prefix != "formula"):
-        record_converted = record.convert_to_database_model()
-    if (file_prefix == "skus"):
-        models_list = models.SKU.objects.filter(name=record_converted.name)
-        for item in models_list:
-            if (item.name == record_converted.name and item.sku_num == record_converted.sku_num and
-                    item.case_upc == record_converted.case_upc and item.unit_upc == record_converted.unit_upc
-                    and item.unit_size == record_converted.unit_size and item.units_per_case ==
-                    record_converted.units_per_case and item.product_line == record_converted.product_line and
-                    item.comment == record_converted.comment):
-                return "identical"
-        list2 = models.SKU.objects.filter(case_upc=record_converted.case_upc, sku_num=record_converted.sku_num)
-        if (len(list2) > 0):
-            return "ERROR: Non-identical conflicting SKU record found with Case UPC '" + list2[
-                0].case_upc + "' and SKU number '" \
-                   + str(list2[0].sku_num)
-    if (file_prefix == "ingredients"):
-        models_list = models.Ingredient.objects.filter(name=record.name)
-        for item in models_list:
-            if (item.name == record_converted.name and item.number == record_converted.number
-                    and item.vendor_info == record_converted.vendor_info and
-                    item.package_size == record_converted.package_size and item.cost == record_converted.cost
-                    and item.comment == record_converted.comment):
-                return "identical"
-        list2 = models.Ingredient.objects.filter(name=record_converted.name, number=record_converted.number)
-        if (len(list2) > 0):
-            return "ERROR: Non-identical conflicting Ingredient record found with name '" + list2[0].name + \
-                   "' and number '" + str(list2[0].number)
-    if (file_prefix == "product_lines"):
-        models_list = models.ProductLine.objects.filter(name=record.name)
-        for item in models_list:
-            if (item.name == record_converted.name):
-                return "identical"
-        list2 = models.ProductLine.objects.filter(name=record_converted.name)
-        if (len(list2) > 0):
-            return "ERROR: Non-identical conflicting Product Line record found with name '" + list2[0].name
-    if (file_prefix == "formula"):
-        models_list = models.IngredientQty.objects.filter(quantity=Decimal(record.quantity))
-        for item in models_list:
-            if (item.sku.sku_num == int(record.sku_number) and item.ingredient.number == int(record.ingredient_number)
-                    and item.quantity == Decimal(record.quantity)):
-                return "identical"
-        # Do we need to check or non-identical match here?
+    # if(file_prefix != "formula"):
+    #     record_converted = record.convert_to_database_model()
+    # if (file_prefix == "skus"):
+    #     models_list = models.SKU.objects.filter(name=record_converted.name)
+    #     for item in models_list:
+    #         if (item.name == record_converted.name and item.sku_num == record_converted.sku_num and
+    #                 item.case_upc == record_converted.case_upc and item.unit_upc == record_converted.unit_upc
+    #                 and item.unit_size == record_converted.unit_size and item.units_per_case ==
+    #                 record_converted.units_per_case and item.product_line == record_converted.product_line and
+    #                 item.comment == record_converted.comment):
+    #             return "identical"
+    #     list2 = models.SKU.objects.filter(case_upc=record_converted.case_upc, sku_num=record_converted.sku_num)
+    #     if (len(list2) > 0):
+    #         return "ERROR: Non-identical conflicting SKU record found with Case UPC '" + list2[
+    #             0].case_upc + "' and SKU number '" \
+    #                + str(list2[0].sku_num)
+    # if (file_prefix == "ingredients"):
+    #     models_list = models.Ingredient.objects.filter(name=record.name)
+    #     for item in models_list:
+    #         if (item.name == record_converted.name and item.number == record_converted.number
+    #                 and item.vendor_info == record_converted.vendor_info and
+    #                 item.package_size == record_converted.package_size and item.cost == record_converted.cost
+    #                 and item.comment == record_converted.comment):
+    #             return "identical"
+    #     list2 = models.Ingredient.objects.filter(name=record_converted.name, number=record_converted.number)
+    #     if (len(list2) > 0):
+    #         return "ERROR: Non-identical conflicting Ingredient record found with name '" + list2[0].name + \
+    #                "' and number '" + str(list2[0].number)
+    # if (file_prefix == "product_lines"):
+    #     models_list = models.ProductLine.objects.filter(name=record.name)
+    #     for item in models_list:
+    #         if (item.name == record_converted.name):
+    #             return "identical"
+    #     list2 = models.ProductLine.objects.filter(name=record_converted.name)
+    #     if (len(list2) > 0):
+    #         return "ERROR: Non-identical conflicting Product Line record found with name '" + list2[0].name
+    # if (file_prefix == "formula"):
+    #     models_list = models.IngredientQty.objects.filter(quantity=Decimal(record.quantity))
+    #     for item in models_list:
+    #         if (item.sku.sku_num == int(record.sku_number) and item.ingredient.number == int(record.ingredient_number)
+    #                 and item.quantity == Decimal(record.quantity)):
+    #             return "identical"
+    #     # Do we need to check or non-identical match here?
     return ""
 
 
@@ -231,16 +233,16 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
     row_num = 0
     for record in record_list:
         row_num += 1
-        if (file_prefix == "skus"):
-            # if (new_record.name == record.name):
-            #     return "ERROR: Duplicate name '" + new_record.name + "' in SKU CSV file at lines '" \
-            #            + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
-            if (new_record.sku_number == record.sku_number):
-                return "ERROR: Duplicate SKU number(s) '" + new_record.sku_number + "' in SKU CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
-            if (new_record.case_upc == record.case_upc):
-                return "ERROR: Duplicate Case UPC number(s) '" + new_record.case_upc + "' in SKU CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
+        # if (file_prefix == "skus"):
+        #     # if (new_record.name == record.name):
+        #     #     return "ERROR: Duplicate name '" + new_record.name + "' in SKU CSV file at lines '" \
+        #     #            + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
+        #     if (new_record.sku_number == record.sku_number):
+        #         return "ERROR: Duplicate SKU number(s) '" + new_record.sku_number + "' in SKU CSV file at lines '" \
+        #                + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
+        #     if (new_record.case_upc == record.case_upc):
+        #         return "ERROR: Duplicate Case UPC number(s) '" + new_record.case_upc + "' in SKU CSV file at lines '" \
+        #                + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
         if (file_prefix == "ingredients"):
             if (new_record.name == record.name):
                 return "ERROR: Duplicate name '" + new_record.name + "' in Ingredients CSV file at lines '" \

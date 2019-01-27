@@ -17,6 +17,7 @@ class ProductLine(models.Model):
 	def __str__(self):
 		return self.name
 
+
 class SKU(models.Model):
 	name = models.CharField(max_length=32)
 	sku_num = models.AutoField(primary_key=True)

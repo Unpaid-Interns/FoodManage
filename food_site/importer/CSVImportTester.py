@@ -7,7 +7,7 @@ def run():
         print("CLASS TEST STARTING...")
         importer = CSVImport.CSVImport()
         filenames = ["importer/product_lines.csv", "importer/ingredients.csv", \
-                     "importer/skus.csv", "importer/formula.csv"]
+                     "importer/skus.csv"]#, "importer/formula.csv"]
         importer.set_filenames(filenames)
         importer.parse()
 
