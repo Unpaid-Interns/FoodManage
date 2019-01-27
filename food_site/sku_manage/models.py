@@ -40,16 +40,16 @@ class SKU(models.Model):
 	comment = models.TextField(blank=True)
 
 	def check_case_upc(self):
-		upc_str = '0' * (12-len(self.case_upc)) + str(self.case_upc)
+		upc_str = '0' * (12-len(str(self.case_upc))) + str(self.case_upc)
 		if 0 < int(upc_str[0]) < 6:
 			return False
-		sum = 0
-		for i in range(0, 5):
-			sum += int(upc_str[i*2])
-		sum = sum * 3
-		for i in range(0, 5):
-			sum += int(upc_str[i*2 + 1])
-		return sum % 10 == 0
+		sum_val = 0
+		for i in range(0, 6):
+			sum_val += int(upc_str[i*2])
+		sum_val = sum_val * 3
+		for i in range(0, 6):
+			sum_val += int(upc_str[i*2 + 1])
+		return sum_val % 10 == 0
 
 	def check_unit_upc(self):
 		pass
