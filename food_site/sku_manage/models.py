@@ -52,13 +52,13 @@ class SKU(models.Model):
 		return sum % 10 == 0
 
 	def check_unit_upc(self):
-
+		pass
 
 	def gen_num(self):
-	skus = SKU.objects.order_by('number')
-	for i in range(0, len(skus) + 1):
-		if(skus[i].sku_num > i):
-			return i
+		skus = SKU.objects.order_by('number')
+		for i in range(0, len(skus) + 1):
+			if(skus[i].sku_num > i):
+				return i
 
 	def __str__(self):
 		return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case) 
