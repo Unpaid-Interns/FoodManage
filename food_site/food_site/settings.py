@@ -39,13 +39,13 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'sku_manage.apps.SkuManageConfig',
+    'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home',
 ]
 
 MIDDLEWARE = [
@@ -87,6 +87,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'db_name',
+    #     'USER': 'db_user',
+    #     'PASSWORD': 'db_password',
+    #     'HOST': '',
+    #     'PORT': '',
+    # }
 }
 
 

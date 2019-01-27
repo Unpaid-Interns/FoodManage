@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('home.urls')),
     path('importer/', include('importer.urls')),
     path('exporter/', include('exporter.urls')),
+    path('', include('sku_manage.urls')),
 ]

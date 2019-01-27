@@ -1,16 +1,16 @@
 body {
-	background-color: black;
+	background-color: white;
 	text-align: center;
 	font-family: verdana;
 }
 
 h1 {
-	color: lightblue;
+	color: black;
 	text-align: center;
 	font-family: verdana;
 }
 
 a {
-	color: white;
+	color: black;
 	font-family: verdana;
 }
