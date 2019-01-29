@@ -1,5 +1,5 @@
-Number,Name,Vendor Info,Size,Cost,Comment
-1,First Name,Vendor Info 1,1,143,First comment
-2,Second Name,Vendor Info 2,9,1234,Second comment
-3,Third Name,Vendor Info 3,1,234,Third comment
-4,Fourth Name,Vendor Info 4,1,33,Fourth comment
+Ingr#,Name,Vendor Info,Size,Cost,Comment
+1,First Name,Vendor Info 1,1 lbs,143,First comment
+2,Second Name,Vendor Info 2 lbs,9 lbs,1234,Second comment
+3,Third Name,Vendor Info 3,1 lbs,234.7,Third comment
+4,Fourth Name,Vendor Info 4,1 lbs,33,Fourth comment

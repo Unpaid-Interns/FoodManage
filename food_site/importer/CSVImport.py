@@ -4,24 +4,20 @@ from importer import CSVData
 from sku_manage import models
 from decimal import Decimal
 
-# test = "skus"
-# test = "ingredients"
-# test = "product_lines"
-# test = "formula"
-# test = "skus-Jan-22-2019"
-# test = "ALL"
-test = "class_test"
-
 headerDict = CSVData.headerDict
 
 
-class CSVImport():
+class CSVImport:
     def __init__(self, filename_array=[]):
         self.filenames = filename_array
         self.data_dict = dict()
         self.number_records_dict = dict()
 
     def parse(self):
+        """
+        Parses the data
+        :return: bool for success/failure, error str
+        """
         parsing_completed_successfully = True
         import_completed_successfully = False
         total_num_records_imported = 0
@@ -39,7 +35,8 @@ class CSVImport():
                     # print(error_message)
                     # parsing_completed_successfully = False
             else:
-                return False, "Import failed for: " + filename + "\n" + "ERROR: file name " + filename + " is invalid, must begin with valid prefix 'skus', \
+                return False, "Import failed for: " + filename + "\n" + "ERROR: file name " + filename \
+                       + " is invalid, must begin with valid prefix 'skus', \
                         'ingredients', 'product_lines', or 'sku_ingredients'"
                 # print("Import failed for: " + filename)
                 # print("ERROR: file name " + filename + " is invalid, must begin with valid prefix 'skus', \
@@ -76,6 +73,10 @@ class CSVImport():
         self.filenames = filename_array
 
     def commit_to_database(self):
+        """
+        Commits data to database
+        :return: error str (blank string if no error)
+        """
         models_array = []
         product_line_dict = dict()
         for i in self.data_dict["product_lines"]:
@@ -170,7 +171,11 @@ class CSVImport():
 
 
 def parser(filename):
-    # Returns: parsed data, number records imported, bool indicating success, and error message
+    """
+    Parses the given file
+    :param filename: str of file's name
+    :return: parsed data, number records imported, bool indicating success, and error message string
+    """
 
     # Check for valid prefix in file name
     file_prefix, valid = prefix_check(filename)
@@ -195,7 +200,7 @@ def parser(filename):
             for row in data_reader:
                 # Make sure header is correct
                 if not header_check_complete:
-                    header_valid, header_issue = header_check(row, header_correct)
+                    header_valid, header_issue = header_check(row, header_correct, file_prefix)
                     header_check_complete = True
                     continue
                 if not header_valid:
@@ -223,57 +228,148 @@ def parser(filename):
                 else:
                     return None, None, False, database_record_check
     except FileNotFoundError:
-        return None, None, False, "*ERROR: Unable to open file: '" + filename + "'."
+        return None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
+    except:
+        return None, None, False, "*ERROR: File type not valid or unknown error."
     return parsed_data, num_records_parsed - num_record_ignored, True, ""
 
 
-def skus_parser_helper(row, num_records_imported):
+def skus_parser_helper(row, num_records_parsed):
+    """
+    Helper function for skus.csv file
+    :param row: The row being parsed
+    :param num_records_parsed: The number of records parsed so far - used for determining current row in file
+    :return: str for error if there is one, otherwise return the data
+    """
     if len(row) != 8:
         print('hello')
         print(row)
-        return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_imported + 2) +
-                ", needs 8 entries but has either more or less")
+        return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_parsed + 2) +
+                ", needs 8 entries but has either more or less.")
     if(row[0] == ""):
-        # TODO: FILL IN SKU NUMBER BY CALLING FUNCTION
+        # TODO: GENERATE SKU NUMBER BY CALLING FUNCTION
         pass
-    for i in range(1,8):
+    else:
+        if not integer_check(row[0]):
+            return "ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
+                   + "and col #1."
+    for i in range(1,7):
         if row[i] == "":
-            return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_imported + 2) + " and col #"
+            return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                     + str(i+1) + ". Entry in this row/column is required but is blank.")
+        if i in [2,3]:
+            if not decimal_check(row[i]):
+                return("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                      + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not.")
+        if i in [5]:
+            if not integer_check(row[i]):
+                return("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
+                       + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a integer value "
+                                                     "but is not.")
     return CSVData.SKUData(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
 
 
-def ingredients_parser_helper(row, num_records_imported):
+def ingredients_parser_helper(row, num_records_parsed):
+    """
+    Helper function for ingredient.csv file
+    :param row: The row being parsed
+    :param num_records_parsed: The number of records parsed so far - used for determining current row in file
+    :return: str for error if there is one, otherwise return the data
+    """
     if len(row) != 6:
         return ("ERROR: Problem with number of entries in Ingredients CSV file at row #" + str(
-            num_records_imported + 2) +
-                ", needs 6 entries but has either more or less")
+            num_records_parsed + 2) +
+                ", needs 6 entries but has either more or less.")
+    if (row[0] == ""):
+        # TODO: GENERATE Ingr# BY CALLING FUNCTION
+        pass
+    else:
+        if not integer_check(row[0]):
+            return "ERROR: Ingr# in Ingredient CSV file is not an integer in row #" \
+                   + str(num_records_parsed + 2) + "and col #1."
+    for i in [1, 3, 4]:
+        if row[i] == "":
+            return ("ERROR: Problem in Ingredient CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                    + str(i+1) + ". Entry in this row/column is required but is blank.")
+        if i in [4]:
+            if not decimal_check(row[i]):
+                return("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
+                       + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a decimal value "
+                                                     "but is not.")
     return CSVData.IngredientData(row[0], row[1], row[2], row[3], row[4], row[5])
 
 
-def product_lines_parser_helper(row, num_records_imported):
+def product_lines_parser_helper(row, num_records_parsed):
+    """
+    Helper function for product_lines.csv file
+    :param row: The row being parsed
+    :param num_records_parsed: The number of records parsed so far - used for determining current row in file
+    :return: str for error if there is one, otherwise return the data
+    """
     if len(row) != 1:
         return ("ERROR: Problem with number of entries in Product Lines CSV file at row #" + str(
-            num_records_imported + 2)
-                + ", needs 1 entries but has either more or less")
+            num_records_parsed + 2)
+                + ", needs 1 entries but has either more or less.")
     return CSVData.ProductLineData(row[0])
 
 
-def formula_parser_helper(row, num_records_imported):
+def formula_parser_helper(row, num_records_parsed):
+    """
+    Helper function for formula.csv file
+    :param row: The row being parsed
+    :param num_records_parsed: The number of records parsed so far - used for determining current row in file
+    :return: str for error if there is one, otherwise return the data
+    """
     if len(row) != 3:
         return ("ERROR: Problem with number of entries in Formula CSV file at row #"
-                + str(num_records_imported + 2) + ", needs 3 entries but has either more or less")
+                + str(num_records_parsed + 2) + ", needs 3 entries but has either more or less.")
+    for i in [0, 1, 2]:
+        if i in [0,1]:
+            if not integer_check(row[i]):
+                return "ERROR: Problem in Formula CSV file in row #" + str(num_records_parsed + 2) + " and col #" \
+                    + str(i+1) + ". Entry in this column must be an integer value but is not."
+        if i in [2]:
+            if not decimal_check(row[i]):
+                return "ERROR: Problem in Formula CSV file with 'Quantity' in row #" + str(num_records_parsed + 2) \
+                       + " and col #" \
+                       + str(i + 1) + ". Entry in this column must be an decimal value but is not."
     return CSVData.SKUIngredientData(row[0], row[1], row[2])
 
-def decimal_check():
-    # TODO
-    pass
 
-def intenger_check():
-    # TODO
-    pass
+def decimal_check(numberString):
+    """
+    Checks if a string can be converted to a decimal
+    :param numberString: str input to be checked as a decimal
+    :return: True/False to indicate if it is/is not a decimal
+    """
+    try:
+        _ = Decimal(numberString)
+        return True
+    except:
+        return False
+
+
+def integer_check(numberString):
+    """
+    Checks if a string can be converted to an integer
+    :param numberString: str input to be checked as an integer
+    :return: True/False to indicate if it is/is not an integer
+    """
+    try:
+        _ = int(numberString)
+        return True
+    except:
+        return False
+
 
 def check_for_identical_record(record, file_prefix, number_records_imported):
+    """
+    Checks for identical and/or conflicting records in the database
+    :param record: The record being parsed
+    :param file_prefix: The prefix to the file being imported
+    :param number_records_imported: The number of records imported so far
+    :return: str with the error if there is one
+    """
     # Returns blank string if no identical record found
     # Could use filter to check for same name and ID but not other fields
     if (file_prefix != "formula" and file_prefix != "skus"):
@@ -343,6 +439,14 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
 
 
 def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records_imported):
+    """
+    Checks to see if a record being parsed has any conflicts with records already parsed.
+    :param new_record: The record being parsed.
+    :param record_list: List of records already parsed.
+    :param file_prefix: The prefix to the file being imported.
+    :param num_records_imported: The number of records parsed so far.
+    :return: str indicating an error if there is one
+    """
     row_num = 0
     for record in record_list:
         row_num += 1
@@ -377,7 +481,26 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
     return ""
 
 
-def header_check(header, headerCorrect):
+def header_check(header, headerCorrect, file_prefix):
+    """
+    Checks if the header for a given file is correct.
+    :param header: What the header actually is.
+    :param headerCorrect: What the header should be.
+    :param file_prefix: The prefix to the file being checked, used to determine if header #cols is correct.
+    :return: True/False for success/failure, str to indicate the error
+    """
+    if file_prefix == "skus":
+        if len(header) != 8:
+            return False, "ERROR: Header is not correct in SKU CSV file. Too many or not enough columns."
+    if file_prefix == "ingredients":
+        if len(header) != 6:
+            return False, "ERROR: Header is not correct in Ingredients CSV file. Too many or not enough columns."
+    if file_prefix == "product_lines":
+        if len(header) != 1:
+            return False, "ERROR: Header is not correct in Product Lines CSV file. Too many or not enough columns."
+    if file_prefix == "formula":
+        if len(header) != 3:
+            return False, "ERROR: Header is not correct in Formula CSV file. Too many or not enough columns."
     col = 0
     for item in header:
         if headerCorrect[col] != item:
@@ -388,6 +511,11 @@ def header_check(header, headerCorrect):
 
 
 def prefix_check(filename):
+    """
+    Checks if the prefix to the file is valid.
+    :param filename: The full filename of the file being imported.
+    :return: The correct prefix to the file if it exists, True/False to indicate success/failure
+    """
     filename_no_importer_prefix = filename
     if filename.startswith("importer/"):
         filename_no_importer_prefix = filename[len("importer/"):]
@@ -399,54 +527,3 @@ def prefix_check(filename):
     if (file_prefix == ""):
         valid = False
     return file_prefix, valid
-
-
-"""
-Testing code to run if code executed directly.
-
-Uncomment desired test to run at top of code.
-"""
-if __name__ == '__main__':
-    if (test == "ALL"):
-        print("IMPORT ALL TEST STARTING...")
-        data = []
-        numRecordsImported = []
-        for prefix in CSVData.validFilePrefixes:
-            tempData, tempNumRecords = parser(prefix + ".csv")
-            data.append(tempData)
-            numRecordsImported.append(tempNumRecords)
-        try:
-            count = 0
-            for imported_set in data:
-                print(type(data[count][0]).__name__)
-                print("Number of records imported = ", numRecordsImported[count])
-                for item in data[count]:
-                    print(item)
-                print("")
-                count += 1
-        except UnicodeError:
-            print("error printing data")
-    elif (test == "class_test"):
-        print("CLASS TEST STARTING...")
-        importer = CSVImport()
-        filenames = ["skus.csv", "ingredients.csv", "product_lines.csv", "sku_ingredients.csv"]
-        importer.set_filenames(filenames)
-        importer.parse()
-        try:
-            for file_prefix in importer.data_dict:
-                print("Data for: " + file_prefix + ".csv")
-                print("Number of records imported = ", importer.number_records_dict[file_prefix])
-                for item in importer.data_dict[file_prefix]:
-                    print(item)
-                print("")
-        except UnicodeError:
-            print("error printing data")
-    else:
-        print("IMPORT TEST STARTING FOR: " + test + "...")
-        data, numRecordsImported = parser(test + ".csv")
-        try:
-            print("Number of records imported = ", numRecordsImported)
-            for item in data:
-                print(item)
-        except UnicodeError:
-            print("error printing data")

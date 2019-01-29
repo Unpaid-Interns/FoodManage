@@ -2,11 +2,11 @@ from decimal import Decimal
 from sku_manage import models
 
 headerDict = {
-    "skus.csv": ["Number", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
+    "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
                  "Comment"],
-    "ingredients.csv": ["Number", "Name", "Vendor Info", "Size", "Cost", "Comment"],
+    "ingredients.csv": ["Ingr#", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
-    "formula.csv": ["SKU Number", "Ingredient Number", "Quantity"]
+    "formula.csv": ["SKU#", "Ingr#", "Quantity"]
 }
 
 validFilePrefixes = ["skus", "ingredients", "product_lines", "formula"]
