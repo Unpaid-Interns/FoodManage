@@ -1,0 +1,25 @@
+<!-- sku_manage/templates/ingredient.html -->
+<!DOCTYPE html>
+<html>
+	{% load staticfiles %}
+	{% load static %}
+	{% load render_table from django_tables2 %}
+	{% load bootstrap3 %}
+	<head>
+		<meta charset="utf-8">
+        	<title>HypoMeals</title>
+        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
+	</head>
+	<body>
+		<h1>Data shown below:</h1>
+		<div style="overflow-x:auto;">
+		{% if filter %}
+			<form action="" method-"get" class="form form-inline">
+				{% bootstrap_form filter.form layout='inline' %}
+				{% bootstrap_button 'filter' %}
+			</form>
+		{% endif %}
+		{% render_table table %}
+		</div>
+	</body>
+<html>

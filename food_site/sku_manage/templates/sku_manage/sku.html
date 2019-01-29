@@ -3,16 +3,16 @@
 <html>
 	{% load staticfiles %}
 	{% load static %}
+	{% load render_table from django_tables2 %}
 	<head>
 		<meta charset="utf-8">
         	<title>HypoMeals</title>
         	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}">
 	</head>
 	<body>
-		<h1>Data shown below:<h1>
-		<u1>
-		{% for Ingredient in Ingredient_list %}
-			<li>{{ Ingredient.name }}</li>
-		{% endfor %}
+		<h1>Data shown below:</h1>
+		<div style="overflow-x:auto;">
+		{% render_table SKU_list %}
+		</div>
 	</body>
 <html>

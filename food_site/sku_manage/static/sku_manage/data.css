@@ -2,5 +2,13 @@ body {
         background-color: white;
         text-align: center;
         font-family: verdana;
+	font-size: 14pt
 }
 
+table, th, td {
+	border: 1px solid black;
+}
+
+table {
+	width: 100%;
+}
