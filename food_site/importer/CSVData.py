@@ -14,15 +14,6 @@ validFilePrefixes = ["skus", "ingredients", "product_lines", "formula"]
 
 class SKUData:
     def __init__(self, sku_number, name, case_upc, unit_upc, unit_size, case_count, product_line, comment):
-        self.exportData = []
-        self.exportData.append(sku_number)
-        self.exportData.append(name)
-        self.exportData.append(case_upc)
-        self.exportData.append(unit_upc)
-        self.exportData.append(unit_size)
-        self.exportData.append(case_count)
-        self.exportData.append(product_line)
-        self.exportData.append(comment)
         self.name = name
         self.sku_number = sku_number
         self.case_upc = case_upc
@@ -47,13 +38,6 @@ class SKUData:
 
 class IngredientData:
     def __init__(self, number, name, vendor_info, package_size, cost, comment):
-        self.exportData = []
-        self.exportData.append(number)
-        self.exportData.append(name)
-        self.exportData.append(vendor_info)
-        self.exportData.append(package_size)
-        self.exportData.append(cost)
-        self.exportData.append(comment)
         self.name = name
         self.number = number
         self.vendor_info = vendor_info
@@ -73,8 +57,6 @@ class IngredientData:
 
 class ProductLineData:
     def __init__(self, name):
-        self.exportData = []
-        self.exportData.append(name)
         self.name = name
 
     def __str__(self):
@@ -86,10 +68,6 @@ class ProductLineData:
 
 class SKUIngredientData:
     def __init__(self, sku_number, ingredient_number, quantity):
-        self.exportData = []
-        self.exportData.append(sku_number)
-        self.exportData.append(ingredient_number)
-        self.exportData.append(quantity)
         self.sku_number = sku_number
         self.ingredient_number = ingredient_number
         self.quantity = quantity

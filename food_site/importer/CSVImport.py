@@ -3,6 +3,8 @@ import csv
 from importer import CSVData
 from sku_manage import models
 from decimal import Decimal
+import re
+import unicodedata
 
 headerDict = CSVData.headerDict
 
@@ -213,20 +215,20 @@ def parser(filename):
                     return None, None, False, temp_data
 
                 # Check for matching database records
-                database_record_check = check_for_identical_record(temp_data, file_prefix, num_records_parsed)
-                if (database_record_check == ""):
-                    matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix, num_records_parsed)
-                    if (matching_check == ""):
+                matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix, num_records_parsed)
+                if (matching_check == ""):
+                    database_record_check = check_for_identical_record(temp_data, file_prefix, num_records_parsed)
+                    if (database_record_check == ""):
                         # parsed_data.append(temp_data, file_prefix)
                         parsed_data.append(temp_data)
                         num_records_parsed += 1
+                    elif (database_record_check == "identical"):
+                        num_records_parsed += 1
+                        num_record_ignored += 1
                     else:
-                        return None, None, False, matching_check
-                elif (database_record_check == "identical"):
-                    num_records_parsed += 1
-                    num_record_ignored += 1
+                        return None, None, False, database_record_check
                 else:
-                    return None, None, False, database_record_check
+                    return None, None, False, matching_check
     except FileNotFoundError:
         return None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
     except:
@@ -456,14 +458,14 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
             #            + str(row_num) + "' and '" + str(num_records_imported+1) + "'"
             if (new_record.sku_number == record.sku_number):
                 return "ERROR: Duplicate SKU number(s) '" + new_record.sku_number + "' in SKU CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported + 1) + "'"
+                       + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
             if (new_record.case_upc == record.case_upc):
                 return "ERROR: Duplicate Case UPC number(s) '" + new_record.case_upc + "' in SKU CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported + 1) + "'"
+                       + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
         if (file_prefix == "ingredients"):
             if (new_record.name == record.name):
                 return "ERROR: Duplicate name '" + new_record.name + "' in Ingredients CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported + 1) + "'"
+                       + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
             if (new_record.number == record.number):
                 return "ERROR: Duplicate Ingredient number '" + new_record.number + \
                        "' in Ingredients CSV file at lines '" + str(row_num) + "' and '" \
@@ -471,21 +473,21 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
         if (file_prefix == "product_lines"):
             if (new_record.name == record.name):
                 return "ERROR: Duplicate name '" + new_record.name + "' in Product Lines CSV file at lines '" \
-                       + str(row_num) + "' and '" + str(num_records_imported + 1) + "'"
+                       + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
         if (file_prefix == "formula"):
             if (new_record.sku_number == record.sku_number and
                     new_record.ingredient_number == record.ingredient_number):
                 return "ERROR: Matching SKU/Ingredient pairing '" + new_record.sku + " / " + new_record.ingredient \
                        + "' in Formula CSV file at lines '" + str(row_num) + "' and '" \
-                       + str(num_records_imported + 1) + "'"
+                       + str(num_records_imported + 2) + "'"
     return ""
 
 
-def header_check(header, headerCorrect, file_prefix):
+def header_check(header, header_correct, file_prefix):
     """
     Checks if the header for a given file is correct.
     :param header: What the header actually is.
-    :param headerCorrect: What the header should be.
+    :param header_correct: What the header should be.
     :param file_prefix: The prefix to the file being checked, used to determine if header #cols is correct.
     :return: True/False for success/failure, str to indicate the error
     """
@@ -503,8 +505,14 @@ def header_check(header, headerCorrect, file_prefix):
             return False, "ERROR: Header is not correct in Formula CSV file. Too many or not enough columns."
     col = 0
     for item in header:
-        if headerCorrect[col] != item:
-            headerError = "ERROR: csv header = '" + item + "' but should be '" + headerCorrect[col] + "'"
+        # print(item)
+        # try:
+        #     print(unicodedata.name(item[0]))
+        # except:
+        #     print("unable to get unicode data")
+        #if header_correct[col] != re.sub(r'[^a-zA-Z0-9_# ]', '', item):
+        if header_correct[col] != item.replace(u'\ufeff', ''):
+            headerError = "ERROR: csv header = '" + item + "' but should be '" + header_correct[col] + "'"
             return False, headerError
         col += 1
     return True, ""

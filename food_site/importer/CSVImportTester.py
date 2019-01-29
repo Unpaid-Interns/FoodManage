@@ -8,8 +8,10 @@ def run():
         print("")
         print("CSVImportTester: STARTING TEST...")
         importer = CSVImport.CSVImport()
-        filenames = ["importer/product_lines.csv", "importer/ingredients.csv", \
-                     "importer/skus.csv", "importer/formula.csv"]
+        # filenames = ["importer/product_lines2.csv", "importer/ingredients2.csv", \
+        #              "importer/skus2.csv", "importer/formula2.csv"]
+        filenames = ["importer/product_lines1.csv", "importer/ingredients1.csv",
+                     "importer/skus1.csv", "importer/formula1.csv"]
         importer.set_filenames(filenames)
         success, result_message = importer.parse()
         print(result_message)
