@@ -12,14 +12,33 @@
 	</head>
 	<body>
 		<h1>Data shown below:</h1>
-		<div style="overflow-x:auto;">
+		<button class="collapsible">Filter Data</button>
+		<div class="content">
 		{% if filter %}
 			<form action="" method-"get" class="form form-inline">
 				{% bootstrap_form filter.form layout='inline' %}
 				{% bootstrap_button 'filter' %}
 			</form>
 		{% endif %}
+		</div>
+		<script>
+			var coll = document.getElementsByClassName("collapsible");
+			var i;
+
+			for (i = 0; i < coll.length; i++) {
+  				coll[i].addEventListener("click", function() {
+    				this.classList.toggle("active");
+    				var content = this.nextElementSibling;
+    				if (content.style.display === "block") {
+      					content.style.display = "none";
+    				} else {
+      					content.style.display = "block";
+    				}
+  				});
+			}			
+		</script>
+		<div style="overflow-x:auto;">
 		{% render_table table %}
 		</div>
 	</body>
-<html>
+</html>
