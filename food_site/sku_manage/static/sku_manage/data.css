@@ -1,5 +1,5 @@
 body {
-        background-color: #33af73;
+        background-color: white;
         text-align: center;
         font-family: verdana;
 	font-size: 14pt
@@ -11,11 +11,11 @@ table {
 }
 
 tr:hover {
-	background-color: #4ff9aa;
+	background-color: #a7d5f2;
 }
 
 th {
-	background-color: #2f40bf;
+	background-color: black;
 	color: white;
 }
 
@@ -25,7 +25,7 @@ a{
 }
 
 tr:nth-child(even) {
-	background-color: #3bcc88;
+	background-color: #c4e8ff;
 }
 
 input {
@@ -33,9 +33,9 @@ input {
 	padding: 12px 8px;
 	margin: 8px 0;
 	box-sizing: border-box;
-	border: 2px solid green;
+	border: 2px solid #c4e8ff;
 	border-radius: 4px;
-	background-color: #42f498;
+	background-color: white;
 	color: black;
 }
 
@@ -59,4 +59,21 @@ button {
 text {
 	padding: 10px 10px;
 	color: white;
+}
+
+select {
+	width: 100%;
+        padding: 12px 8px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 2px solid #c4e8ff;
+        border-radius: 4px;
+        background-color: white;
+        color: black;
+}
+
+.ret {
+	color: red;
+	text-decoration: underline;
+	font-weight: bold;
 }
