@@ -21,3 +21,6 @@ def authin(request):
 
 def invalidlogin(request):
 	return render(request, 'home/invalidlogin.html', context=None)
+
+def help(request):
+	return render(request, 'home/help.html', context=None)

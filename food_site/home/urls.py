@@ -8,4 +8,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('authin/', views.authin, name='authin'),
     path('invalidlogin/', views.invalidlogin, name='invalidlogin'),
+    path('help/', views.help, name='help'),
 ]

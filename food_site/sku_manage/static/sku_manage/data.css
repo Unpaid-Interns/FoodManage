@@ -1,5 +1,5 @@
 body {
-        background-color: white;
+        background-color: #33af73;
         text-align: center;
         font-family: verdana;
 	font-size: 14pt
@@ -11,7 +11,7 @@ table {
 }
 
 tr:hover {
-	background-color: #f5f5f5;
+	background-color: #4ff9aa;
 }
 
 th {
@@ -25,7 +25,7 @@ a{
 }
 
 tr:nth-child(even) {
-	background-color: #f2f2f2;
+	background-color: #3bcc88;
 }
 
 input {
