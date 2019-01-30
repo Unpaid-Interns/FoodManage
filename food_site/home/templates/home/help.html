@@ -1,0 +1,28 @@
+
+<!-- home/templates/help.html -->
+<!DOCTYPE html>
+<style>
+.table {
+	display: table;
+	margin: 0 auto;
+}
+</style>
+<html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <title>HypoMeals</title>
+	<link rel="stylesheet" type="text/css" href="{% static "home/index.css" %}">
+    </head>
+    <body>
+        <h1>Help Page</h1>
+	<a class="btn btn-primary" href="/">Return</a>
+	<p>Welcome to the Help page! Navigating our site is actually quite simple. For some tips and tricks, please look below:</p>
+	<div class="table">
+	<ul>
+	<li>In order to sort the data columns, simply click the title of the column. Click it again to reverse the sorting!</li>
+	<li>If the data is not visible, you might not be logged in. If this is the case, the return button leads to the login screen!</li>
+	</ul>
+	</div>
+    </body>
+</html>

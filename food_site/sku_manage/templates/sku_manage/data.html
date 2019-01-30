@@ -11,7 +11,10 @@
         	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
 	</head>
 	<body>
+		{% if user.is_authenticated %}
 		<h1>Data shown below:</h1>
+		<a class="ret" href="/search">Return</a>
+		<br></br>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
 		{% if filter %}
@@ -40,5 +43,8 @@
 		<div style="overflow-x:auto;">
 		{% render_table table %}
 		</div>
+		{% else %}
+		<h1>You must be logged in to view data</h1>
+		{% endif %}
 	</body>
 </html>

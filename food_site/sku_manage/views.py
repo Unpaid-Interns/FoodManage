@@ -55,5 +55,4 @@ def authout(request):
         response = redirect('/')
         return response
 
-
 	
