@@ -79,13 +79,11 @@ select {
 	font-weight: bold;
 }
 
-.pagination {
-	color: red;
-	text-decoration: underline;
-	font-weight: bold;
-}
-
-.orderable {
+a {
 	color: white;
 	text-decoration: none;
+}
+
+.pagination {
+	background-color: black;
 }
