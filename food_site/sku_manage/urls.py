@@ -4,5 +4,10 @@ from sku_manage import views
 from django.urls import path
 
 urlpatterns = [
-	path('data/', views.data, name='data'),
+	path('search/ingredient/', views.IngredientView, name='Ingredient'),
+	path('search/productline/', views.ProductLineView, name='ProductLine'),
+	path('search/sku/', views.SKUView, name='SKU'),
+	path('search/ingredientqty/', views.IngredientQtyView, name='IngredientQty'),
+	path('search/', views.search, name='search'),
+	path('authout/', views.authout, name='authout'),
 ]
