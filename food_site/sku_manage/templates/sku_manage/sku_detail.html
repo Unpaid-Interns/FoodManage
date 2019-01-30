@@ -1,0 +1,6 @@
+<h1>{{ sku.name }}</h1>
+<ul>
+{% for choice in sku.ingredientqty_set.all %}
+    <li>{{ ingredientqty.ingredient.name }}</li>
+{% endfor %}
+</ul>
