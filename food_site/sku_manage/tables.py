@@ -18,4 +18,4 @@ class SKUTable(tables.Table):
 
 class IngredientQtyTable(tables.Table):
 	class Meta:
-		model = SKU
+		model = IngredientQty
