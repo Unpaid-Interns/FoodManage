@@ -113,11 +113,35 @@ class CSVImport:
         sku_array = models_array.copy()
         models_array.clear()
 
+
+
+
+
+
+        ingredients_that_need_numbers = []
+        ingr_nums_list = []
         if "ingredients" in file_prefix_array:
             for i in self.data_dict["ingredients"]:
+                if i.ingredient_number != -1:
+                    ingr_nums_list.append(int(i.ingredient_number))
+                    models_array.append(i.convert_to_database_model())
+                else:
+                    ingredients_that_need_numbers.append(i)
+            for i in models.Ingredient.objects.all():
+                ingr_nums_list.append(int(i.number))
+            ingr_nums_list.sort()
+            for i in ingredients_that_need_numbers:
+                chosen_num = -1
+                for index in range(0, len(ingr_nums_list)):
+                    if chosen_num != -1:
+                        continue
+                    if ingr_nums_list[index]+1 != ingr_nums_list[index+1]:
+                        chosen_num = ingr_nums_list[index]+1
+                i.ingredient_number = chosen_num
                 models_array.append(i.convert_to_database_model())
         ingredients_array = models_array.copy()
         models_array.clear()
+
 
         if "formulas" in file_prefix_array:
             for i in self.data_dict["formulas"]:
@@ -289,7 +313,7 @@ def ingredients_parser_helper(row, num_records_parsed):
                 ", needs 6 entries but has either more or less.")
     if (row[0] == ""):
         # TODO: GENERATE Ingr# BY CALLING FUNCTION
-        pass
+        row[0] = "-1"
     else:
         if not integer_check(row[0]):
             return "ERROR: Ingr# in Ingredient CSV file is not an integer in row #" \
