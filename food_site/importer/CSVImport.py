@@ -23,9 +23,11 @@ class CSVImport:
         parsing_completed_successfully = True
         import_completed_successfully = False
         total_num_records_imported = 0
+        file_prefix_array = []
         for filename in self.filenames:
             file_prefix, valid = prefix_check(filename)
             if (valid):
+                file_prefix_array.append(file_prefix)
                 data, num_records, success, error_message = parser(filename)
                 if (success):
                     total_num_records_imported += num_records
@@ -45,7 +47,7 @@ class CSVImport:
                 #         'ingredients', 'product_lines', or 'sku_ingredients'")
                 # parsing_completed_successfully = False
         if parsing_completed_successfully:
-            commit_success_message = self.commit_to_database()
+            commit_success_message = self.commit_to_database(file_prefix_array)
             if commit_success_message == "":
                 import_completed_successfully = True
             else:
@@ -74,94 +76,101 @@ class CSVImport:
     def set_filenames(self, filename_array):
         self.filenames = filename_array
 
-    def commit_to_database(self):
+    def commit_to_database(self, file_prefix_array):
         """
         Commits data to database
         :return: error str (blank string if no error)
         """
+
         models_array = []
-        product_line_dict = dict()
-        for i in self.data_dict["product_lines"]:
-            models_array.append(i.convert_to_database_model())
-            product_line_dict[i.name] = i.convert_to_database_model()
+        if "product_lines" in file_prefix_array:
+
+            product_line_dict = dict()
+            for i in self.data_dict["product_lines"]:
+                models_array.append(i.convert_to_database_model())
+                product_line_dict[i.name] = i.convert_to_database_model()
         product_lines_array = models_array.copy()
-
         models_array.clear()
-        for i in self.data_dict["skus"]:
-            valid_product_line_local = False
-            valid_product_line_database = False
-            chosen_product_line = None
 
-            if i.product_line in product_line_dict:
-                valid_product_line_local = True
-                chosen_product_line = product_line_dict[i.product_line]
+        if "skus" in file_prefix_array:
+            for i in self.data_dict["skus"]:
+                valid_product_line_local = False
+                valid_product_line_database = False
+                chosen_product_line = None
 
-            temp_product_name_list = models.ProductLine.objects.filter(name=i.product_line)
-            if len(temp_product_name_list) > 0:
-                valid_product_line_database = True
-                chosen_product_line = temp_product_name_list[0]
+                if i.product_line in product_line_dict:
+                    valid_product_line_local = True
+                    chosen_product_line = product_line_dict[i.product_line]
 
-            valid_product_line = valid_product_line_database or valid_product_line_local
+                temp_product_name_list = models.ProductLine.objects.filter(name=i.product_line)
+                if len(temp_product_name_list) > 0:
+                    valid_product_line_database = True
+                    chosen_product_line = temp_product_name_list[0]
 
-            if not valid_product_line:
-                return ("Import failed for SKU CSV file \nERROR: Product Line name '" + i.product_line
-                        + "' in SKU CSV file is not a valid name. It is not in the database "
-                          "or in the product_lines CSV file attempting to be imported.")
-            models_array.append(i.convert_to_database_model(chosen_product_line))
+                valid_product_line = valid_product_line_database or valid_product_line_local
+
+                if not valid_product_line:
+                    return ("Import failed for SKU CSV file \nERROR: Product Line name '" + i.product_line
+                            + "' in SKU CSV file is not a valid name. It is not in the database "
+                              "or in the product_lines CSV file attempting to be imported.")
+                models_array.append(i.convert_to_database_model(chosen_product_line))
         sku_array = models_array.copy()
-
         models_array.clear()
-        for i in self.data_dict["ingredients"]:
-            models_array.append(i.convert_to_database_model())
+
+        if "ingredients" in file_prefix_array:
+            for i in self.data_dict["ingredients"]:
+                models_array.append(i.convert_to_database_model())
         ingredients_array = models_array.copy()
-
         models_array.clear()
-        for i in self.data_dict["formula"]:
-            chosen_sku = None
-            chosen_ingredient = None
 
-            # check if sku_number for i is in database
-            sku_number_in_database = False
-            temp_sku_list = models.SKU.objects.filter(sku_num=int(i.sku_number))
-            if len(temp_sku_list) > 0:
-                sku_number_in_database = True
-                chosen_sku = temp_sku_list[0]
+        if "formula" in file_prefix_array:
+            for i in self.data_dict["formula"]:
+                chosen_sku = None
+                chosen_ingredient = None
 
-            # check if sku_number for i is in to-be-imported stuff
-            sku_number_in_local = False
-            for sku in sku_array:
-                if str(sku.sku_num) == i.sku_number:
-                    sku_number_in_local = True
-                    chosen_sku = sku
+                # check if sku_number for i is in database
+                sku_number_in_database = False
+                temp_sku_list = models.SKU.objects.filter(sku_num=int(i.sku_number))
+                if len(temp_sku_list) > 0:
+                    sku_number_in_database = True
+                    chosen_sku = temp_sku_list[0]
 
-            sku_number_valid = sku_number_in_local or sku_number_in_database
+                # check if sku_number for i is in to-be-imported stuff
+                sku_number_in_local = False
+                for sku in sku_array:
+                    if str(sku.sku_num) == i.sku_number:
+                        sku_number_in_local = True
+                        chosen_sku = sku
 
-            if not sku_number_valid:
-                return "Import failed for formula CSV file \nERROR: SKU Number '" + i.sku_number \
-                       + "' in formula CSV file is invalid. It does not " \
-                         "exist in either the database or the SKU CSV being imported."
+                sku_number_valid = sku_number_in_local or sku_number_in_database
 
-            # check if ingredient_number for i is in database
-            ingredient_number_in_database = False
-            temp_ingredient_list = models.Ingredient.objects.filter(number=int(i.ingredient_number))
-            if len(temp_ingredient_list) > 0:
-                ingredient_number_in_database = True
-                chosen_ingredient = temp_ingredient_list[0]
+                if not sku_number_valid:
+                    return "Import failed for formula CSV file \nERROR: SKU Number '" + i.sku_number \
+                           + "' in formula CSV file is invalid. It does not " \
+                             "exist in either the database or the SKU CSV being imported."
 
-            # check if ingredient_number for i is in to-be-imported stuff
-            ingredient_number_in_local = False
-            for ing in ingredients_array:
-                if str(ing.number) == i.ingredient_number:
-                    ingredient_number_in_local = True
-                    chosen_ingredient = ing
+                # check if ingredient_number for i is in database
+                ingredient_number_in_database = False
+                temp_ingredient_list = models.Ingredient.objects.filter(number=int(i.ingredient_number))
+                if len(temp_ingredient_list) > 0:
+                    ingredient_number_in_database = True
+                    chosen_ingredient = temp_ingredient_list[0]
 
-            ingredient_number_valid = ingredient_number_in_database or ingredient_number_in_local
+                # check if ingredient_number for i is in to-be-imported stuff
+                ingredient_number_in_local = False
+                for ing in ingredients_array:
+                    if str(ing.number) == i.ingredient_number:
+                        ingredient_number_in_local = True
+                        chosen_ingredient = ing
 
-            if not ingredient_number_valid:
-                return "Import failed for formula CSV file \nERROR: Ingredient Number '" + i.ingredient_number \
-                       + "' in formula CSV file is invalid. It does not " \
-                         "exist in either the database or the Ingredient CSV being imported."
-            models_array.append(i.convert_to_database_model(chosen_sku, chosen_ingredient))
+                ingredient_number_valid = ingredient_number_in_database or ingredient_number_in_local
+
+                if not ingredient_number_valid:
+                    return "Import failed for formula CSV file \nERROR: Ingredient Number '" + i.ingredient_number \
+                           + "' in formula CSV file is invalid. It does not " \
+                             "exist in either the database or the Ingredient CSV being imported."
+                models_array.append(i.convert_to_database_model(chosen_sku, chosen_ingredient))
+
         formula_array = models_array.copy()
 
         models.ProductLine.objects.bulk_create(product_lines_array)
