@@ -11,6 +11,7 @@
         	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
 	</head>
 	<body>
+		{% if user.is_authenticated %}
 		<h1>Data shown below:</h1>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
@@ -40,5 +41,8 @@
 		<div style="overflow-x:auto;">
 		{% render_table table %}
 		</div>
+		{% else %}
+		<h1>You must be logged in to view data</h1>
+		{% endif %}
 	</body>
 </html>
