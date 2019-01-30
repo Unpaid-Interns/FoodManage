@@ -19,11 +19,6 @@ th {
 	color: white;
 }
 
-a{
-	color: white;
-	text-decoration: none;
-}
-
 tr:nth-child(even) {
 	background-color: #c4e8ff;
 }
@@ -76,4 +71,19 @@ select {
 	color: red;
 	text-decoration: underline;
 	font-weight: bold;
+}
+
+.ing {
+	color: #443ee0;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+a {
+	color: white;
+	text-decoration: none;
+}
+
+.pagination {
+	background-color: black;
 }
