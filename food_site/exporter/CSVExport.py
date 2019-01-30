@@ -1,5 +1,6 @@
 import csv
 from zipfile import ZipFile
+from sku_manage import models
 import os
 
 headerDict = {
@@ -16,6 +17,13 @@ validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas"]
 class CSVExport():
     def __init__(self):
         pass
+
+    def batch_export(self):
+        self.export_to_csv("skus", models.SKU.objects.all())
+        self.export_to_csv("ingredients", models.Ingredient.objects.all())
+        self.export_to_csv("product_lines", models.ProductLine.objects.all())
+        self.export_to_csv("formulas", models.IngredientQty.objects.all())
+        self.zip_export()
 
     def export_to_csv(self, filename, data):
         with open("exporter/exports/" + filename + ".csv", 'w', newline='') as csvfile:
@@ -60,9 +68,9 @@ class CSVExport():
         file_paths = ["exporter/exports/" + path for path in file_paths]
 
         # printing the list of all files to be zipped
-        print('Following files will be zipped:')
-        for file_name in file_paths:
-            print(file_name)
+        # print('Following files will be zipped:')
+        # for file_name in file_paths:
+        #     print(file_name)
 
         # writing files to a zipfile
         with ZipFile('exporter/exports/foodmanage.zip', 'w') as zip:
@@ -70,7 +78,7 @@ class CSVExport():
             for file in file_paths:
                 zip.write(file)
 
-        print('All files zipped successfully!')
+        # print('All files zipped successfully!')
 
 
 def prefix_check(filename):
