@@ -75,8 +75,12 @@ class CSVExport():
         # writing files to a zipfile
         with ZipFile('exporter/exports/foodmanage.zip', 'w') as zip:
             # writing each file one by one
+            remove_file_list = []
             for file in file_paths:
                 zip.write(file)
+                remove_file_list.append(file)
+            for file in remove_file_list:
+                os.remove(file)
 
         # print('All files zipped successfully!')
 

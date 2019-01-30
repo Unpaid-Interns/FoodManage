@@ -32,12 +32,12 @@ class CSVImport:
                     self.data_dict[file_prefix] = data
                     self.number_records_dict[file_prefix] = num_records
                 else:
-                    return False, "Import failed for: " + filename + "\n" + error_message
+                    return False, "Import failed for: " + filename + ". \n" + error_message
                     # print("Import failed for: " + filename)
                     # print(error_message)
                     # parsing_completed_successfully = False
             else:
-                return False, "Import failed for: " + filename + "\n" + "ERROR: file name " + filename \
+                return False, "Import failed for: " + filename + ". \n" + "ERROR: file name " + filename \
                        + " is invalid, must begin with valid prefix 'skus', \
                         'ingredients', 'product_lines', or 'sku_ingredients'"
                 # print("Import failed for: " + filename)
@@ -53,9 +53,8 @@ class CSVImport:
                 # print("Import failed for: " + filename)
                 # print(commit_success_message)
             if import_completed_successfully:
-                return True, "IMPORT COMPLETED SUCCESSFULLY WITH #" + str(total_num_records_imported) \
-                       + " RECORDS IMPORTED."
-                # print("IMPORT COMPLETED SUCCESSFULLY WITH #" + str(num_records) + " RECORDS IMPORTED.")
+                return True, "Imported completed successfully with #" + str(total_num_records_imported) \
+                       + " records imported."
         return import_completed_successfully, ""
 
     def add_filename(self, filename):
@@ -107,7 +106,7 @@ class CSVImport:
                 valid_product_line = valid_product_line_database or valid_product_line_local
 
                 if not valid_product_line:
-                    return ("Import failed for SKU CSV file \nERROR: Product Line name '" + i.product_line
+                    return ("Import failed for SKU CSV file. \nERROR: Product Line name '" + i.product_line
                             + "' in SKU CSV file is not a valid name. It is not in the database "
                               "or in the product_lines CSV file attempting to be imported.")
                 models_array.append(i.convert_to_database_model(chosen_product_line))
@@ -142,7 +141,7 @@ class CSVImport:
                 sku_number_valid = sku_number_in_local or sku_number_in_database
 
                 if not sku_number_valid:
-                    return "Import failed for formulas CSV file \nERROR: SKU Number '" + i.sku_number \
+                    return "Import failed for formulas CSV file. \nERROR: SKU Number '" + i.sku_number \
                            + "' in formulas CSV file is invalid. It does not " \
                              "exist in either the database or the SKU CSV being imported."
 
@@ -163,7 +162,7 @@ class CSVImport:
                 ingredient_number_valid = ingredient_number_in_database or ingredient_number_in_local
 
                 if not ingredient_number_valid:
-                    return "Import failed for formulas CSV file \nERROR: Ingredient Number '" + i.ingredient_number \
+                    return "Import failed for formulas CSV file. \nERROR: Ingredient Number '" + i.ingredient_number \
                            + "' in formulas CSV file is invalid. It does not " \
                              "exist in either the database or the Ingredient CSV being imported."
                 models_array.append(i.convert_to_database_model(chosen_sku, chosen_ingredient))
@@ -188,7 +187,7 @@ def parser(filename):
     # Check for valid prefix in file name
     file_prefix, valid = prefix_check(filename)
     if not valid:
-        print("FILE NAME INVALID: Terminating import...")
+        print("FILE NAME INVALID: Terminating import... ")
         return None, None, False, "ERROR: file name " + filename + " is invalid, must begin with valid prefix 'skus', \
         'ingredients', 'product_lines', or 'sku_ingredients'"
 
@@ -212,7 +211,7 @@ def parser(filename):
                     header_check_complete = True
                     continue
                 if not header_valid:
-                    return None, None, False, "HEADER INVALID: Terminating import...\n" + header_issue
+                    return None, None, False, "HEADER INVALID: Terminating import... \n" + header_issue
 
                 # Call appropriate helper method
                 method_to_call = getattr(sys.modules[__name__], file_prefix + "_parser_helper")
@@ -395,11 +394,14 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
         list2 = models.SKU.objects.filter(case_upc=record_converted.case_upc)
         list3 = models.SKU.objects.filter(sku_num=record_converted.sku_num)
         if (len(list2) > 0):
+            # TODO: Ask user for override.
+
             return "ERROR: Conflicting SKU record found with Case UPC '" + record.case_upc \
                    + "' and SKU number '" + record.sku_number + "', in conflict with database entry with Case UPC '" \
                    + str(list2[0].case_upc) + "' and SKU number '" \
                    + str(list2[0].sku_num) + "' at line '" + str(number_records_imported + 2) + "' in the SKU CSV file."
         if (len(list3) > 0):
+            # TODO: Ask user for override.
             return "ERROR: Conflicting SKU record found with Case UPC '" + record.case_upc \
                    + "' and SKU number '" + record.sku_number + "', in conflict with database entry with Case UPC '" \
                    + str(list3[0].case_upc) + "' and SKU number '" \
@@ -415,12 +417,14 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
         list2 = models.Ingredient.objects.filter(name=record_converted.name)
         list3 = models.Ingredient.objects.filter(number=record_converted.number)
         if (len(list2) > 0):
+            # TODO: Ask user for override.
             return "ERROR: Conflicting Ingredient record found with name '" + record.name \
                    + "' and number '" + record.number + "', in conflict with database entry with name '" \
                    + list2[0].name + "' and number '" \
                    + str(list2[0].number) + "' at line '" + str(number_records_imported + 2) \
                    + "' in the Ingredient CSV file."
         if (len(list3) > 0):
+            # TODO: Ask user for override.
             return "ERROR: Conflicting Ingredient record found with name '" + record.name \
                    + "' and number '" + record.number + "', in conflict with database entry with name '" \
                    + list3[0].name + "' and number '" \
@@ -433,6 +437,7 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                 return "identical"
         list2 = models.ProductLine.objects.filter(name=record_converted.name)
         if (len(list2) > 0):
+            # TODO: Ask user for override.
             return "ERROR: Conflicting Product Line record found with name '" + list2[0].name \
                    + "' at line '" + str(number_records_imported + 2) \
                    + "' in the product_lines CSV file."
