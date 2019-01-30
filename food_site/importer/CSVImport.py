@@ -88,6 +88,8 @@ class CSVImport:
         product_lines_array = models_array.copy()
         models_array.clear()
 
+        skus_that_need_numbers = []
+        skus_num_list = []
         if "skus" in file_prefix_array:
             for i in self.data_dict["skus"]:
                 valid_product_line_local = False
@@ -109,14 +111,33 @@ class CSVImport:
                     return ("Import failed for SKU CSV file. \nERROR: Product Line name '" + i.product_line
                             + "' in SKU CSV file is not a valid name. It is not in the database "
                               "or in the product_lines CSV file attempting to be imported.")
+
+                if i.sku_number != -1:
+                    skus_num_list.append(int(i.sku_number))
+                    models_array.append(i.convert_to_database_model(chosen_product_line))
+                else:
+                    skus_that_need_numbers.append(i)
+            for s in models.SKU.objects.all():
+                skus_num_list.append(int(s.sku_num))
+            skus_num_list.sort()
+            for s in skus_that_need_numbers:
+                chosen_num = -1
+                for index in range(0, len(skus_num_list)-1):
+                    if chosen_num != -1:
+                        continue
+                    if skus_num_list[index] + 1 != skus_num_list[index + 1]:
+                        chosen_num = skus_num_list[index] + 1
+                        skus_num_list.append(chosen_num)
+                        skus_num_list.sort()
+                        print("Chosen number for SKU = " + str(chosen_num))
+                if chosen_num == -1:
+                    chosen_num = skus_num_list[len(skus_num_list)-1] + 1
+                    skus_num_list.append(chosen_num)
+                    skus_num_list.sort()
+                s.sku_number = chosen_num
                 models_array.append(i.convert_to_database_model(chosen_product_line))
         sku_array = models_array.copy()
         models_array.clear()
-
-
-
-
-
 
         ingredients_that_need_numbers = []
         ingr_nums_list = []
@@ -137,11 +158,17 @@ class CSVImport:
                         continue
                     if ingr_nums_list[index]+1 != ingr_nums_list[index+1]:
                         chosen_num = ingr_nums_list[index]+1
+                        ingr_nums_list.append(chosen_num)
+                        ingr_nums_list.sort()
+                        print("Chosen number for Ingr = " + str(chosen_num))
+                if chosen_num == -1:
+                    chosen_num = ingr_nums_list[len(ingr_nums_list)-1] + 1
+                    ingr_nums_list.append(chosen_num)
+                    ingr_nums_list.sort()
                 i.ingredient_number = chosen_num
                 models_array.append(i.convert_to_database_model())
         ingredients_array = models_array.copy()
         models_array.clear()
-
 
         if "formulas" in file_prefix_array:
             for i in self.data_dict["formulas"]:
