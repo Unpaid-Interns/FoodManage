@@ -305,8 +305,8 @@ def skus_parser_helper(row, num_records_parsed):
         return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_parsed + 2) +
                 ", needs 8 entries but has either more or less.")
     if(row[0] == ""):
-        # TODO: GENERATE SKU NUMBER BY CALLING FUNCTION
-        pass
+        # TODO: GENERATE SKU NUMBER BY CALLING FUNCTION (done?)
+        row[0] = "-1"
     else:
         if not integer_check(row[0]):
             return "ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
@@ -319,6 +319,12 @@ def skus_parser_helper(row, num_records_parsed):
             if not decimal_check(row[i]):
                 return("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                       + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not.")
+            if i == 2:
+                # TODO: Check case_upc validity (might have to do this in commit area instead...)
+                pass
+            if i == 3:
+                # TODO: Check unit_upc validity (might have to do this in commit area instead...)
+                pass
         if i in [5]:
             if not integer_check(row[i]):
                 return("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
@@ -339,7 +345,7 @@ def ingredients_parser_helper(row, num_records_parsed):
             num_records_parsed + 2) +
                 ", needs 6 entries but has either more or less.")
     if (row[0] == ""):
-        # TODO: GENERATE Ingr# BY CALLING FUNCTION
+        # TODO: GENERATE Ingr# BY CALLING FUNCTION (done?)
         row[0] = "-1"
     else:
         if not integer_check(row[0]):
