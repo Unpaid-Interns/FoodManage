@@ -3,8 +3,6 @@ import csv
 from importer import CSVData
 from sku_manage import models
 from decimal import Decimal
-import re
-import unicodedata
 
 headerDict = CSVData.headerDict
 
@@ -83,9 +81,8 @@ class CSVImport:
         """
 
         models_array = []
+        product_line_dict = dict()
         if "product_lines" in file_prefix_array:
-
-            product_line_dict = dict()
             for i in self.data_dict["product_lines"]:
                 models_array.append(i.convert_to_database_model())
                 product_line_dict[i.name] = i.convert_to_database_model()
@@ -123,8 +120,8 @@ class CSVImport:
         ingredients_array = models_array.copy()
         models_array.clear()
 
-        if "formula" in file_prefix_array:
-            for i in self.data_dict["formula"]:
+        if "formulas" in file_prefix_array:
+            for i in self.data_dict["formulas"]:
                 chosen_sku = None
                 chosen_ingredient = None
 
@@ -145,8 +142,8 @@ class CSVImport:
                 sku_number_valid = sku_number_in_local or sku_number_in_database
 
                 if not sku_number_valid:
-                    return "Import failed for formula CSV file \nERROR: SKU Number '" + i.sku_number \
-                           + "' in formula CSV file is invalid. It does not " \
+                    return "Import failed for formulas CSV file \nERROR: SKU Number '" + i.sku_number \
+                           + "' in formulas CSV file is invalid. It does not " \
                              "exist in either the database or the SKU CSV being imported."
 
                 # check if ingredient_number for i is in database
@@ -166,8 +163,8 @@ class CSVImport:
                 ingredient_number_valid = ingredient_number_in_database or ingredient_number_in_local
 
                 if not ingredient_number_valid:
-                    return "Import failed for formula CSV file \nERROR: Ingredient Number '" + i.ingredient_number \
-                           + "' in formula CSV file is invalid. It does not " \
+                    return "Import failed for formulas CSV file \nERROR: Ingredient Number '" + i.ingredient_number \
+                           + "' in formulas CSV file is invalid. It does not " \
                              "exist in either the database or the Ingredient CSV being imported."
                 models_array.append(i.convert_to_database_model(chosen_sku, chosen_ingredient))
 
@@ -324,24 +321,24 @@ def product_lines_parser_helper(row, num_records_parsed):
     return CSVData.ProductLineData(row[0])
 
 
-def formula_parser_helper(row, num_records_parsed):
+def formulas_parser_helper(row, num_records_parsed):
     """
-    Helper function for formula.csv file
+    Helper function for formulas.csv file
     :param row: The row being parsed
     :param num_records_parsed: The number of records parsed so far - used for determining current row in file
     :return: str for error if there is one, otherwise return the data
     """
     if len(row) != 3:
-        return ("ERROR: Problem with number of entries in Formula CSV file at row #"
+        return ("ERROR: Problem with number of entries in Formulas CSV file at row #"
                 + str(num_records_parsed + 2) + ", needs 3 entries but has either more or less.")
     for i in [0, 1, 2]:
         if i in [0,1]:
             if not integer_check(row[i]):
-                return "ERROR: Problem in Formula CSV file in row #" + str(num_records_parsed + 2) + " and col #" \
+                return "ERROR: Problem in Formulas CSV file in row #" + str(num_records_parsed + 2) + " and col #" \
                     + str(i+1) + ". Entry in this column must be an integer value but is not."
         if i in [2]:
             if not decimal_check(row[i]):
-                return "ERROR: Problem in Formula CSV file with 'Quantity' in row #" + str(num_records_parsed + 2) \
+                return "ERROR: Problem in Formulas CSV file with 'Quantity' in row #" + str(num_records_parsed + 2) \
                        + " and col #" \
                        + str(i + 1) + ". Entry in this column must be an decimal value but is not."
     return CSVData.SKUIngredientData(row[0], row[1], row[2])
@@ -383,7 +380,7 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
     """
     # Returns blank string if no identical record found
     # Could use filter to check for same name and ID but not other fields
-    if (file_prefix != "formula" and file_prefix != "skus"):
+    if (file_prefix != "formulas" and file_prefix != "skus"):
         record_converted = record.convert_to_database_model()
     if (file_prefix == "skus"):
         record_converted = record.convert_to_database_model(models.ProductLine(name=record.product_line))
@@ -439,7 +436,7 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
             return "ERROR: Conflicting Product Line record found with name '" + list2[0].name \
                    + "' at line '" + str(number_records_imported + 2) \
                    + "' in the product_lines CSV file."
-    if (file_prefix == "formula"):
+    if (file_prefix == "formulas"):
         models_list = models.IngredientQty.objects.filter(quantity=Decimal(record.quantity))
         for item in models_list:
             if (item.sku.sku_num == int(record.sku_number) and item.ingredient.number == int(record.ingredient_number)
@@ -483,11 +480,11 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
             if (new_record.name == record.name):
                 return "ERROR: Duplicate name '" + new_record.name + "' in Product Lines CSV file at lines '" \
                        + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
-        if (file_prefix == "formula"):
+        if (file_prefix == "formulas"):
             if (new_record.sku_number == record.sku_number and
                     new_record.ingredient_number == record.ingredient_number):
                 return "ERROR: Matching SKU/Ingredient pairing '" + new_record.sku + " / " + new_record.ingredient \
-                       + "' in Formula CSV file at lines '" + str(row_num) + "' and '" \
+                       + "' in Formulas CSV file at lines '" + str(row_num) + "' and '" \
                        + str(num_records_imported + 2) + "'"
     return ""
 
@@ -509,9 +506,9 @@ def header_check(header, header_correct, file_prefix):
     if file_prefix == "product_lines":
         if len(header) != 1:
             return False, "ERROR: Header is not correct in Product Lines CSV file. Too many or not enough columns."
-    if file_prefix == "formula":
+    if file_prefix == "formulas":
         if len(header) != 3:
-            return False, "ERROR: Header is not correct in Formula CSV file. Too many or not enough columns."
+            return False, "ERROR: Header is not correct in Formulas CSV file. Too many or not enough columns."
     col = 0
     for item in header:
         # print(item)

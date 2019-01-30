@@ -6,10 +6,10 @@ headerDict = {
                  "Comment"],
     "ingredients.csv": ["Ingr#", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
-    "formula.csv": ["SKU#", "Ingr#", "Quantity"]
+    "formulas.csv": ["SKU#", "Ingr#", "Quantity"]
 }
 
-validFilePrefixes = ["skus", "ingredients", "product_lines", "formula"]
+validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas"]
 
 
 class SKUData:

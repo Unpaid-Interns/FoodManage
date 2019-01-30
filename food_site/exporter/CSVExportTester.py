@@ -3,6 +3,14 @@ from sku_manage import models
 from decimal import Decimal
 
 
+def batch_export():
+    exporter = CSVExport.CSVExport()
+    exporter.export_to_csv("skus", models.SKU.objects.all())
+    exporter.export_to_csv("ingredients", models.Ingredient.objects.all())
+    exporter.export_to_csv("product_lines", models.ProductLine.objects.all())
+    exporter.export_to_csv("formulas", models.IngredientQty.objects.all())
+    exporter.zip_export()
+
 def run():
     exporter = CSVExport.CSVExport()
 
