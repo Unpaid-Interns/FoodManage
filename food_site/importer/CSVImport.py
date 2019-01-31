@@ -11,7 +11,12 @@ class CSVImport:
     def __init__(self, filename_array=[]):
         self.filenames = filename_array
         self.data_dict = dict()
+        self.conflict_dict = dict()
         self.number_records_dict = dict()
+        self.file_prefix_array = []
+        self.total_num_records_imported
+        self.total_num_records_ignored
+        self.total_num_records_conflict
 
     def parse(self):
         """
@@ -20,18 +25,18 @@ class CSVImport:
         """
         parsing_completed_successfully = True
         import_completed_successfully = False
-        total_num_records_imported = 0
-        total_num_records_ignored = 0
-        file_prefix_array = []
         for filename in self.filenames:
             file_prefix, valid = prefix_check(filename)
             if (valid):
-                file_prefix_array.append(file_prefix)
-                data, num_records, num_ignored, success, error_message = parser(filename)
+                self.file_prefix_array.append(file_prefix)
+                data, conflict_data, num_records, num_ignored, num_conflict, success, error_message = parser(filename)
                 if (success):
-                    total_num_records_imported += num_records
-                    total_num_records_ignored += num_ignored
+                    self.total_num_records_imported += num_records
+                    self.total_num_records_ignored += num_ignored
+                    self.total_num_records_conflict += num_conflict
                     self.data_dict[file_prefix] = data
+                    if len(conflict_data) > 0:
+                        self.conflict_dict[file_prefix] = conflict_data
                     self.number_records_dict[file_prefix] = num_records
                 else:
                     return False, "Import failed for: " + filename + ". \n" + error_message
@@ -47,16 +52,20 @@ class CSVImport:
                 #         'ingredients', 'product_lines', or 'sku_ingredients'")
                 # parsing_completed_successfully = False
         if parsing_completed_successfully:
-            commit_success_message = self.commit_to_database(file_prefix_array)
-            if commit_success_message == "":
-                import_completed_successfully = True
+            if not self.conflict_dict:
+                commit_success_message = self.commit_to_database()
+                if commit_success_message == "":
+                    import_completed_successfully = True
+                else:
+                    return False, commit_success_message
+                    # print("Import failed for: " + filename)
+                    # print(commit_success_message)
+                if import_completed_successfully:
+                    return True, "Imported completed successfully with #" + str(self.total_num_records_imported) \
+                           + " records imported and #" + str(self.total_num_records_ignored) \
+                           + " records ignored and #" + str(self.total_num_records_conflict)
             else:
-                return False, commit_success_message
-                # print("Import failed for: " + filename)
-                # print(commit_success_message)
-            if import_completed_successfully:
-                return True, "Imported completed successfully with #" + str(total_num_records_imported) \
-                       + " records imported and #" + str(total_num_records_ignored) + " records ignored."
+                return False, "Conflicts exist. Please confirm how to handle them below."
         return import_completed_successfully, ""
 
     def add_filename(self, filename):
@@ -75,7 +84,7 @@ class CSVImport:
     def set_filenames(self, filename_array):
         self.filenames = filename_array
 
-    def commit_to_database(self, file_prefix_array):
+    def commit_to_database(self):
         """
         Commits data to database
         :return: error str (blank string if no error)
@@ -83,7 +92,7 @@ class CSVImport:
 
         models_array = []
         product_line_dict = dict()
-        if "product_lines" in file_prefix_array:
+        if "product_lines" in self.file_prefix_array:
             for i in self.data_dict["product_lines"]:
                 models_array.append(i.convert_to_database_model())
                 product_line_dict[i.name] = i.convert_to_database_model()
@@ -92,9 +101,8 @@ class CSVImport:
 
         skus_that_need_numbers = []
         skus_num_list = []
-        if "skus" in file_prefix_array:
+        if "skus" in self.file_prefix_array:
             for i in self.data_dict["skus"]:
-                # TODO: THIS IS AN ISSUE WHERE PRODUCT LINE IS GETTING REPLICATED
                 success, chosen_product_line_or_error_message = choose_product_line(i, product_line_dict)
                 if not success:
                     return chosen_product_line_or_error_message
@@ -130,7 +138,7 @@ class CSVImport:
 
         ingredients_that_need_numbers = []
         ingr_nums_list = []
-        if "ingredients" in file_prefix_array:
+        if "ingredients" in self.file_prefix_array:
             for i in self.data_dict["ingredients"]:
                 if i.number != "-1":
                     ingr_nums_list.append(int(i.number))
@@ -160,7 +168,7 @@ class CSVImport:
         ingredients_array = models_array.copy()
         models_array.clear()
 
-        if "formulas" in file_prefix_array:
+        if "formulas" in self.file_prefix_array:
             for i in self.data_dict["formulas"]:
                 chosen_sku = None
                 chosen_ingredient = None
@@ -229,14 +237,16 @@ def parser(filename):
     file_prefix, valid = prefix_check(filename)
     if not valid:
         print("FILE NAME INVALID: Terminating import... ")
-        return None, None, None, False, "ERROR: file name " + filename + " is invalid, must begin with valid prefix 'skus', \
+        return None, None, None, None, None, False, "ERROR: file name " + filename + " is invalid, must begin with valid prefix 'skus', \
         'ingredients', 'product_lines', or 'sku_ingredients'"
 
     # Initialize variables
     header_correct = headerDict[file_prefix + ".csv"]
     parsed_data = []
+    conflicting_records_tpl = []
     num_records_parsed = 0
     num_record_ignored = 0
+    num_record_conflicted = 0
 
     # Open the csv file, read only
     try:
@@ -252,18 +262,19 @@ def parser(filename):
                     header_check_complete = True
                     continue
                 if not header_valid:
-                    return None, None, None, False, "HEADER INVALID: Terminating import... \n" + header_issue
+                    return None, None, None, None, None, False, \
+                           "HEADER INVALID: Terminating import... \n" + header_issue
 
                 # Call appropriate helper method
                 method_to_call = getattr(sys.modules[__name__], file_prefix + "_parser_helper")
                 temp_data = method_to_call(row, num_records_parsed)
                 if isinstance(temp_data, str):
-                    return None, None, None, False, temp_data
+                    return None, None, None, None, None, False, temp_data
 
                 # Check for matching database records
                 matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix, num_records_parsed)
                 if (matching_check == ""):
-                    database_record_check = check_for_identical_record(temp_data, file_prefix, num_records_parsed)
+                    database_record_check, conflicting_database_model = check_for_identical_record(temp_data, file_prefix, num_records_parsed)
                     if (database_record_check == ""):
                         # parsed_data.append(temp_data, file_prefix)
                         parsed_data.append(temp_data)
@@ -271,15 +282,21 @@ def parser(filename):
                     elif (database_record_check == "identical"):
                         num_records_parsed += 1
                         num_record_ignored += 1
+                    elif ("CONFLICT:" in database_record_check):
+                        # TODO: Marking this as WIP
+                        conflicting_records_tpl.append([temp_data, conflicting_database_model, database_record_check])
+                        num_records_parsed += 1
+                        num_record_conflicted += 1
                     else:
-                        return None, None, None, False, database_record_check
+                        return None, None, None, None, None, False, database_record_check
                 else:
-                    return None, None, None, False, matching_check
+                    return None, None, None, None, None, False, matching_check
     except FileNotFoundError:
-        return None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
+        return None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
     except:
-        return None, None, None, False, "*ERROR: File type not valid or unknown error."
-    return parsed_data, num_records_parsed - num_record_ignored, num_record_ignored, True, ""
+        return None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
+    return parsed_data, conflicting_records_tpl, num_records_parsed - num_record_ignored - num_record_conflicted\
+        , num_record_ignored, num_record_conflicted, True, ""
 
 
 def skus_parser_helper(row, num_records_parsed):
@@ -295,7 +312,6 @@ def skus_parser_helper(row, num_records_parsed):
         return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_parsed + 2) +
                 ", needs 8 entries but has either more or less.")
     if(row[0] == ""):
-        # TODO: GENERATE SKU NUMBER BY CALLING FUNCTION (done?)
         row[0] = "-1"
     else:
         if not integer_check(row[0]):
@@ -335,7 +351,6 @@ def ingredients_parser_helper(row, num_records_parsed):
             num_records_parsed + 2) +
                 ", needs 6 entries but has either more or less.")
     if (row[0] == ""):
-        # TODO: GENERATE Ingr# BY CALLING FUNCTION (done?)
         row[0] = "-1"
     else:
         if not integer_check(row[0]):
@@ -437,27 +452,29 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     and item.unit_size == record_converted.unit_size and item.units_per_case ==
                     record_converted.units_per_case and item.product_line.name == record.product_line and
                     item.comment == record_converted.comment):
-                return "identical"
+                return "identical", None
             elif (item.name == record_converted.name and record_converted.sku_num == -1 and
                     item.case_upc == record_converted.case_upc and item.unit_upc == record_converted.unit_upc
                     and item.unit_size == record_converted.unit_size and item.units_per_case ==
                     record_converted.units_per_case and item.product_line.name == record.product_line and
                     item.comment == record_converted.comment):
-                return "identical"
+                return "identical", None
         list2 = models.SKU.objects.filter(case_upc=record_converted.case_upc)
         list3 = models.SKU.objects.filter(sku_num=record_converted.sku_num)
         if (len(list2) > 0):
             # TODO: Ask user for override.
-            return "ERROR: Conflicting SKU record found with Case UPC '" + record.case_upc \
+            return "CONFLICT: Conflicting SKU record found with Case UPC '" + record.case_upc \
                    + "' and SKU number '" + record.sku_number + "', in conflict with database entry with Case UPC '" \
                    + str(list2[0].case_upc) + "' and SKU number '" \
-                   + str(list2[0].sku_num) + "' at line '" + str(number_records_imported + 2) + "' in the SKU CSV file."
+                   + str(list2[0].sku_num) + "' at line '" + \
+                   str(number_records_imported + 2) + "' in the SKU CSV file.", list2[0]
         if (len(list3) > 0):
             # TODO: Ask user for override.
-            return "ERROR: Conflicting SKU record found with Case UPC '" + record.case_upc \
+            return "CONFLICT: Conflicting SKU record found with Case UPC '" + record.case_upc \
                    + "' and SKU number '" + record.sku_number + "', in conflict with database entry with Case UPC '" \
                    + str(list3[0].case_upc) + "' and SKU number '" \
-                   + str(list3[0].sku_num) + "' at line '" + str(number_records_imported + 2) + "' in the SKU CSV file."
+                   + str(list3[0].sku_num) \
+                   + "' at line '" + str(number_records_imported + 2) + "' in the SKU CSV file.", list3[0]
     if (file_prefix == "ingredients"):
         models_list = models.Ingredient.objects.filter(name=record.name)
         for item in models_list:
@@ -465,47 +482,47 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     and item.vendor_info == record_converted.vendor_info and
                     item.package_size == record_converted.package_size and item.cost == record_converted.cost
                     and item.comment == record_converted.comment):
-                return "identical"
+                return "identical", None
             elif (item.name == record_converted.name and record_converted.number == -1
                     and item.vendor_info == record_converted.vendor_info and
                     item.package_size == record_converted.package_size and item.cost == record_converted.cost
                     and item.comment == record_converted.comment):
-                return "identical"
+                return "identical", None
         list2 = models.Ingredient.objects.filter(name=record_converted.name)
         list3 = models.Ingredient.objects.filter(number=record_converted.number)
         if (len(list2) > 0):
             # TODO: Ask user for override.
-            return "ERROR: Conflicting Ingredient record found with name '" + record.name \
+            return "CONFLICT: Conflicting Ingredient record found with name '" + record.name \
                    + "' and number '" + record.number + "', in conflict with database entry with name '" \
                    + list2[0].name + "' and number '" \
                    + str(list2[0].number) + "' at line '" + str(number_records_imported + 2) \
-                   + "' in the Ingredient CSV file."
+                   + "' in the Ingredient CSV file.", list2[0]
         if (len(list3) > 0):
             # TODO: Ask user for override.
-            return "ERROR: Conflicting Ingredient record found with name '" + record.name \
+            return "CONFLICT: Conflicting Ingredient record found with name '" + record.name \
                    + "' and number '" + record.number + "', in conflict with database entry with name '" \
                    + list3[0].name + "' and number '" \
                    + str(list3[0].number) + "' at line '" + str(number_records_imported + 2) \
-                   + "' in the Ingredient CSV file."
+                   + "' in the Ingredient CSV file.", list3[[0]]
     if (file_prefix == "product_lines"):
         models_list = models.ProductLine.objects.filter(name=record.name)
         for item in models_list:
             if (item.name == record_converted.name):
-                return "identical"
+                return "identical", None
         list2 = models.ProductLine.objects.filter(name=record_converted.name)
         if (len(list2) > 0):
             # TODO: Ask user for override.
-            return "ERROR: Conflicting Product Line record found with name '" + list2[0].name \
+            return "CONFLICT: Conflicting Product Line record found with name '" + list2[0].name \
                    + "' at line '" + str(number_records_imported + 2) \
-                   + "' in the product_lines CSV file."
+                   + "' in the product_lines CSV file.", list2[0]
     if (file_prefix == "formulas"):
         models_list = models.IngredientQty.objects.filter(quantity=Decimal(record.quantity))
         for item in models_list:
             if (item.sku.sku_num == int(record.sku_number) and item.ingredient.number == int(record.ingredient_number)
                     and item.quantity == Decimal(record.quantity)):
-                return "identical"
+                return "identical", None
         # Do we need to check or non-identical match here?
-    return ""
+    return "", None
 
 
 def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records_imported):
