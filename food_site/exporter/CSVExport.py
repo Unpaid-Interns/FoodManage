@@ -64,7 +64,7 @@ class CSVExport():
         directory = 'exporter/exports/'
 
         # calling function to get all file paths in the directory
-        #file_paths = get_all_file_paths(directory)
+        # file_paths = get_all_file_paths(directory)
         file_paths = ["exporter/exports/" + path for path in file_paths]
 
         # printing the list of all files to be zipped

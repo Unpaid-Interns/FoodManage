@@ -1,9 +1,11 @@
 SKU#,Name,Case UPC,Unit UPC,Unit size,Count per case,Product Line Name,Comment
 1,First Name,1,1,3 lbs,3,Product Line 1,First comment
 2,Second Name,2,9,1 lbs,3,Product Line 2,Second comment
-3,Third Name,3,1,2 lbs,3,Product Line 3,Third comment
+,Third Name,3,1,2 lbs,3,Product Line 3,Third comment
 4,Fourth Name,4,1,1 lbs,3,Product Line 4,Fourth comment
 5,Fifth Name,5,1,5 lbs,6,Product Line 5,Fifth comment
 6,Sixth Name,6,1,5 lbs,6,Product Line 6,Sixth comment
 7,Seventh Name,7,1,5 lbs,8,Product Line 3,Seventh comment
 8,Eighth Name,8,5,2 lbs,6,Product Line 1,Eighth comment
+,Ninth Name,9,2,2 lbs,1,Product Line 1,Ninth Comment
+10,10th Name,10,2,5 lb,4,Product Line 6,10th Comment
