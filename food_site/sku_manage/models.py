@@ -29,6 +29,7 @@ class ProductLine(models.Model):
 	def __str__(self):
 		return self.name
 
+
 class SKU(models.Model):
 	name = models.CharField(max_length=32)
 	sku_num = models.IntegerField(unique=True, blank=True, verbose_name='SKU#')
@@ -71,7 +72,7 @@ class SKU(models.Model):
 		return len(skus)
 
 	def __str__(self):
-		return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case) 
+		return "{name}s: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case)
 
 	def save(self):
 		if self.sku_num == None:
@@ -83,4 +84,3 @@ class IngredientQty(models.Model):
 	sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
 	quantity = models.DecimalField(max_digits=20, decimal_places=10)
-	
