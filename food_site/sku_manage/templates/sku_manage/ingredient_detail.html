@@ -2,6 +2,6 @@
 <p>{{ ingredient.ingredientqty_set.all|length }} SKUs:</p>
 <ul>
 {% for choice in ingredient.ingredientqty_set.all %}
-    <li>{{ choice.sku.name }} - {{ choice.quantity }} packages</li>
+    <li><a href="{% url 'sku_detail' choice.sku.pk %}"> {{ choice.sku.name }}</a> - {{ choice.quantity }} packages</li>
 {% endfor %}
 </ul>
