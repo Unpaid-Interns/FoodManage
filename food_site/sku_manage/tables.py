@@ -11,6 +11,7 @@ class IngredientTable(tables.Table):
 		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost', 'comment']
 
 class ProductLineTable(tables.Table):
+	name = tables.TemplateColumn('<a class="ing" href="{{record.pk}}">{{ record.name }}</a>')
 	class Meta:
 		model = ProductLine
 		fields = ['name']
