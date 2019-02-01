@@ -1,7 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+        {% load staticfiles %}
+        {% load static %}
+        <head>
+                <meta charset="utf-8">
+                <title>HypoMeals</title>
+                <link rel="stylesheet" type="text/css" href="{% static "sku_manage/detail.css" %}" />
+
+        </head>
+<body>
 <h1>{{ sku.name }}</h1>
 <p>{{ sku.ingredientqty_set.all|length }} Ingredients:</p>
 <ul>
 {% for choice in sku.ingredientqty_set.all %}
-    <li> <a href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
+    <li> <a class="listy" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
 {% endfor %}
 </ul>
+</body>
+</html>
