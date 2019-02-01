@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'sku_manage.apps.SkuManageConfig',
+    'manufacturing_goals.apps.ManufacturingGoalsConfig',
     'importer.apps.ImportConfig',
     'home.apps.HomeConfig',
     'django.contrib.admin',

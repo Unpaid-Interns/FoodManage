@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+
+<head>
+	<title>Manufacturing Calculator</title>
+</head>
+
+<body>
+	<h3>Manufacturing Calculator</h3>
+	<p>Select a goal to calculate output</p>
+	<form id="goal-choice-form" method="post">
+		{% csrf_token %}
+		{{ form }}
+		<button type="submit" id="submit" name="submit">Select Goal</button>
+	</form>
+</body>
