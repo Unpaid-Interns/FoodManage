@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views import generic
 from .models import Ingredient
 from .models import ProductLine
 from .models import SKU
@@ -26,6 +27,11 @@ def IngredientView(request):
 	RequestConfig(request, paginate={'per_page': 25}).configure(table)
 	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
 
+class IngredientDetailView(generic.DetailView):
+	model = Ingredient
+	template_name = 'sku_manage/ingredient_detail.html'
+
+
 def ProductLineView(request):
 	queryset = ProductLine.objects.all()
 	f = ProductLineFilter(request.GET, queryset=queryset)
@@ -39,6 +45,10 @@ def SKUView(request):
 	table = SKUTable(f.qs)
 	RequestConfig(request, paginate={'per_page': 25}).configure(table)
 	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
+
+class SKUDetailView(generic.DetailView):
+	model = SKU
+	template_name = 'sku_manage/sku_detail.html'
 
 def IngredientQtyView(request):
 	queryset = IngredientQty.objects.all()
