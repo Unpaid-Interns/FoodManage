@@ -13,10 +13,10 @@
 <h1>{{ sku }}</h1>
 <p>General Information:</p>
 <ul>
-	<li>SKU Name: {{ sku.name }}</li>
+	<li>Name: {{ sku.name }}</li>
 	<li>SKU#: {{ sku.sku_num }}</li>
-	<li>Case UPC: {{ sku.case_upc }}</li>
-	<li>Unit UPC: {{ sku.unit_upc }}</li>
+	<li>Case UPC: {{ sku.get_case_upc }}</li>
+	<li>Unit UPC: {{ sku.get_unit_upc }}</li>
 	<li>Unit Size: {{ sku.unit_size }}</li>
 	<li>Units Per Case: {{ sku.units_per_case }}</li>
 	<li>Product Line: {{ sku.product_line }}</li>
@@ -25,7 +25,7 @@
 <p>{{ sku.ingredientqty_set.all|length }} Ingredients:</p>
 <ul>
 	{% for choice in sku.ingredientqty_set.all %}
-    	<li> <a class="listy" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
+    	<li> <a class="listy" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.get_qty }} packages</li>
 	{% endfor %}
 </ul>
 </body>

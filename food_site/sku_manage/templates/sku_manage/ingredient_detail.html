@@ -15,14 +15,14 @@
 	<li>Ingredient Name: {{ ingredient.name }}</li>
 	<li>Ingredient#: {{ ingredient.number }}</li>
 	<li>Package Size: {{ ingredient.package_size }}</li>
-	<li>Package Cost: {{ ingredient.cost }}</li>
+	<li>Package Cost: ${{ ingredient.cost }} (USD)</li>
 	<li>Vendor Information: {{ ingredient.vendor_info }}</li>
 	<li>Comment: {{ ingredient.comment }}</li>
 </ul>
 <p>{{ ingredient.ingredientqty_set.all|length }} SKUs:</p>
 <ul>
 	{% for choice in ingredient.ingredientqty_set.all %}
-		<li><a class="listy" href="{% url 'sku_detail' choice.sku.pk %}"> {{ choice.sku }}</a> - {{ choice.quantity }} packages</li>
+		<li><a class="listy" href="{% url 'sku_detail' choice.sku.pk %}"> {{ choice.sku }}</a> - {{ choice.get_qty }} packages</li>
 	{% endfor %}
 </ul>
 </body>
