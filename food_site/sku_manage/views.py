@@ -1,23 +1,12 @@
-from django.shortcuts import render
-from django.views import generic
-from .models import Ingredient
-from .models import ProductLine
-from .models import SKU
-from .models import IngredientQty
+from django.shortcuts import render, redirect
 from django.views import generic
 from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django_tables2 import RequestConfig
-from .tables import IngredientTable
-from .tables import ProductLineTable
-from .tables import SKUTable
-from .tables import IngredientQtyTable
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
-from .filters import IngredientFilter
-from .filters import ProductLineFilter
-from .filters import SKUFilter
-from .filters import IngredientQtyFilter 
+from django_tables2 import RequestConfig
+from .models import Ingredient, ProductLine, SKU, IngredientQty
+from .tables import IngredientTable, ProductLineTable, SKUTable, IngredientQtyTable
+from .filters import IngredientFilter, ProductLineFilter, SKUFilter, IngredientQtyFilter 
 
 # Create your views here.
 def IngredientView(request):
