@@ -40,6 +40,9 @@
   				});
 			}			
 		</script>
+		{% if table.rows %}
+			<p>{{ table.rows|length }} result(s)</p>
+		{% endif %}
 		<div style="overflow-x:auto;">
 		{% render_table table %}
 		</div>
