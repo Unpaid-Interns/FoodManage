@@ -87,6 +87,55 @@ class CSVImport:
     def add_data_to_commit_dict(self, file_prefix, data):
         self.data_dict[file_prefix] = data
 
+    def make_serializable_conflict_dict(self):
+        serializable_dict = dict()
+        for file_prefix in self.conflict_dict:
+            new_conflict_records_list = []
+            conflict_records_list = self.conflict_dict[file_prefix]
+            for conflict_tuple in conflict_records_list:
+                data = conflict_tuple[0]
+                message = conflict_tuple[2]
+                new_conflict_records_list.append([data.convert_to_string_array(), message])
+            serializable_dict[file_prefix] = new_conflict_records_list
+        return serializable_dict
+
+    def get_conflict_dict_from_serializable(self, serializable_dict):
+        original_dict = dict()
+        for file_prefix in serializable_dict:
+            new_conflict_records_list = []
+            conflict_records_list = serializable_dict[file_prefix]
+            for conflict_tuple in conflict_records_list:
+                data_string_array = conflict_tuple[0]
+                message = conflict_tuple[1]
+                data = None
+                if len(data_string_array) == 8:
+                    data = CSVData.SKUData(data_string_array[0], data_string_array[1], data_string_array[2],
+                                           data_string_array[3], data_string_array[4], data_string_array[5],
+                                           data_string_array[6], data_string_array[7])
+                elif len(data_string_array) == 6:
+                    data = CSVData.IngredientData(data_string_array[0], data_string_array[1], data_string_array[2],
+                                           data_string_array[3], data_string_array[4], data_string_array[5])
+                elif len(data_string_array) == 1:
+                    data = CSVData.ProductLineData(data_string_array[0])
+                elif len(data_string_array) == 3:
+                    data = CSVData.SKUIngredientData(data_string_array[0], data_string_array[1], data_string_array[2])
+                if data is None:
+                    return original_dict
+                case_upc_conflicts = models.SKU.objects.filter(case_upc=Decimal(data.case_upc))
+                sku_num_conflicts = models.SKU.objects.filter(sku_num=int(data.sku_number))
+                conflict_database_data = None
+                if (len(case_upc_conflicts) > 0):
+                    conflict_database_data = case_upc_conflicts[0]
+                elif (len(sku_num_conflicts) > 0):
+                    conflict_database_data = sku_num_conflicts[0]
+                if conflict_database_data is None:
+                    return original_dict
+                new_conflict_records_list.append([data, conflict_database_data, message])
+            original_dict[file_prefix] = new_conflict_records_list
+        return original_dict
+
+
+
     def commit_to_database(self):
         """
         Commits data to database

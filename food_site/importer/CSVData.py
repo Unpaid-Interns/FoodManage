@@ -1,5 +1,6 @@
 from decimal import Decimal
 from sku_manage import models
+import json
 
 headerDict = {
     "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
@@ -23,6 +24,10 @@ class SKUData:
         self.case_count = case_count
         self.comment = comment
 
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
+
     def __str__(self):
         return "SKUDataObject: Name = " + self.name + ", Num = " + self.sku_number + ", Case UPC = " \
                + self.case_upc + ", Unit UPC = " + self.unit_upc + ", Unit Size = " + self.unit_size \
@@ -34,6 +39,10 @@ class SKUData:
                           unit_upc=Decimal(self.unit_upc), unit_size=self.unit_size,
                           units_per_case=int(self.case_count), product_line=chosen_product_line,
                           comment=self.comment)
+
+    def convert_to_string_array(self):
+        return [self.sku_number, self.name, self.case_upc, self.unit_upc, self.unit_size,
+                self.product_line, self.case_count, self.comment]
 
 
 class IngredientData:
@@ -54,6 +63,8 @@ class IngredientData:
         return models.Ingredient(number=int(self.number), name=self.name, vendor_info=self.vendor_info,
                                  package_size=self.package_size, cost=Decimal(self.cost), comment=self.comment)
 
+    def convert_to_string_array(self):
+        return [self.number, self.names, self.vendor_info, self.package_size, self.cost, self.comment]
 
 class ProductLineData:
     def __init__(self, name):
@@ -64,6 +75,9 @@ class ProductLineData:
 
     def convert_to_database_model(self):
         return models.ProductLine(name=self.name)
+
+    def convert_to_string_array(self):
+        return [self.name]
 
 
 class SKUIngredientData:
@@ -79,3 +93,6 @@ class SKUIngredientData:
     def convert_to_database_model(self, chosen_sku, chosen_ingredient):
         return models.IngredientQty(sku=chosen_sku, ingredient=chosen_ingredient,
                                     quantity=Decimal(self.quantity))
+
+    def convert_to_string_array(self):
+        return [self.sku_number, self.ingredient_number, self.quantity]
