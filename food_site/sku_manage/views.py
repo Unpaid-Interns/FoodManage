@@ -20,6 +20,9 @@ class IngredientDetailView(generic.DetailView):
 	model = Ingredient
 	template_name = 'sku_manage/ingredient_detail.html'
 
+	def get_fields(self):
+		return [(key, value) for key, value in self.__dict__.items()]
+
 
 def ProductLineView(request):
 	queryset = ProductLine.objects.all()

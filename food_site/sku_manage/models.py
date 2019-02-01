@@ -72,7 +72,7 @@ class SKU(models.Model):
 		return len(skus)
 
 	def __str__(self):
-		return "{name}s: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case)
+		return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case)
 
 	def save(self):
 		if self.sku_num == None:
