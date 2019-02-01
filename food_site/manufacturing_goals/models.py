@@ -2,7 +2,7 @@ from django.db import models
 from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty
 from django.contrib.auth.models import User
 
-class ManufacturingGoals(models.Model):
+class ManufacturingGoal(models.Model):
 	name = models.CharField(max_length=500)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	

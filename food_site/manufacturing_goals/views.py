@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty, ManufacturingQty, ManufacturingGoal
-from .forms import GoalsForm, GoalChoiceForm
+from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty
+from .models import ManufacturingQty, ManufacturingGoal
+from .forms import GoalsForm, GoalsChoiceForm
 from django.views import generic
 from django.forms import inlineformset_factory
 
@@ -32,9 +33,9 @@ def manufqty(request):
 	return render(request, 'manufacturing_goals/manufqty.html', {'formset':formset, 'sku_list': sku_list})
 
 def manufcalc(request):
-	form = GoalChoiceForm()
+	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
-		form = GoalChoiceForm(request.POST)
+		form = GoalsChoiceForm(request.POST, user=request.user)
 		if form.is_valid():
 			goalcalc_list = list()
 			goal = form.cleaned_data['goal']
@@ -66,9 +67,9 @@ def calcresults(request):
 	return render(request, 'manufacturing_goals/calcresults.html', {'goal_name': goal_name, 'goal_list': goal_list})
 
 def manufcsv(request):
-	form = GoalChoiceForm(user=request.user)
+	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
-		form = GoalChoiceForm(request.POST, user=request.user)
+		form = GoalsChoiceForm(request.POST, user=request.user)
 		if form.is_valid():
 			goal = form.cleaned_data['goal']
 			goal_qty = goal.manufacturingqty_set.all()
@@ -87,4 +88,4 @@ def manufcsv(request):
 def manufexport(request):
 	goal_name = request.session['goal_export_name']
 	goal_info = request.session['goal_export_info']
-return render(request, 'manufacturing_goals/manufexport.html', {'goal_name': goal_name, 'goal_info': goal_info})
+	return render(request, 'manufacturing_goals/manufexport.html', {'goal_name': goal_name, 'goal_info': goal_info})

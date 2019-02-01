@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from sku_manage import views
+from manufacturing_goals import views
 from django.urls import path
 
 urlpatterns = [
