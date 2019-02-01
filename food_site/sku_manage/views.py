@@ -39,6 +39,10 @@ def ProductLineView(request):
 	RequestConfig(request, paginate={'per_page': 25}).configure(table)
 	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
 
+class ProductLineDetailView(generic.DetailView):
+	model = ProductLine
+	template_name = 'sku_manage/product_line_detail.html'
+
 def SKUView(request):
 	queryset = SKU.objects.all()
 	f = SKUFilter(request.GET, queryset=queryset)

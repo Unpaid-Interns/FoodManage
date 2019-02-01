@@ -1,0 +1,7 @@
+<h1>{{ productline.name }}</h1>
+<p>{{ productline.sku_set.all|length }} SKUs:</p>
+<ul>
+{% for sku in productline.sku_set.all %}
+    <li><a href="{% url 'sku_detail' sku.pk %}"> {{ sku.name }}</a></li>
+{% endfor %}
+</ul>
