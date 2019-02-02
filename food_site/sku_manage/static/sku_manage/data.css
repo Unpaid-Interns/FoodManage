@@ -94,3 +94,9 @@ a {
 	font-weight: bold;
 	text-align: left;
 }
+
+.retlink {
+	color: blue;
+	text-decoration: underline;
+	font-weight: bold;
+}
