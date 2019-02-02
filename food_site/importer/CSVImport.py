@@ -14,9 +14,9 @@ class CSVImport:
         self.conflict_dict = dict()
         self.number_records_dict = dict()
         self.file_prefix_array = []
-        self.total_num_records_imported
-        self.total_num_records_ignored
-        self.total_num_records_conflict
+        self.total_num_records_imported = 0
+        self.total_num_records_ignored = 0
+        self.total_num_records_conflict = 0
 
     def parse(self):
         """
@@ -61,9 +61,9 @@ class CSVImport:
                     # print("Import failed for: " + filename)
                     # print(commit_success_message)
                 if import_completed_successfully:
-                    return True, "Imported completed successfully with #" + str(self.total_num_records_imported) \
+                    return True, "Import completed successfully with #" + str(self.total_num_records_imported) \
                            + " records imported and #" + str(self.total_num_records_ignored) \
-                           + " records ignored and #" + str(self.total_num_records_conflict)
+                           + " records ignored and #" + str(self.total_num_records_conflict) + " records in conflict."
             else:
                 return False, "Conflicts exist. Please confirm how to handle them below."
         return import_completed_successfully, ""
@@ -83,6 +83,9 @@ class CSVImport:
 
     def set_filenames(self, filename_array):
         self.filenames = filename_array
+
+    def add_data_to_commit_dict(self, file_prefix, data):
+        self.data_dict[file_prefix] = data
 
     def commit_to_database(self):
         """
@@ -463,16 +466,18 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
         list3 = models.SKU.objects.filter(sku_num=record_converted.sku_num)
         if (len(list2) > 0):
             # TODO: Ask user for override.
-            return "CONFLICT: Conflicting SKU record found with Case UPC '" + record.case_upc \
-                   + "' and SKU number '" + record.sku_number + "', in conflict with database entry with Case UPC '" \
-                   + str(list2[0].case_upc) + "' and SKU number '" \
-                   + str(list2[0].sku_num) + "' at line '" + \
+            return "CONFLICT: Conflicting SKU record found with name '" + record.name + "' and Case UPC '" \
+                   + record.case_upc \
+                   + "', in conflict with database entry with name '" \
+                   + list2[0].name + "' and Case UPC '" \
+                   + str(list2[0].case_upc) + \
+                   "' at line '" + \
                    str(number_records_imported + 2) + "' in the SKU CSV file.", list2[0]
         if (len(list3) > 0):
             # TODO: Ask user for override.
-            return "CONFLICT: Conflicting SKU record found with Case UPC '" + record.case_upc \
-                   + "' and SKU number '" + record.sku_number + "', in conflict with database entry with Case UPC '" \
-                   + str(list3[0].case_upc) + "' and SKU number '" \
+            return "CONFLICT: Conflicting SKU record found with name '" + record.name + "' and SKU number '" \
+                   + record.sku_number + "', in conflict with database entry with with name '" \
+                   + list3[0].name + "' and SKU number '" \
                    + str(list3[0].sku_num) \
                    + "' at line '" + str(number_records_imported + 2) + "' in the SKU CSV file.", list3[0]
     if (file_prefix == "ingredients"):
