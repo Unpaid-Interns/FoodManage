@@ -1,23 +1,12 @@
-from django.shortcuts import render
-from django.views import generic
-from .models import Ingredient
-from .models import ProductLine
-from .models import SKU
-from .models import IngredientQty
+from django.shortcuts import render, redirect
 from django.views import generic
 from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django_tables2 import RequestConfig
-from .tables import IngredientTable
-from .tables import ProductLineTable
-from .tables import SKUTable
-from .tables import IngredientQtyTable
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
-from .filters import IngredientFilter
-from .filters import ProductLineFilter
-from .filters import SKUFilter
-from .filters import IngredientQtyFilter 
+from django_tables2 import RequestConfig
+from .models import Ingredient, ProductLine, SKU, IngredientQty
+from .tables import IngredientTable, ProductLineTable, SKUTable, IngredientQtyTable
+from .filters import IngredientFilter, ProductLineFilter, SKUFilter, IngredientQtyFilter 
 
 # Create your views here.
 def IngredientView(request):
@@ -31,6 +20,9 @@ class IngredientDetailView(generic.DetailView):
 	model = Ingredient
 	template_name = 'sku_manage/ingredient_detail.html'
 
+	def get_fields(self):
+		return [(key, value) for key, value in self.__dict__.items()]
+
 
 def ProductLineView(request):
 	queryset = ProductLine.objects.all()
@@ -38,6 +30,10 @@ def ProductLineView(request):
 	table = ProductLineTable(f.qs)
 	RequestConfig(request, paginate={'per_page': 25}).configure(table)
 	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
+
+class ProductLineDetailView(generic.DetailView):
+	model = ProductLine
+	template_name = 'sku_manage/product_line_detail.html'
 
 def SKUView(request):
 	queryset = SKU.objects.all()
