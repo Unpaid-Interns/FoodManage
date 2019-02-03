@@ -13,8 +13,6 @@
 	<body>
 		{% if user.is_authenticated %}
 		<h1>Ingredient Dependency Reporting</h1>
-		<a class="ret" href="/search">Return</a>
-		<br></br>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
 		{% if filter %}
@@ -49,6 +47,13 @@
 			<div style="overflow-x:auto;">
 			{% render_table table %}
 			</div>
+		</form>
+		<form method="get">
+			{% if paginated %}
+				<input type="submit" name="remove_pagination" value="View All Records">
+			{% else %}
+				<input type="submit" name="add_pagination" value="Paged View">
+			{% endif %}
 		</form>
 		{% else %}
 		<h1>You must be logged in to view data</h1>

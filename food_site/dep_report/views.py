@@ -3,7 +3,7 @@ import csv
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from sku_manage.models import Ingredient
-from django_tables2 import RequestConfig
+from django_tables2 import RequestConfig, paginators
 from .tables import IngredientTable
 from .filters import IngredientFilter
 
@@ -12,19 +12,34 @@ def ingr_dep_menu(request):
 	queryset = Ingredient.objects.all()
 	f = IngredientFilter(request.GET, queryset=queryset)
 	table = IngredientTable(f.qs)
-	RequestConfig(request, paginate={'per_page': 25}).configure(table)
-	return render(request, 'dep_report/data.html', {'table': table, 'filter': f})
 
-# def ingr_dep_menu(request):
-# 	context = {'ingredients': Ingredient.objects.all()}
-# 	return render(request, 'dep_report/index.html', context)
+	context = {
+		'table': table, 
+		'filter': f, 
+		'paginated': True,
+	}
+	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25
+	}
+	if request.method == 'GET' and 'remove_pagination' in request.GET:
+		print(request.GET)
+		paginate = False
+		context['paginated'] = False
+
+
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'dep_report/data.html', context)
+
 
 def ingr_dep_generate(request):
-	if request.method == 'POST' and request.POST['choice']:
+	if request.method == 'POST' and 'choice' in request.POST:
 		request.session['choices'] = request.POST.getlist('choice')
 		return redirect('ingr_dep_report')
 	else:
 		return redirect('ingr_dep')
+
 
 def ingr_dep_report(request):
 	choices = request.session.get('choices')
