@@ -52,8 +52,8 @@ class CSVImport:
                 #         'ingredients', 'product_lines', or 'sku_ingredients'")
                 # parsing_completed_successfully = False
         if parsing_completed_successfully:
+            commit_success_message = self.commit_to_database()
             if not self.conflict_dict:
-                commit_success_message = self.commit_to_database()
                 if commit_success_message == "":
                     import_completed_successfully = True
                 else:
@@ -65,7 +65,10 @@ class CSVImport:
                            + " records imported and #" + str(self.total_num_records_ignored) \
                            + " records ignored and #" + str(self.total_num_records_conflict) + " records in conflict."
             else:
-                return False, "Conflicts exist. Please confirm how to handle them below."
+                return False, "Import completed with #" + str(self.total_num_records_imported) \
+                           + " records imported and #" + str(self.total_num_records_ignored) \
+                           + " records ignored and #" + str(self.total_num_records_conflict) \
+                       + " records in conflict. \n" + "Conflicts exist. Please confirm how to handle them below."
         return import_completed_successfully, ""
 
     def add_filename(self, filename):
@@ -87,11 +90,13 @@ class CSVImport:
     def add_data_to_commit_dict(self, file_prefix, data):
         self.data_dict[file_prefix] = data
 
-    def make_serializable_conflict_dict(self):
+    def make_serializable_conflict_dict(self, conflict_dict_temp):
+        if conflict_dict_temp is None:
+            conflict_dict_temp = self.conflict_dict
         serializable_dict = dict()
-        for file_prefix in self.conflict_dict:
+        for file_prefix in conflict_dict_temp:
             new_conflict_records_list = []
-            conflict_records_list = self.conflict_dict[file_prefix]
+            conflict_records_list = conflict_dict_temp[file_prefix]
             for conflict_tuple in conflict_records_list:
                 data = conflict_tuple[0]
                 message = conflict_tuple[2]
@@ -109,6 +114,7 @@ class CSVImport:
                 message = conflict_tuple[1]
                 data = None
                 if len(data_string_array) == 8:
+                    print("this should be it: "+ data_string_array[5])
                     data = CSVData.SKUData(data_string_array[0], data_string_array[1], data_string_array[2],
                                            data_string_array[3], data_string_array[4], data_string_array[5],
                                            data_string_array[6], data_string_array[7])
@@ -121,13 +127,21 @@ class CSVImport:
                     data = CSVData.SKUIngredientData(data_string_array[0], data_string_array[1], data_string_array[2])
                 if data is None:
                     return original_dict
-                case_upc_conflicts = models.SKU.objects.filter(case_upc=Decimal(data.case_upc))
-                sku_num_conflicts = models.SKU.objects.filter(sku_num=int(data.sku_number))
                 conflict_database_data = None
-                if (len(case_upc_conflicts) > 0):
-                    conflict_database_data = case_upc_conflicts[0]
-                elif (len(sku_num_conflicts) > 0):
-                    conflict_database_data = sku_num_conflicts[0]
+                if len(data_string_array) == 8:
+                    case_upc_conflicts = models.SKU.objects.filter(case_upc=Decimal(data.case_upc))
+                    sku_num_conflicts = models.SKU.objects.filter(sku_num=int(data.sku_number))
+                    if (len(case_upc_conflicts) > 0):
+                        conflict_database_data = case_upc_conflicts[0]
+                    elif (len(sku_num_conflicts) > 0):
+                        conflict_database_data = sku_num_conflicts[0]
+                elif len(data_string_array) == 6:
+                    ingr_num_conflicts = models.Ingredient.objects.filter(number=int(data.number))
+                    ingr_name_conflicts = models.Ingredient.objects.filter(name=data.name)
+                    if (len(ingr_name_conflicts) > 0):
+                        conflict_database_data = ingr_name_conflicts[0]
+                    elif (len(ingr_num_conflicts) > 0):
+                        conflict_database_data = ingr_num_conflicts[0]
                 if conflict_database_data is None:
                     return original_dict
                 new_conflict_records_list.append([data, conflict_database_data, message])
@@ -379,10 +393,18 @@ def skus_parser_helper(row, num_records_parsed):
                       + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not.")
             if i == 2:
                 # TODO: Check case_upc validity (might have to do this in commit area instead...)
-                pass
+                try:
+                    models.validate_upc(Decimal(row[i]))
+                except:
+                    return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                        + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards.")
             if i == 3:
                 # TODO: Check unit_upc validity (might have to do this in commit area instead...)
-                pass
+                try:
+                    models.validate_upc(Decimal(row[i]))
+                except:
+                    return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                            + str(i + 1) + ". unit_upc in this row/col is invalid/does not conform to standards.")
         if i in [5]:
             if not integer_check(row[i]):
                 return("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
@@ -557,18 +579,18 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                    + "' and number '" + record.number + "', in conflict with database entry with name '" \
                    + list3[0].name + "' and number '" \
                    + str(list3[0].number) + "' at line '" + str(number_records_imported + 2) \
-                   + "' in the Ingredient CSV file.", list3[[0]]
+                   + "' in the Ingredient CSV file.", list3[0]
     if (file_prefix == "product_lines"):
         models_list = models.ProductLine.objects.filter(name=record.name)
         for item in models_list:
             if (item.name == record_converted.name):
                 return "identical", None
-        list2 = models.ProductLine.objects.filter(name=record_converted.name)
-        if (len(list2) > 0):
-            # TODO: Ask user for override.
-            return "CONFLICT: Conflicting Product Line record found with name '" + list2[0].name \
-                   + "' at line '" + str(number_records_imported + 2) \
-                   + "' in the product_lines CSV file.", list2[0]
+        # list2 = models.ProductLine.objects.filter(name=record_converted.name)
+        # if (len(list2) > 0):
+        #     # TODO: Ask user for override.
+        #     return "CONFLICT: Conflicting Product Line record found with name '" + list2[0].name \
+        #            + "' at line '" + str(number_records_imported + 2) \
+        #            + "' in the product_lines CSV file.", list2[0]
     if (file_prefix == "formulas"):
         models_list = models.IngredientQty.objects.filter(quantity=Decimal(record.quantity))
         for item in models_list:
