@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 
 # Create your views here.
@@ -13,7 +13,7 @@ def authin(request):
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
 		login(request, user)
-		response = redirect('/search')
+		response = redirect('/')
 		return response
 	else:
 		response = redirect('/invalidlogin')
@@ -24,3 +24,9 @@ def invalidlogin(request):
 
 def help(request):
 	return render(request, 'home/help.html', context=None)
+
+def authout(request):
+        logout(request)
+        response = redirect('/')
+        return response
+
