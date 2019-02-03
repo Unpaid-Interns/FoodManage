@@ -1,9 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import generic
 from django.contrib.auth import logout
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
-from django_tables2 import RequestConfig
+from django_tables2 import RequestConfig, paginators
 from .models import Ingredient, ProductLine, SKU, IngredientQty
 from .tables import IngredientTable, ProductLineTable, SKUTable, IngredientQtyTable
 from .filters import IngredientFilter, ProductLineFilter, SKUFilter, IngredientQtyFilter 
@@ -13,8 +11,23 @@ def IngredientView(request):
 	queryset = Ingredient.objects.all()
 	f = IngredientFilter(request.GET, queryset=queryset)
 	table = IngredientTable(f.qs)
-	RequestConfig(request, paginate={'per_page': 25}).configure(table)
-	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
+
+	context = {
+		'table': table, 
+		'filter': f, 
+		'paginated': True,
+	}	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25
+	}
+	if request.method == 'GET' and 'remove_pagination' in request.GET:
+		print(request.GET)
+		paginate = False
+		context['paginated'] = False
+
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'sku_manage/data.html', context)
 
 class IngredientDetailView(generic.DetailView):
 	model = Ingredient
@@ -28,8 +41,24 @@ def ProductLineView(request):
 	queryset = ProductLine.objects.all()
 	f = ProductLineFilter(request.GET, queryset=queryset)
 	table = ProductLineTable(f.qs)
-	RequestConfig(request, paginate={'per_page': 25}).configure(table)
-	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
+
+	context = {
+		'table': table, 
+		'filter': f, 
+		'paginated': True,
+	}	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25
+	}
+	if request.method == 'GET' and 'remove_pagination' in request.GET:
+		print(request.GET)
+		paginate = False
+		context['paginated'] = False
+
+
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'sku_manage/data.html', context)
 
 class ProductLineDetailView(generic.DetailView):
 	model = ProductLine
@@ -39,8 +68,23 @@ def SKUView(request):
 	queryset = SKU.objects.all()
 	f = SKUFilter(request.GET, queryset=queryset)
 	table = SKUTable(f.qs)
-	RequestConfig(request, paginate={'per_page': 25}).configure(table)
-	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
+
+	context = {
+		'table': table, 
+		'filter': f, 
+		'paginated': True,
+	}	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25
+	}
+	if request.method == 'GET' and 'remove_pagination' in request.GET:
+		print(request.GET)
+		paginate = False
+		context['paginated'] = False
+
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'sku_manage/data.html', context)
 
 class SKUDetailView(generic.DetailView):
 	model = SKU

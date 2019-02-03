@@ -9,6 +9,10 @@ from .tables import IngredientTable
 
 
 def ingr_dep_menu(request):
+	queryset = Ingredient.objects.all()
+	f = IngredientFilter(request.GET, queryset=queryset)
+	table = IngredientTable(f.qs)
+
 	context = {
 		'table': table, 
 		'filter': f, 
@@ -23,9 +27,6 @@ def ingr_dep_menu(request):
 		paginate = False
 		context['paginated'] = False
 
-	queryset = Ingredient.objects.all()
-	f = IngredientFilter(request.GET, queryset=queryset)
-	table = IngredientTable(f.qs)
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'dep_report/data.html', context)
 

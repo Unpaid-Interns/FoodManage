@@ -17,6 +17,7 @@ class IngredientFilter(django_filters.FilterSet):
 
 class ProductLineFilter(django_filters.FilterSet):
 	name = django_filters.CharFilter(lookup_expr='icontains')
+	skus = django_filters.ModelChoiceFilter(queryset=SKU.objects.all(), field_name='sku')
 	class Meta:
 		model = ProductLine
 		fields = ['name']
