@@ -1,0 +1,8 @@
+{% load static %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label>{{ count }}</label>
+    <input type="file" name="myfile">
+    <button type="submit">Upload</button>
+</form>
