@@ -1,3 +1,14 @@
+{% load staticfiles %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load bootstrap3 %}
+<head>
+	<meta charset="utf-8">
+    	<title>HypoMeals</title>
+    	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
+</head>
+
+
 <h1>Ingredient Dependency Report</h1>
 
 <form method="post">
@@ -7,6 +18,7 @@
 </form>
 
 <table>
+<tr><td>Ingredient</td><td>SKUs</td></tr>
 {% for ingredient in ingredients.all %}
     <tr>
     	<td>{{ ingredient }}</td>

@@ -4,21 +4,16 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from sku_manage.models import Ingredient
 from django_tables2 import RequestConfig, paginators
+from sku_manage.filters import IngredientFilter
 from .tables import IngredientTable
-from .filters import IngredientFilter
 
 
 def ingr_dep_menu(request):
-	queryset = Ingredient.objects.all()
-	f = IngredientFilter(request.GET, queryset=queryset)
-	table = IngredientTable(f.qs)
-
 	context = {
 		'table': table, 
 		'filter': f, 
 		'paginated': True,
-	}
-	
+	}	
 	paginate = {
 		'paginator_class': paginators.LazyPaginator,
 		'per_page': 25
@@ -28,7 +23,9 @@ def ingr_dep_menu(request):
 		paginate = False
 		context['paginated'] = False
 
-
+	queryset = Ingredient.objects.all()
+	f = IngredientFilter(request.GET, queryset=queryset)
+	table = IngredientTable(f.qs)
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'dep_report/data.html', context)
 
