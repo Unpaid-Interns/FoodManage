@@ -4,7 +4,9 @@ from .models import ManufacturingQty, ManufacturingGoal
 from .forms import GoalsForm, GoalsChoiceForm
 from django.views import generic
 from django.forms import inlineformset_factory
+from django.contrib.auth.decorators import login_required
 
+@login_required(login_url='')
 def manufacturing(request):
 	if request.method == 'POST':
 		form = GoalsForm(request.POST)
@@ -18,8 +20,10 @@ def manufacturing(request):
 		form = GoalsForm()
 	return render(request, "manufacturing_goals/manufacturing.html", {'form': form})
 
+@login_required(login_url='')
 def manufqty(request):
 	new_id = request.session['goal_id']
+	product_lines = ProductLine.objects.all()
 	goal = ManufacturingGoal.objects.get(pk=new_id)
 	GoalInlineFormSet = inlineformset_factory(ManufacturingGoal, ManufacturingQty, fields=('sku', 'caseqty',))
 	sku_list = SKU.objects.all()
@@ -30,8 +34,9 @@ def manufqty(request):
 			return redirect('manufacturing')
 	else:
 		formset = GoalInlineFormSet(instance=goal)
-	return render(request, 'manufacturing_goals/manufqty.html', {'formset':formset, 'sku_list': sku_list})
+	return render(request, 'manufacturing_goals/manufqty.html', {'formset':formset, 'sku_list': sku_list, 'product_lines': product_lines})
 
+@login_required(login_url='')
 def manufcalc(request):
 	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
@@ -61,11 +66,13 @@ def manufcalc(request):
 			return redirect('calcresults')
 	return render(request, 'manufacturing_goals/manufcalc.html', {'form': form})
 
+@login_required(login_url='')
 def calcresults(request):
 	goal_name = request.session['goal_calc_name']
 	goal_list = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/calcresults.html', {'goal_name': goal_name, 'goal_list': goal_list})
 
+@login_required(login_url='')
 def manufcsv(request):
 	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
@@ -85,6 +92,7 @@ def manufcsv(request):
 			return redirect('manufexport')
 	return render(request, 'manufacturing_goals/manufcsv.html', {'form': form})
 
+@login_required(login_url='')
 def manufexport(request):
 	goal_name = request.session['goal_export_name']
 	goal_info = request.session['goal_export_info']
