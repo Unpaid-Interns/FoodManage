@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<head>
+	<title>Manufacturing Goal Export</title>
+</head>
+
+<body>
+	<strong>{{ goal_name }}</strong>
+	<table class="sku_table" style="margin-bottom:10px;">
+		<tr>
+			<th>Name</th>
+			<th>SKU#</th>
+			<th>Unit Size</th>
+			<th>Units per Case</th>
+			<th>Case Quantity</th>		
+		<tr>
+		{% for i in goal_info %}
+		<tr>
+			<td>{{ i.name }}</td>
+			<td>{{ i.sku_number }}</td>
+			<td>{{ i.unit_size }}</td>
+			<td>{{ i.units_per_case }}</td>
+			<td>{{ i.case_quantity }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	<a href="#" id="xx" style="text-decoration:none;color:#000;background-color:#ddd;border:1px solid #ccc;padding:8px;">Export to CSV</a>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+	function exportTableToCSV($table, filename) {
+		var $rows = $table.find('tr:has(td),tr:has(th)'),
+			tmpColDelim = String.fromCharCode(11),
+			tmpRowDelim = String.fromCharCode(0),
+			colDelim = '","',
+			rowDelim = '"\r\n"',
+			csv = '"' + $rows.map(function (i, row) {
+				var $row = $(row), $cols = $row.find('td,th');
+				return $cols.map(function (j, col) {
+					var $col = $(col), text = $col.text();
+					return text.replace(/"/g, '""');
+				}).get().join(tmpColDelim);
+			}).get().join(tmpRowDelim).split(tmpRowDelim).join(rowDelim).split(tmpColDelim).join(colDelim) + '"',
+			csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+			console.log(csv);
+			if (window.navigator.msSaveBlob){
+				window.navigator.msSaveOrOpenBlob(new Blob([csv], {type: "text/plain;charset=utf-8;"}), "csvname.csv");
+			}
+			else {
+				$(this).attr({ 'download': filename, 'href': csvData, 'target': '_blank' });
+			}
+	}
+$("#xx").on('click', function (event) {
+	exportTableToCSV.apply(this, [$('.sku_table'), '{{ goal_name }}_export.csv']);
+});
+</script>
+</body>
