@@ -1,17 +1,31 @@
 {% load static %}
 
-<a href="{% url 'simple_upload' %}" class="return button">Return to upload page</a>
+<a href="{% url 'simple_upload' %}" class="button">Return to upload page</a>
 
     {% for message in messages %}
     	{% if 'first' in message.tags %}
     		<p class="first message">{{ message }}</p>
-            <a href="{% url 'commit_all_to_database' %}" class="commitbutton">Commit ALL To Database</a>
+            <a href="{% url 'commit_all_to_database' %}" class="button">Commit ALL To Database</a>
         {% endif %}
     	{% if 'result' in message.tags %}
             <p class="result message">{{ message }}</p>
         {% endif %}
         {% if 'conflict' in message.tags %}
             <p class="conflict">{{ message }}</p>
-            <a href="{% url 'commit_to_database' forloop.counter %}" class="commitbutton">Commit Above To Database</a>
+            <a href="{% url 'commit_to_database' forloop.counter %}" class="button">Commit Above To Database</a>
         {% endif %}
     {% endfor %}
+
+<style>
+    .button {
+  font: bold 11px Arial;
+  text-decoration: none;
+  background-color: #EEEEEE;
+  color: #333333;
+  padding: 2px 6px 2px 6px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
+}
+</style>
