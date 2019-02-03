@@ -10,6 +10,7 @@
 
         </head>
 <body>
+{% if user.is_authenticated %}
 <h1>{{ sku }}</h1>
 <p>General Information:</p>
 <ul>
@@ -28,5 +29,12 @@
     	<li> <a class="listy" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.get_qty }} packages</li>
 	{% endfor %}
 </ul>
+	<br></br>
+        <a class="btn btn-primary" href="/search">Return To Search</a>
+{% else %}
+<h1>You must be logged in to view data.</h1>
+<br></br>
+<a class="btn btn-primary" href="/">Go To Login</a>
+{% endif %}
 </body>
 </html>

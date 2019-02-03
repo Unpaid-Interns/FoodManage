@@ -11,15 +11,16 @@
         <body>
 		{% if user.is_authenticated %}
                 <h1>What do you wish to search for?</h1>
-		<a class="btn btn-primary" href="/search/ingredient">Ingredient</a> 
-		<a class="btn btn-primary" href="/search/productline">Product Line</a>
-		<a class="btn btn-primary" href="/search/sku">SKU</a>
-		<a class="btn btn-primary" href="/search/ingredientqty">Ingredient Quantity</a>
-		<form action='/authout'>
-		<input type="submit" value="Logout">
-		</form>
+		<a class="btn btn-primary" href="/search/ingredient">Ingredient Details</a> 
+		<a class="btn btn-primary" href="/search/productline">Product Lines</a>
+		<a class="btn btn-primary" href="/search/sku">SKU Details</a>
+		<a class="btn btn-primary" href="/search/ingredientqty">Ingredient SKUs</a>
+		<br></br>
+		<a class="btn btn-primary" href="/">Return To Home</a>
 		{% else %}
 		<h1>You must be logged in to view data</h1>
+		<br></br>
+		<a class="btn btn-primary" href="/">Go To Login</a>
 		{% endif %}
         </body>
 <html>
