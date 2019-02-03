@@ -317,7 +317,7 @@ def parser(filename):
     # Open the csv file, read only
     try:
         with open(filename, 'r') as csvfile:
-            data_reader = csv.reader(csvfile, quotechar='|')
+            data_reader = csv.reader(csvfile, quotechar='|', encoding='utf-8')
             header_valid = True
             header_check_complete = False
             header_issue = ""
