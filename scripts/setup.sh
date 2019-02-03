@@ -1,5 +1,11 @@
 #!bin/bash
 
+# Create Database
+createdb food_db
+
+# Set Apache permissions for upload
+sudo chmod a+w /var/www
+
 # Update from repository
 git pull
 
