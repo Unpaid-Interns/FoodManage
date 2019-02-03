@@ -1,0 +1,17 @@
+{% load static %}
+
+<a href="{% url 'simple_upload' %}" class="return button">Return to upload page</a>
+
+    {% for message in messages %}
+    	{% if 'first' in message.tags %}
+    		<p class="first message">{{ message }}</p>
+            <a href="{% url 'commit_all_to_database' %}" class="commitbutton">Commit ALL To Database</a>
+        {% endif %}
+    	{% if 'result' in message.tags %}
+            <p class="result message">{{ message }}</p>
+        {% endif %}
+        {% if 'conflict' in message.tags %}
+            <p class="conflict">{{ message }}</p>
+            <a href="{% url 'commit_to_database' forloop.counter %}" class="commitbutton">Commit Above To Database</a>
+        {% endif %}
+    {% endfor %}

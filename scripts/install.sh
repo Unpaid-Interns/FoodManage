@@ -26,3 +26,7 @@ sudo apt-get -qq -y install python3
 sudo apt-get -qq -y install python3-pip
 pip3 install --upgrade pip3
 pip3 install --upgrade virtualenv
+
+# Restart services
+sudo service postgresql restart
+sudo service apache2 restart

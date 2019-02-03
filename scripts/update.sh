@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Update from repository
 git pull
@@ -15,3 +15,6 @@ pip install --upgrade psycopg2-binary
 ./food_site/manage.py migrate
 ./food_site/manage.py collectstatic
 deactivate
+
+# Restart server
+sudo service apache2 restart

@@ -1,5 +1,6 @@
 from decimal import Decimal
 from sku_manage import models
+import json
 
 headerDict = {
     "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
@@ -35,6 +36,10 @@ class SKUData:
                           units_per_case=int(self.case_count), product_line=chosen_product_line,
                           comment=self.comment)
 
+    def convert_to_string_array(self):
+        return [self.sku_number, self.name, self.case_upc, self.unit_upc, self.unit_size,
+                self.case_count, self.product_line, self.comment]
+
 
 class IngredientData:
     def __init__(self, number, name, vendor_info, package_size, cost, comment):
@@ -54,6 +59,8 @@ class IngredientData:
         return models.Ingredient(number=int(self.number), name=self.name, vendor_info=self.vendor_info,
                                  package_size=self.package_size, cost=Decimal(self.cost), comment=self.comment)
 
+    def convert_to_string_array(self):
+        return [self.number, self.name, self.vendor_info, self.package_size, self.cost, self.comment]
 
 class ProductLineData:
     def __init__(self, name):
@@ -64,6 +71,9 @@ class ProductLineData:
 
     def convert_to_database_model(self):
         return models.ProductLine(name=self.name)
+
+    def convert_to_string_array(self):
+        return [self.name]
 
 
 class SKUIngredientData:
@@ -79,3 +89,6 @@ class SKUIngredientData:
     def convert_to_database_model(self, chosen_sku, chosen_ingredient):
         return models.IngredientQty(sku=chosen_sku, ingredient=chosen_ingredient,
                                     quantity=Decimal(self.quantity))
+
+    def convert_to_string_array(self):
+        return [self.sku_number, self.ingredient_number, self.quantity]
