@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Update apt
 sudo apt-get -qq update
@@ -14,7 +14,7 @@ sudo apt-get -qq update
 sudo apt-get -qq -y install certbot python-certbot-apache 
 sudo certbot --apache
 
-# Install postgres
+# Install and configure postgres
 sudo apt-get -qq -y install postgresql postgresql-contrib
 if ! sudo -s sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$user'" | grep -q 1; then
     sudo -s sudo -u postgres createuser -s $user

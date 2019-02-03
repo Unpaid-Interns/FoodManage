@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Create Database
 createdb food_db
