@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.views import generic
 from django.contrib.auth import logout
 from django_tables2 import RequestConfig, paginators
+from exporter import CSVExport
 from .models import Ingredient, ProductLine, SKU, IngredientQty
 from .tables import IngredientTable, ProductLineTable, SKUTable, IngredientQtyTable
 from .filters import IngredientFilter, ProductLineFilter, SKUFilter, IngredientQtyFilter 
@@ -25,6 +26,9 @@ def IngredientView(request):
 		print(request.GET)
 		paginate = False
 		context['paginated'] = False
+
+	if request.method = 'POST' and 'export_data' in request.POST:
+		CSVExport.export_to_csv('ingredients', f.qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -56,6 +60,8 @@ def ProductLineView(request):
 		paginate = False
 		context['paginated'] = False
 
+	if request.method = 'POST' and 'export_data' in request.POST:
+		CSVExport.export_to_csv('product_lines', f.qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -83,6 +89,9 @@ def SKUView(request):
 		paginate = False
 		context['paginated'] = False
 
+	if request.method = 'POST' and 'export_data' in request.POST:
+		CSVExport.export_to_csv('skus', f.qs)
+
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
 
@@ -94,8 +103,25 @@ def IngredientQtyView(request):
 	queryset = IngredientQty.objects.all()
 	f = IngredientQtyFilter(request.GET, queryset=queryset)
 	table = IngredientQtyTable(f.qs)
-	RequestConfig(request, paginate={'per_page': 25}).configure(table)
-	return render(request, 'sku_manage/data.html', {'table': table, 'filter': f})
+	context = {
+		'table': table, 
+		'filter': f, 
+		'paginated': True,
+	}	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25
+	}
+	if request.method == 'GET' and 'remove_pagination' in request.GET:
+		print(request.GET)
+		paginate = False
+		context['paginated'] = False
+
+	if request.method = 'POST' and 'export_data' in request.POST:
+		CSVExport.export_to_csv('formulas', f.qs)
+
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'sku_manage/data.html', context)
 
 def search(request):
 	return render(request, 'sku_manage/search.html', context=None)
