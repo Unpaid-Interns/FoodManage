@@ -1,4 +1,10 @@
-#!bin/bash
+#!/bin/bash
+
+# Create Database
+createdb food_db
+
+# Set Apache permissions for upload
+sudo chmod a+w /var/www
 
 # Update from repository
 git pull
@@ -17,7 +23,10 @@ pip install --upgrade django-bootstrap3
 pip install --upgrade psycopg2-binary
 
 # Setup Django
-./food_site/manage.py migrate
-./food_site/manage.py collectstatic
+./food_site/manage.py migrate -v 0
+./food_site/manage.py collectstatic --noinput -v 0
 ./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
 deactivate
+
+# Restart server
+sudo service apache2 restart

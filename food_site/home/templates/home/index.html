@@ -10,9 +10,11 @@
     </head>
     <body>
 	<img src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
-        <h1>Welcome to Hypothetical Meals, your top world provider of sadness!</h1>
+        <h1>Welcome to Hypothetical Meals!</h1>
 	{% if user.is_authenticated %}
 	<a class="btn btn-primary" href="/search">Go To Data</a>
+	<a class="btn btn-primary" href="/reporting/ingredient">Reporting</a>
+	<a class="btn btn-primary" href="/manufacturing">Manufacturing</a>
 	<br></br>
 	{% else %}
 	<h2>User Login</h2>
@@ -25,8 +27,11 @@
 	</form>
 	<br></br>
 	{% endif %}
-	<a class="btn btn-primary" href="/admin">Admin Login</a>
+	{% if request.user.is_staff %}
+	<a class="btn btn-primary" href="/admin">Administration</a>
+	<a class="btn btn-primary" href="/importer">CSV Import</a>
 	<br></br>
+	{% endif %}
 	<a class="btn btn-primary" href="/help">Help</a>
 	{% if user.is_authenticated %}
 	<br></br>

@@ -12,9 +12,7 @@
 	</head>
 	<body>
 		{% if user.is_authenticated %}
-		<h1>Data shown below:</h1>
-		<a class="ret" href="/search">Return</a>
-		<br></br>
+		<h1>Ingredient Dependency Reporting</h1>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
 		{% if filter %}
@@ -43,9 +41,13 @@
 		{% if table.rows %}
 			<p>{{ table.rows|length }} result(s)</p>
 		{% endif %}
-		<div style="overflow-x:auto;">
-		{% render_table table %}
-		</div>
+		<form action="{% url 'ingr_dep_generate' %}" method="post">
+		{% csrf_token %}
+			<input type="submit" value="Generate">
+			<div style="overflow-x:auto;">
+			{% render_table table %}
+			</div>
+		</form>
 		<form method="get">
 			{% if paginated %}
 				<input type="submit" name="remove_pagination" value="View All Records">
@@ -53,16 +55,8 @@
 				<input type="submit" name="add_pagination" value="Paged View">
 			{% endif %}
 		</form>
-		<br></br>
-		<form method="post">
-			{% csrf_token %}
-			<input type="submit" name="export_data" value="Download as CSV">
-		</form>
-
 		{% else %}
-		<h1>You must be logged in to view data.</h1>
-		<br></br>
-		<a class="retlink" href="/">Go To Login</a>
+		<h1>You must be logged in to view data</h1>
 		{% endif %}
 	</body>
 </html>

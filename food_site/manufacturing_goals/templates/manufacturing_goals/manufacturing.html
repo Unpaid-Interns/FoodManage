@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+
+<head>
+	<title>Manufacturing Goals</title>
+</head>
+
+<body>
+	<h3>Manufacturing Goals</h3>
+	<p>Create a new manufacturing goal</p>
+	<form id="goal-form" method="POST" action="/manufacturing/">
+		{% csrf_token %}
+		<p><label>Goal Name: </label><br><input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Input a name for this goal"></p>
+		<button type="submit" id="submit" name="submit">Save Goal</button>
+	</form>
+	<p><strong>OR</strong></p>
+	<a href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a>
+	<a href='/manufacturing/manufcsv/'>Export a manufacturing goal</a>
+</body>
