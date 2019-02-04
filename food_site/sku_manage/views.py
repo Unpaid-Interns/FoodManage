@@ -23,12 +23,14 @@ def IngredientView(request):
 		'per_page': 25
 	}
 	if request.method == 'GET' and 'remove_pagination' in request.GET:
-		print(request.GET)
 		paginate = False
 		context['paginated'] = False
 
 	if request.method == 'POST' and 'export_data' in request.POST:
-		return CSVExport.export_to_csv('ingredients', f.qs)
+		qs = f.qs
+		if 'sort' in request.GET:
+			qs = f.qs.order_by(request.GET['sort']) 
+		return CSVExport.export_to_csv('ingredients', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -56,12 +58,14 @@ def ProductLineView(request):
 		'per_page': 25
 	}
 	if request.method == 'GET' and 'remove_pagination' in request.GET:
-		print(request.GET)
 		paginate = False
 		context['paginated'] = False
 
 	if request.method == 'POST' and 'export_data' in request.POST:
-		return CSVExport.export_to_csv('product_lines', f.qs)
+		qs = f.qs
+		if 'sort' in request.GET:
+			qs = f.qs.order_by(request.GET['sort']) 
+		return CSVExport.export_to_csv('product_lines', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -85,12 +89,14 @@ def SKUView(request):
 		'per_page': 25
 	}
 	if request.method == 'GET' and 'remove_pagination' in request.GET:
-		print(request.GET)
 		paginate = False
 		context['paginated'] = False
 
 	if request.method == 'POST' and 'export_data' in request.POST:
-		return CSVExport.export_to_csv('skus', f.qs)
+		qs = f.qs
+		if 'sort' in request.GET:
+			qs = f.qs.order_by(request.GET['sort']) 
+		return CSVExport.export_to_csv('skus', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -113,12 +119,14 @@ def IngredientQtyView(request):
 		'per_page': 25
 	}
 	if request.method == 'GET' and 'remove_pagination' in request.GET:
-		print(request.GET)
 		paginate = False
 		context['paginated'] = False
 
 	if request.method == 'POST' and 'export_data' in request.POST:
-		return CSVExport.export_to_csv('formulas', f.qs)
+		qs = f.qs
+		if 'sort' in request.GET:
+			qs = f.qs.order_by(request.GET['sort']) 
+		return CSVExport.export_to_csv('formulas', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
