@@ -25,7 +25,7 @@ def manufqty(request):
 	new_id = request.session['goal_id']
 	product_lines = ProductLine.objects.all()
 	goal = ManufacturingGoal.objects.get(pk=new_id)
-	GoalInlineFormSet = inlineformset_factory(ManufacturingGoal, ManufacturingQty, fields=('sku', 'caseqty',))
+	GoalInlineFormSet = inlineformset_factory(ManufacturingGoal, ManufacturingQty, fields=('sku', 'caseqty',), can_delete=False)
 	sku_list = SKU.objects.all()
 	if request.method == "POST":
 		formset = GoalInlineFormSet(request.POST, request.FILES, instance=goal)
