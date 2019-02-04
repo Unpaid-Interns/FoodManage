@@ -598,6 +598,7 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     and item.quantity == Decimal(record.quantity)):
                 return "identical", None
         # Do we need to check or non-identical match here?
+        models.IngredientQty.objects.filter(sku__sku_num=int(record.sku_number)).delete()
     return "", None
 
 
