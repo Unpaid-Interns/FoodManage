@@ -18,9 +18,8 @@
 	<br></br>
 	{% else %}
 	<h2>User Login</h2>
-	<form action="/authin">
+	<form action="/authin/" method="post">
 	{% csrf_token %}
-	{{ form.as_p }}
 	<input class="if" type="text" placeholder="Username" name="username" required>
 	<input class="if" type="password" placeholder="Password" name="password" required>
 	<input class="bt" type="submit" value="Login">
