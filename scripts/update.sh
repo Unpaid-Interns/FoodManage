@@ -13,7 +13,7 @@ pip install --upgrade psycopg2-binary
 
 # Setup Django
 ./food_site/manage.py migrate
-./food_site/manage.py collectstatic
+./food_site/manage.py collectstatic --noinput
 deactivate
 
 # Restart server

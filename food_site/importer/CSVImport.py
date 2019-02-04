@@ -359,8 +359,8 @@ def parser(filename):
                     return None, None, None, None, None, False, matching_check
     except FileNotFoundError:
         return None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
-    # except:
-    #     return None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
+    except:
+        return None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
     return parsed_data, conflicting_records_tpl, num_records_parsed - num_record_ignored - num_record_conflicted\
         , num_record_ignored, num_record_conflicted, True, ""
 
@@ -598,6 +598,7 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     and item.quantity == Decimal(record.quantity)):
                 return "identical", None
         # Do we need to check or non-identical match here?
+        models.IngredientQty.objects.filter(sku__sku_num=int(record.sku_number)).delete()
     return "", None
 
 
