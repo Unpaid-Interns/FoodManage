@@ -18,14 +18,35 @@ a:hover, a:active {
 }
 
 button {
-        background-color: #5dd8f7;
-        border: none;
+        background-color: #93baf9;
         color: black;
-        padding: 15px 32px;
+        padding: 14px 25px;
         text-align: center;
         text-decoration: none;
         display: inline-block;
-        font-size: 18px;
+}
+
+.if {
+        padding: 12px 8px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 2px solid #c4e8ff;
+        border-radius: 4px;
+        background-color: white;
+        color: black;
+}
+
+.bt {
+	background-color: #93baf9;
+        color: black;
+        padding: 14px 25px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+}
+
+.bt:hover, .bt:active {
+        background-color: #74a4f2;
 }
 
 
