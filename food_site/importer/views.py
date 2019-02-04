@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from decimal import Decimal
 from sku_manage import models
+from django.http import HttpResponse
 import os
 
 
@@ -152,3 +153,8 @@ def commit_all_to_database(request):
     request.session['serializable_conflict_dict'] = dict()
     request.session['result_message'] = "All entries committed to database"
     return redirect("message_displayer")
+
+def info(request):
+    image_data = open('importer/import_instructions.pdf', 'rb').read()
+    return HttpResponse(image_data, content_type='application/pdf')
+    # return render(request, 'importer/help.html')
