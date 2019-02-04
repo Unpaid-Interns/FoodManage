@@ -58,7 +58,7 @@ def manufcalc(request):
 					ingredient = iq.ingredient
 					i_qty = iq.quantity
 					ingtotal = (i_qty * mq.caseqty).normalize()
-					iq_totalslist.append({ingredient.name: str(ingtotal)})
+					iq_totalslist.append({ingredient.name: '{:f}'.format(ingtotal)})
 				mq_dict["ingredienttotals"] = iq_totalslist
 				goalcalc_list.append(mq_dict)
 			request.session['goal_calc_name'] = goal.name
