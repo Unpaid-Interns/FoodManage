@@ -1,6 +1,7 @@
 import csv
 from zipfile import ZipFile
 from sku_manage import models
+from django.http import HttpResponse
 import os
 
 headerDict = {
@@ -19,43 +20,10 @@ class CSVExport():
         pass
 
     def batch_export(self):
-        self.export_to_csv("skus", models.SKU.objects.all())
-        self.export_to_csv("ingredients", models.Ingredient.objects.all())
-        self.export_to_csv("product_lines", models.ProductLine.objects.all())
-        self.export_to_csv("formulas", models.IngredientQty.objects.all())
-        self.zip_export()
-
-    def export_to_csv(self, filename, data):
-        with open("exporter/exports/" + filename + ".csv", 'w', newline='') as csvfile:
-            dataWriter = csv.writer(csvfile, quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            file_prefix, valid = prefix_check(filename)
-            dataWriter.writerow(headerDict[file_prefix + ".csv"])
-            for item in data:
-                exportData = []
-                if filename.startswith("skus"):
-                    exportData.append(str(item.sku_num))
-                    exportData.append(item.name)
-                    exportData.append(str(item.case_upc))
-                    exportData.append(str(item.unit_upc))
-                    exportData.append(item.unit_size)
-                    exportData.append(str(item.units_per_case))
-                    exportData.append(item.product_line.name)
-                    exportData.append(item.comment)
-                if filename.startswith("ingredients"):
-                    exportData.append(str(item.number))
-                    exportData.append(item.name)
-                    exportData.append(item.vendor_info)
-                    exportData.append(item.package_size)
-                    exportData.append(str(item.cost))
-                    exportData.append(item.comment)
-                if filename.startswith("product_lines"):
-                    exportData.append(item.name)
-                if filename.startswith("formulas"):
-                    exportData.append(item.sku.sku_num)
-                    exportData.append(item.ingredient.number)
-                    exportData.append(str(item.quantity))
-                if len(exportData) > 0:
-                    dataWriter.writerow(exportData)
+        export_to_csv("skus", models.SKU.objects.all())
+        export_to_csv("ingredients", models.Ingredient.objects.all())
+        export_to_csv("product_lines", models.ProductLine.objects.all())
+        export_to_csv("formulas", models.IngredientQty.objects.all())
 
     def zip_export(self, file_paths=[prefix + ".csv" for prefix in validFilePrefixes]):
         # from: https://www.geeksforgeeks.org/working-zip-files-python/
@@ -85,6 +53,41 @@ class CSVExport():
         # print('All files zipped successfully!')
 
 
+def export_to_csv(filename, data):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="' + filename + '.csv"'
+    dataWriter = csv.writer(response)
+    file_prefix, valid = prefix_check(filename)
+    dataWriter.writerow(headerDict[file_prefix + ".csv"])
+    for item in data:
+        exportData = []
+        if "skus" in filename:
+            exportData.append(str(item.sku_num))
+            exportData.append(item.name)
+            exportData.append(str(item.case_upc))
+            exportData.append(str(item.unit_upc))
+            exportData.append(item.unit_size)
+            exportData.append(str(item.units_per_case))
+            exportData.append(item.product_line.name)
+            exportData.append(item.comment)
+        if "ingredients" in filename:
+            exportData.append(str(item.number))
+            exportData.append(item.name)
+            exportData.append(item.vendor_info)
+            exportData.append(item.package_size)
+            exportData.append(str(item.cost))
+            exportData.append(item.comment)
+        if "product_lines" in filename:
+            exportData.append(item.name)
+        if "formulas" in filename:
+            exportData.append(item.sku.sku_num)
+            exportData.append(item.ingredient.number)
+            exportData.append(str(item.quantity))
+        if len(exportData) > 0:
+            dataWriter.writerow(exportData)
+    return response
+
+
 def prefix_check(filename):
     filename_no_importer_prefix = filename
     if filename.startswith("importer/"):
@@ -97,20 +100,3 @@ def prefix_check(filename):
     if file_prefix == "":
         valid = False
     return file_prefix, valid
-
-
-def get_all_file_paths(directory):
-    # from: https://www.geeksforgeeks.org/working-zip-files-python/
-
-    # initializing empty file paths list
-    file_paths = []
-
-    # crawling through directory and subdirectories
-    for root, directories, files in os.walk(directory):
-        for filename in files:
-            # join the two strings in order to form the full filepath.
-            filepath = os.path.join(root, filename)
-            file_paths.append(filepath)
-
-            # returning all file paths
-    return file_paths
