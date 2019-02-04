@@ -23,4 +23,5 @@ urlpatterns = [
     path('importer/', include('importer.urls')),
     path('reporting/', include('dep_report.urls')),
     path('', include('sku_manage.urls')),
+    path('', include('manufacturing_goals.urls')),
 ]

@@ -8,6 +8,7 @@
     	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
 </head>
 
+{% if user.is_authenticated %}
 
 <h1>Ingredient Dependency Report</h1>
 
@@ -28,3 +29,7 @@
 	</tr>
 {% endfor %}
 </table>
+
+{% else %}
+<h1>You must be logged in to view data</h1>
+{% endif %}
