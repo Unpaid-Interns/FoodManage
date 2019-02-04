@@ -13,6 +13,8 @@
 	<body>
 		{% if user.is_authenticated %}
 		<h1>Ingredient Dependency Reporting</h1>
+		<a class="ret" href="/">Return</a>
+                <br></br>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
 		{% if filter %}
@@ -57,6 +59,8 @@
 		</form>
 		{% else %}
 		<h1>You must be logged in to view data</h1>
+		<br></br>
+                <a class="retlink" href="/">Go To Login</a>
 		{% endif %}
 	</body>
 </html>
