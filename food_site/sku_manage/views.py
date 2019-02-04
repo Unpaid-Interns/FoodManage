@@ -27,8 +27,8 @@ def IngredientView(request):
 		paginate = False
 		context['paginated'] = False
 
-	if request.method = 'POST' and 'export_data' in request.POST:
-		CSVExport.export_to_csv('ingredients', f.qs)
+	if request.method == 'POST' and 'export_data' in request.POST:
+		return CSVExport.export_to_csv('ingredients', f.qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -60,8 +60,8 @@ def ProductLineView(request):
 		paginate = False
 		context['paginated'] = False
 
-	if request.method = 'POST' and 'export_data' in request.POST:
-		CSVExport.export_to_csv('product_lines', f.qs)
+	if request.method == 'POST' and 'export_data' in request.POST:
+		return CSVExport.export_to_csv('product_lines', f.qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -89,8 +89,8 @@ def SKUView(request):
 		paginate = False
 		context['paginated'] = False
 
-	if request.method = 'POST' and 'export_data' in request.POST:
-		CSVExport.export_to_csv('skus', f.qs)
+	if request.method == 'POST' and 'export_data' in request.POST:
+		return CSVExport.export_to_csv('skus', f.qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
@@ -117,8 +117,8 @@ def IngredientQtyView(request):
 		paginate = False
 		context['paginated'] = False
 
-	if request.method = 'POST' and 'export_data' in request.POST:
-		CSVExport.export_to_csv('formulas', f.qs)
+	if request.method == 'POST' and 'export_data' in request.POST:
+		return CSVExport.export_to_csv('formulas', f.qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
