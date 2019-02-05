@@ -3,7 +3,7 @@ from .models import ManufacturingQty, ManufacturingGoal
 
 class ManufacturingQtyInline(admin.TabularInline):
 	model = ManufacturingQty
-	extra = 2
+	extra = 0
 
 class ManufacturingGoalAdmin(admin.ModelAdmin):
 	fields = ['name','user']

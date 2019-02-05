@@ -14,3 +14,14 @@ a {
 	color: black;
 	font-family: verdana;
 }
+
+input {
+        padding: 12px 8px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 2px solid #c4e8ff;
+        border-radius: 4px;
+        background-color: white;
+        color: black;
+}
+
