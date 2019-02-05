@@ -24,7 +24,7 @@ tr:nth-child(even) {
 }
 
 input {
-	width: 100%;
+	width: 40%;
 	padding: 12px 8px;
 	margin: 8px 0;
 	box-sizing: border-box;
@@ -57,7 +57,7 @@ text {
 }
 
 select {
-	width: 100%;
+	width: 40%;
         padding: 12px 8px;
         margin: 8px 0;
         box-sizing: border-box;
@@ -80,8 +80,8 @@ select {
 }
 
 a {
-	color: white;
-	text-decoration: none;
+	color: black;
+	text-decoration: underline;
 }
 
 .pagination {
@@ -102,14 +102,12 @@ a {
 }
 
 .bbut {
-	width: 200px;
-	padding: 12px 8px;
-        margin: 8px 0;
-        box-sizing: border-box;
-        border: 2px solid #c4e8ff;
-        border-radius: 4px;
-        background-color: #5dd8f7;
+	background-color: #5dd8f7;
+        border: none;
         color: black;
-	font-weight: bold;
-	
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 18px;	
 }

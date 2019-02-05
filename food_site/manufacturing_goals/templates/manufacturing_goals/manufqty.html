@@ -2,7 +2,10 @@
 <!DOCTYPE html>
 
 <head>
-	<title>Manufacturing Goal</title>
+                {% load static %}
+                <meta charset="utf-8">
+                <title>HypoMeals</title>
+                <link rel="stylesheet" type="text/css" href="{% static "manufacturing_goals/data.css" %}" />
 </head>
 
 <body>
@@ -11,13 +14,13 @@
 	<p>Add SKUs and Case quantities to this goal</p>
 	<form method="post">
 		{% csrf_token %}
-		<table class="table">
-		<tr><th>Product Line</th><th>SKU</th><th>Case Quantity</th><th>Delete Row?</th></tr>
+		<table class="table" id="form-table">
+		<tr><th>Product Line</th><th>SKU</th><th>Case Quantity</th><!--<th>Delete Row?</th>--></tr>
 			{{ formset.management_form }}
 			{% for form in formset %}
 				<tr class="{% cycle 'row1' 'row2' %} formset_row">
 					<td>
-						<select id="filter-{{ forloop.counter0 }}" onchange="filter({{ forloop.counter0 }})">
+						<select class="filter" id="filter-{{ forloop.counter0 }}" onchange="filter({{ forloop.counter0 }})">
 						<option value="">------</option>
 						{% for p in product_lines %}
 						<option value="{{ p }}">{{ p }}</option>
@@ -32,16 +35,17 @@
 				</tr>
 			{% endfor %}
 		</table>
+		<a onclick="addSKU()">Add SKU</a><br>
 		<button type="submit" id="submit" name="submit">Save Goal</button>
 	</form>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src="{% static 'manufacturing_goals/jquery.formset.js' %}"></script>
+<!--<script src="{% static 'manufacturing_goals/jquery.formset.js' %}"></script>-->
 <script type="text/javascript">
-	$('.formset_row').formset({
-		addText: 'Add SKU',
-		deleteText: 'remove',
-		prefix: 'manufacturingqty_set'
-	});
+	//$('.formset_row').formset({
+	//	addText: 'Add SKU',
+	//	deleteText: 'remove',
+	//	prefix: 'manufacturingqty_set'
+	//});
 </script>
 <script type="text/javascript">
 	function filter(id){
@@ -56,11 +60,13 @@
 			opt.value = "";
 			opt.innerHTML = "---------";
 			se.appendChild(opt);
+			var s_count = 1;
 			{% for s in sku_list %}
 			var opt = document.createElement('option');
-			opt.value = {{ s.sku_num }};
-			opt.innerHTML = "{{ s.name }}";
+			opt.value = s_count;
+			opt.innerHTML = "{{ s }}";
 			se.appendChild(opt);
+			s_count++
 			{% endfor %}
 		}
 		else {
@@ -75,20 +81,56 @@
 			{% endfor %}
 			var skulist = [];
 			var sku_product_lines = [];
+			var skunumlist = [];
 			{% for s in sku_list %}
 			skulist.push("{{ s }}");
 			sku_product_lines.push("{{ s.product_line }}");
+			skunumlist.push({{ s.sku_num }});
 			{% endfor %}
 			var i;
 			for (i = 0; i < skulist.length; i++){
-				if(sku_product_lines[i] == product_list[id]){
+				if(sku_product_lines[i] == product_list[e.selectedIndex-1]){
 					var opt = document.createElement('option');
-					opt.value = i;
+					opt.value = i+1;
 					opt.innerHTML = skulist[i];
 					se.appendChild(opt);
 				}
 			}
 		}
 	}
+</script>
+<script>
+	var count = 3;
+	function addSKU(){
+		if(count >= 999){
+			return
+		}
+		var s_count = 1;
+		var str = '';
+		{% for s in sku_list %}
+		str = str + '<option value="'+s_count+'">{{ s }}</option>';
+		s_count++;
+		{% endfor %}
+		var row = document.createElement('tr');
+		row.innerHTML='<td><select id="filter-'+count+'" onchange="filter('+count+')"><option value="">------</option>'+
+		{% for p in product_lines %}
+		'<option value="{{ p }}">{{ p }}</option>'+
+		{% endfor %}
+		'</select></td><td><select id="id_manufacturingqty_set-'+count+'-sku" name="manufacturingqty_set-'+count+'-sku"><option value="">---------</option>'+str+'</select></td><td><input type="number" name="manufacturingqty_set-'+count+'-caseqty" step="1e-10" id="id_manufacturingqty_set-'+count+'-caseqty"></td>';
+		document.getElementById("form-table").appendChild(row);
+		count++;
+		document.getElementById("id_manufacturingqty_set-TOTAL_FORMS").value = count;
+	}
+</script>
+<script>
+	//document.getElementsByClassName("add-row")[0].addEventListener("click", fixFilterFields);
+	//function fixFilterFields(){
+	//	var filters = document.getElementsByClassName("filter");
+	//	var i;
+	//	for(i = 0; i < filters.length; i++){
+	//		filters[i].id = "filter-"+i;
+	//		filters[i].onchange = filter(i);
+	//	}
+	//}
 </script>
 </body>

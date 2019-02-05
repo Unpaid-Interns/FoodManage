@@ -13,6 +13,8 @@
 	<body>
 		{% if user.is_authenticated %}
 		<h1>Ingredient Dependency Reporting</h1>
+		<a class="ret" href="/">Return</a>
+                <br></br>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
 		{% if filter %}
@@ -43,20 +45,22 @@
 		{% endif %}
 		<form action="{% url 'ingr_dep_generate' %}" method="post">
 		{% csrf_token %}
-			<input type="submit" value="Generate">
+			<input class="bbut" type="submit" value="Generate">
 			<div style="overflow-x:auto;">
 			{% render_table table %}
 			</div>
 		</form>
 		<form method="get">
 			{% if paginated %}
-				<input type="submit" name="remove_pagination" value="View All Records">
+				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
 			{% else %}
-				<input type="submit" name="add_pagination" value="Paged View">
+				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
 			{% endif %}
 		</form>
 		{% else %}
 		<h1>You must be logged in to view data</h1>
+		<br></br>
+                <a class="retlink" href="/">Go To Login</a>
 		{% endif %}
 	</body>
 </html>

@@ -48,15 +48,15 @@
 		</div>
 		<form method="get">
 			{% if paginated %}
-				<input type="submit" name="remove_pagination" value="View All Records">
+				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
 			{% else %}
-				<input type="submit" name="add_pagination" value="Paged View">
+				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
 			{% endif %}
 		</form>
-		<br></br>
+		<br>
 		<form method="post">
 			{% csrf_token %}
-			<input type="submit" name="export_data" value="Download as CSV">
+			<input class="bbut" type="submit" name="export_data" value="Download as CSV">
 		</form>
 
 		{% else %}

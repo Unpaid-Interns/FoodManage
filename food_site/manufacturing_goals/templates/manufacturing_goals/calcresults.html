@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 
 <head>
-	<title>Manufacturing Calculator</title>
+                {% load static %}
+                <meta charset="utf-8">
+                <title>HypoMeals</title>
+                <link rel="stylesheet" type="text/css" href="{% static "manufacturing_goals/data.css" %}" />
 </head>
 
 <body>
@@ -24,8 +27,9 @@
 	</table>
 	{% endfor %}
 	</div>
-	<a href="#" id="xx" style="text-decoration:none;color:#000;background-color:#ddd;border:1px solid #ccc;padding:8px;">Export to CSV</a>
-	<input type="button" value="Print Goal Calculation" id="btnPrint" />
+	<a href="#" id="xx" style="text-decoration:none;color:#000;background-color:#ddd;border:1px solid #ccc;padding:8px;">Export to CSV</a><br>
+	<input type="button" value="Print Goal Calculation" id="btnPrint" /><br>
+	<a href='/manufacturing/'>Back to Manufacturing</a>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script>
 	function exportTableToCSV($table, filename) {
