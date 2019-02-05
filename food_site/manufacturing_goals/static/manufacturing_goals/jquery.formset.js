@@ -48,8 +48,9 @@
             * Indicates whether delete link(s) can be displayed - when total forms > min forms
             */
             showDeleteLinks = function() {
-                return minForms.length == 0 ||   // For Django versions pre 1.7
-                    (minForms.val() == '' || (totalForms.val() - minForms.val() > 0));
+                //return minForms.length == 0 ||   // For Django versions pre 1.7
+                //    (minForms.val() == '' || (totalForms.val() - minForms.val() > 0));
+		return false;
             },
 
             insertDeleteLink = function(row) {
