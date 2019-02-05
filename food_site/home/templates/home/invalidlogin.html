@@ -10,7 +10,7 @@
     </head>
     <body>
 	<img src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
-        <h1>Invalid username / password combination, please try again.</h1>
+        <h1>Invalid Username / Password combination, please try again!</h1>
 	{% if user.is_authenticated %}
 	<a class="btn btn-primary" href="/search">Go To Data</a>
 	<a class="btn btn-primary" href="/reporting/ingredient">Reporting</a>
@@ -37,6 +37,40 @@
         <form action='/authout'>
                 <input type="submit" value="Logout">
         </form>
+	{% endif %}
+	<style>
+	p {
+		width: 20%;
+  		height: 40px;
+		background-color: white;
+		position: relative;
+		-webkit-animation-name: example; /* Safari 4.0 - 8.0 */
+		-webkit-animation-duration: 8s; /* Safari 4.0 - 8.0 */
+		-webkit-animation-iteration-count: infinite; /* Safari 4.0 - 8.0 */
+		animation-name: example;
+		animation-duration: 8s;
+		animation-iteration-count: infinite;
+	}
+	@-webkit-keyframes example {
+		0%   {color:white; left:10%; top:0px;}
+		25%  {color:blue; left:40%; top:0px;}
+		50%  {color:white; left:70%; top:0px;}
+		75%  {color:blue; left:40%; top:0px;}
+		100% {color:white; left:10%; top:0px;}
+	}
+
+	@keyframes example {
+		0%   {color:white; left:10%; top:0px;}
+		25%  {color:blue; left:40%; top:0px;}
+		50%  {color:white; left:70%; top:0px;}
+		75%  {color:blue; left:40%; top:0px;}
+		100% {color:white; left:10%; top:0px;}
+	}
+	</style>
+	{% if user.is_authenticated %}
+	<p><b>Enjoy your stay!</b></p>
+	{% else %}
+	<p><b>Welcome!</b></p>
 	{% endif %}
     </body>
 </html>
