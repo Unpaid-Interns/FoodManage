@@ -25,7 +25,7 @@ sudo certbot --apache
 
 # Install and configure postgres
 echo "Enter a password to use with your database"
-read DB_PASS
+read DB_PASS # TODO: auto-generate database password
 sudo apt-get -qq -y install postgresql postgresql-contrib
 if ! sudo -s sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$user'" | grep -q 1; then
     sudo -s sudo -u postgres createuser -s $user
@@ -47,7 +47,7 @@ if ! cat /etc/apache2/sites-available/000-default-le-ssl.conf | grep -q "food_si
 	echo "Failed to configure apache server. exiting"
 	exit
 fi
-# Note: may need to also configure non-ssl allowed hosts file
+# TODO: may need to also configure non-ssl allowed hosts file
 
 # Set apache permissions for upload
 sudo chmod a+w /var/www
@@ -86,6 +86,7 @@ pip install --upgrade psycopg2-binary
 
 # Configure django settings
 python -c 'import random; import os; result = "".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)]); os.environ["SECRET_KEY"] = result'
+# TODO: environment variable is not permanent
 deactivate
 OLD_SETTINGS="    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),\n    }"
 NEW_SETTINGS="    'default': {\n        'ENGINE': 'django.db.backends.postgresql_psycopg2',\n        'NAME': 'food_db',\n        'USER': '$user',\n        'PASSWORD': '$DB_PASS',\n        'HOST': '',\n        'PORT': '',\n    }"
