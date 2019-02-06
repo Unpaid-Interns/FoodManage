@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-
 <head>
-	<title>Manufacturing Goals</title>
+		{% load static %}
+                <meta charset="utf-8">
+                <title>HypoMeals</title>
+                <link rel="stylesheet" type="text/css" href="{% static "manufacturing_goals/data.css" %}" />
 </head>
 
 <body>
@@ -13,7 +15,7 @@
 		<button type="submit" id="submit" name="submit">Save Goal</button>
 	</form>
 	<p><strong>OR</strong></p>
-	<a href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a><br>
-	<a href='/manufacturing/manufcsv/'>Export a manufacturing goal</a><br>
-	<a href="{% url 'index' %}">Return to Home</a>
+	<a class="bbut" href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a><br></br>
+  <a class="bbut" href='/manufacturing/manufcsv/'>Export a manufacturing goal</a><br></br>
+	<a class="bbut" href="{% url 'index' %}">Return to Home</a>
 </body>
