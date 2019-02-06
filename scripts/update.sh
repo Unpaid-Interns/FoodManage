@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check directory
-if [ pwd | grep -q "FoodManage/scripts" ]; then
+if pwd | grep -q "FoodManage/scripts"; then
 	cd ..
 fi
 if ! [ -d food_site ]; then
