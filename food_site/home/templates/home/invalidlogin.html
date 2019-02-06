@@ -10,7 +10,7 @@
     </head>
     <body>
 	<img src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
-        <h1>Invalid username / password combination, please try again.</h1>
+        <h1>Invalid login, please try again!</h1>
 	{% if user.is_authenticated %}
 	<a class="btn btn-primary" href="/search">Go To Data</a>
 	<a class="btn btn-primary" href="/reporting/ingredient">Reporting</a>
