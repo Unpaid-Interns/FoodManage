@@ -17,12 +17,23 @@
                 <br></br>
 		<button class="collapsible">Filter Data</button>
 		<div class="content">
-		{% if filter %}
-			<form action="" method-"get" class="form form-inline">
-				{% bootstrap_form filter.form layout='inline' %}
-				{% bootstrap_button 'filter' %}
+		
+		<form action="" method-"get" class="form form-inline">
+				<div class="form-group has-success"><label class="sr-only" for="id_name">Ingredient Name contains</label><input type="text" name="name" placeholder="Ingredient Name contains" class="form-control" id="id_name" title=""></div>
+<div class="form-group has-success"><label class="sr-only" for="id_number">Ingredient#</label><input type="number" name="number" placeholder="Ingredient#" class="form-control" step="any" title="" id="id_number"></div>
+<div class="form-group has-success"><label class="sr-only" for="id_vendor_info">Vendor Information contains</label><input type="text" name="vendor_info" placeholder="Vendor Information contains" class="form-control" id="id_vendor_info" title=""></div>
+<div class="form-group has-success"><label class="sr-only" for="id_package_size">Package size contains</label><input type="text" name="package_size" placeholder="Package size contains" class="form-control" id="id_package_size" title=""></div>
+<div class="form-group has-success"><label class="sr-only" for="id_cost">Cost</label><input type="number" name="cost" placeholder="Cost" class="form-control" step="any" title="" id="id_cost"></div>
+<div class="form-group has-success"><label class="sr-only" for="id_comment">Comment contains</label><input type="text" name="comment" placeholder="Comment contains" class="form-control" id="id_comment" title=""></div>
+<div class="form-group has-success"><label class="sr-only" for="id_skus">SKUs</label><select name="skus" id="id_skus" class="form-control" title="">
+  <option value="" selected>---------</option>
+
+  <option value="1">nuts: 1 * 2</option>
+
+</select></div>
+				<button class="btn btn-default">filter</button>
 			</form>
-		{% endif %}
+
 		</div>
 		<script>
 			var coll = document.getElementsByClassName("collapsible");
