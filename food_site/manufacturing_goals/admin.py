@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import ManufacturingQty, ManufacturingGoal
+from sku_manage.admin import admin_site
 
 class ManufacturingQtyInline(admin.TabularInline):
 	model = ManufacturingQty
@@ -9,4 +10,4 @@ class ManufacturingGoalAdmin(admin.ModelAdmin):
 	fields = ['name','user']
 	inlines = [ManufacturingQtyInline]
 
-admin.site.register(ManufacturingGoal, ManufacturingGoalAdmin)
+admin_site.register(ManufacturingGoal, ManufacturingGoalAdmin)
