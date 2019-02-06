@@ -13,14 +13,14 @@ class IngredientFilter(django_filters.FilterSet):
 	comment = django_filters.CharFilter(lookup_expr='icontains')
 	class Meta:
 		model = Ingredient
-		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost', 'comment']
+		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost', 'comment', 'skus']
 
 class ProductLineFilter(django_filters.FilterSet):
 	name = django_filters.CharFilter(lookup_expr='icontains')
 	skus = django_filters.ModelChoiceFilter(queryset=SKU.objects.all(), field_name='sku')
 	class Meta:
 		model = ProductLine
-		fields = ['name']
+		fields = ['name', 'skus']
 
 class SKUFilter(django_filters.FilterSet):
 	name = django_filters.CharFilter(lookup_expr='icontains')
@@ -29,7 +29,7 @@ class SKUFilter(django_filters.FilterSet):
 	comment = django_filters.CharFilter(lookup_expr='icontains')
 	class Meta:
 		model = SKU
-		fields = ['name', 'sku_num', 'case_upc', 'unit_upc', 'unit_size', 'units_per_case', 'product_line', 'comment']
+		fields = ['name', 'sku_num', 'case_upc', 'unit_upc', 'unit_size', 'units_per_case', 'product_line', 'comment', 'ingredients']
 
 class IngredientQtyFilter(django_filters.FilterSet):
 	class Meta:

@@ -33,7 +33,7 @@ def IngredientView(request):
 		return CSVExport.export_to_csv('ingredients', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
-	return render(request, 'sku_manage/data.html', context)
+	return render(request, 'sku_manage/ingdata.html', context)
 
 class IngredientDetailView(generic.DetailView):
 	model = Ingredient
@@ -68,7 +68,7 @@ def ProductLineView(request):
 		return CSVExport.export_to_csv('product_lines', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
-	return render(request, 'sku_manage/data.html', context)
+	return render(request, 'sku_manage/prodata.html', context)
 
 class ProductLineDetailView(generic.DetailView):
 	model = ProductLine
@@ -99,7 +99,7 @@ def SKUView(request):
 		return CSVExport.export_to_csv('skus', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
-	return render(request, 'sku_manage/data.html', context)
+	return render(request, 'sku_manage/skudata.html', context)
 
 class SKUDetailView(generic.DetailView):
 	model = SKU
