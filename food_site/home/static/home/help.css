@@ -1,0 +1,32 @@
+body {
+	background-color: white;
+	text-align: center;
+	font-family: verdana;
+}
+
+h1 {
+	color: black;
+	text-align: center;
+	font-family: verdana;
+}
+
+a {
+	color: red;
+	font-family: verdana;
+	font-weight: bold;
+}
+
+li {
+	text-align: left;
+	padding: 12px 8px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 2px solid #c4e8ff;
+        border-radius: 4px;
+        background-color: white;
+        color: black;
+}
+
+p {
+	font-size: 20px;
+}
