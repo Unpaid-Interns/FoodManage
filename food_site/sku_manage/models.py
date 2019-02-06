@@ -31,7 +31,8 @@ class Ingredient(models.Model):
 	package_size = models.CharField(max_length=256)
 	cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero])
 	comment = models.TextField(blank=True)
-
+	skus = None
+	
 	def gen_num(self):
 		ingredients = Ingredient.objects.order_by('number')
 		for i in range(0, len(ingredients)):
@@ -48,8 +49,8 @@ class Ingredient(models.Model):
 		super(Ingredient, self).save()
 
 class ProductLine(models.Model):
-	name = models.CharField(max_length=256, primary_key=True)
-
+	name = models.CharField(max_length=256, primary_key=True)	
+	
 	def __str__(self):
 		return self.name
 
