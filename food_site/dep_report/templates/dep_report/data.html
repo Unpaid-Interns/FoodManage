@@ -8,59 +8,60 @@
 	<head>
 		<meta charset="utf-8">
         	<title>HypoMeals</title>
+        	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
 	</head>
 	<body>
 		{% if user.is_authenticated %}
-		<h1>Ingredient Dependency Reporting</h1>
+		<h1>Filter Ingredients for Report:</h1>
 		<a class="ret" href="/">Return</a>
-                <br></br>
-		<button class="collapsible">Filter Data</button>
-		<div class="content">
-		
-		<form action="" method-"get" class="form form-inline">
-				<div class="form-group has-success"><label class="sr-only" for="id_name">Ingredient Name contains</label><input type="text" name="name" placeholder="Ingredient Name contains" class="form-control" id="id_name" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_number">Ingredient#</label><input type="number" name="number" placeholder="Ingredient#" class="form-control" step="any" title="" id="id_number"></div>
-<div class="form-group has-success"><label class="sr-only" for="id_vendor_info">Vendor Information contains</label><input type="text" name="vendor_info" placeholder="Vendor Information contains" class="form-control" id="id_vendor_info" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_package_size">Package size contains</label><input type="text" name="package_size" placeholder="Package size contains" class="form-control" id="id_package_size" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_cost">Cost</label><input type="number" name="cost" placeholder="Cost" class="form-control" step="any" title="" id="id_cost"></div>
-<div class="form-group has-success"><label class="sr-only" for="id_comment">Comment contains</label><input type="text" name="comment" placeholder="Comment contains" class="form-control" id="id_comment" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_skus">SKUs</label><select name="skus" id="id_skus" class="form-control" title="">
-  <option value="" selected>---------</option>
-
-  <option value="1">nuts: 1 * 2</option>
-
-</select></div>
-				<button class="btn btn-default">filter</button>
-			</form>
-
-		</div>
-		<script>
-			var coll = document.getElementsByClassName("collapsible");
-			var i;
-
-			for (i = 0; i < coll.length; i++) {
-  				coll[i].addEventListener("click", function() {
-    				this.classList.toggle("active");
-    				var content = this.nextElementSibling;
-    				if (content.style.display === "block") {
-      					content.style.display = "none";
-    				} else {
-      					content.style.display = "block";
-    				}
-  				});
-			}			
-		</script>
-		{% if table.rows %}
-			<p>{{ table.rows|length }} result(s)</p>
-		{% endif %}
-		<form action="{% url 'ingr_dep_generate' %}" method="post">
-		{% csrf_token %}
-			<input class="bbut" type="submit" value="Generate">
-			<div style="overflow-x:auto;">
-			{% render_table table %}
-			</div>
+		<br></br>
+		<form class="form-inline" method="get">
+			<input type="text" placeholder="Search..." name="keyword" value="{{ keyword }}">
+			{% if all_ingredients|length > 0 %}
+ 			<select name="ingredientfilter" onchange='this.form.submit()'>
+ 				<option value="all">All Ingredients</option>
+ 				{% for ingredient in all_ingredients %}
+ 					<option value="{{ ingredient.number }}" 
+ 						{% if selected_ingredient == ingredient.number %}selected="selected"{% endif %}>
+ 						{{ ingredient }}
+ 					</option>
+ 				{% endfor %}
+ 			</select>
+ 			{% endif %}
+			{% if all_product_lines|length > 0 %}
+ 			<select name="productlinefilter" onchange='this.form.submit()'>
+ 				<option value="all">All Product Lines</option>
+ 				{% for product_line in all_product_lines %}
+ 					<option value="{{ product_line.name }}" 
+ 						{% if selected_product_line == product_line.name %}selected="selected"{% endif %}>
+ 						{{ product_line }}
+ 					</option>
+ 				{% endfor %}
+ 			</select>
+ 			{% endif %}
+			{% if all_skus|length > 0 %}
+ 			<select name="skufilter" onchange='this.form.submit()'>
+ 				<option value="all">All SKUs</option>
+ 				{% for sku in all_skus %}
+ 					<option value="{{ sku.sku_num }}" 
+ 						{% if selected_sku == sku.sku_num %}selected="selected"{% endif %}>
+ 						{{ sku }}
+ 					</option>
+ 				{% endfor %}
+ 			</select>
+ 			{% endif %}
+ 			<button type="submit"><i class="fa fa-search"></i></button>
+ 		</form>
+ 		{% if table.rows %}
+ 		<form action="{% url 'ingr_dep_generate' %}" method="post">
+			{% csrf_token %}
+			<input class="bbut" type="submit" name="gen_report" value="Generate Report - {{ table.rows|length }} Result(s)">
 		</form>
+		{% endif %}
+		<div style="overflow-x:auto;">
+		{% render_table table %}
+		</div>
 		<form method="get">
 			{% if paginated %}
 				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
@@ -69,9 +70,9 @@
 			{% endif %}
 		</form>
 		{% else %}
-		<h1>You must be logged in to view data</h1>
+		<h1>You must be logged in to view data.</h1>
 		<br></br>
-                <a class="retlink" href="/">Go To Login</a>
+		<a class="retlink" href="/">Go To Login</a>
 		{% endif %}
 	</body>
 </html>

@@ -1,7 +1,7 @@
 body {
-    background-color: white;
-    text-align: left;
-    font-family: verdana;
+  background-color: white;
+  text-align: left;
+  font-family: verdana;
 	font-size: 14pt;
 	margin-left: 50px;
 	margin-right: 50px;
@@ -10,7 +10,7 @@ body {
 }
 
 table {
-	width: 100%;
+  width: 100%;
 	border-collapse: collapse;
 }
 
@@ -88,19 +88,20 @@ a {
 
 /* Style the form - display items horizontally */
 .form-inline { 
-   display: flex;
-   flex-flow: row wrap;
-   align-items: center;
-   height: 35px;
-   overflow: hidden;
-   -webkit-border-radius: 5px;
-   -moz-border-radius: 5px;
-   border-radius: 5px;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  height: 35px;
+  margin: 5px 5px 5px 0;
+  overflow: hidden;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
 }
 
 .form-inline input {
   vertical-align: middle;
-  margin: 5px 10px 5px 0;
+  margin: 5px 5px 5px 0;
   padding: 10px;
   background-color: #fff;
   border: 1px solid #ddd;
@@ -112,6 +113,7 @@ a {
 
 .form-inline select {
   vertical-align: middle;
+  margin: 5px 5px 5px 0;
   border: 1px solid #ddd;
   font-size: 12px;
   height: 34px;
@@ -119,7 +121,7 @@ a {
 }
 
 .form-inline button {
-  margin: 0 0 0 10px;
+  margin: 5px 5px 5px 0;
   padding: 10px 12px;
   background-color: dodgerblue;
   border: 1px solid #ddd;
