@@ -15,7 +15,7 @@
 <form method="post">
     {% csrf_token %}
     <label>{{ count }}</label>
-    <button type="submit">Download CSV</button>
+    <button type="submit" name="download">Download CSV</button>
 </form>
 
 <table>

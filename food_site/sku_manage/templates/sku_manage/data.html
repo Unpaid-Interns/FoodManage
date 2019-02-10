@@ -1,80 +1,27 @@
-<!-- sku_manage/templates/ingredient.html -->
-<!DOCTYPE html>
-<html>
-	{% load staticfiles %}
-	{% load static %}
+{% extends "sku_manage/base.html" %}
+{% block content %}
+	<h1>Data shown below:</h1>
+	<a class="ret" href="/search">Return</a>
+	<br></br>
+	{% include "sku_manage/filters.html" %}
+	{% if table.rows %}
+		<p>{{ table.rows|length }} result(s)</p>
+	{% endif %}
+	<div style="overflow-x:auto;">
 	{% load render_table from django_tables2 %}
 	{% load bootstrap3 %}
-	<head>
-		<meta charset="utf-8">
-        	<title>HypoMeals</title>
-        	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
-	</head>
-	<body>
-		{% if user.is_authenticated %}
-		<h1>Data shown below:</h1>
-		<a class="ret" href="/search">Return</a>
-		<br></br>
-		<form class="form-inline" method="get">
-			<input type="text" placeholder="Search..." name="keyword" value="{{ keyword }}">
-			{% if all_ingredients|length > 0 %}
- 			<select name="ingredientfilter" onchange='this.form.submit()'>
- 				<option value="all">All Ingredients</option>
- 				{% for ingredient in all_ingredients %}
- 					<option value="{{ ingredient.number }}" 
- 						{% if selected_ingredient == ingredient.number %}selected="selected"{% endif %}>
- 						{{ ingredient }}
- 					</option>
- 				{% endfor %}
- 			</select>
- 			{% endif %}
-			{% if all_product_lines|length > 0 %}
- 			<select name="productlinefilter" onchange='this.form.submit()'>
- 				<option value="all">All Product Lines</option>
- 				{% for product_line in all_product_lines %}
- 					<option value="{{ product_line.name }}" 
- 						{% if selected_product_line == product_line.name %}selected="selected"{% endif %}>
- 						{{ product_line }}
- 					</option>
- 				{% endfor %}
- 			</select>
- 			{% endif %}
-			{% if all_skus|length > 0 %}
- 			<select name="skufilter" onchange='this.form.submit()'>
- 				<option value="all">All SKUs</option>
- 				{% for sku in all_skus %}
- 					<option value="{{ sku.sku_num }}" 
- 						{% if selected_sku == sku.sku_num %}selected="selected"{% endif %}>
- 						{{ sku }}
- 					</option>
- 				{% endfor %}
- 			</select>
- 			{% endif %}
- 			<button type="submit"><i class="fa fa-search"></i></button>
- 		</form>
-		{% if table.rows %}
-			<p>{{ table.rows|length }} result(s)</p>
-		{% endif %}
-		<div style="overflow-x:auto;">
-		{% render_table table %}
-		</div>
-		<form method="get">
-			{% if paginated %}
-				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
-			{% else %}
-				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
-			{% endif %}
-		</form>
-		<form method="post">
-			{% csrf_token %}
-			<input class="bbut" type="submit" name="export_data" value="Download as CSV">
-		</form>
-
+	{% render_table table %}
+	</div>
+	<form method="get">
+		{% if paginated %}
+			<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
 		{% else %}
-		<h1>You must be logged in to view data.</h1>
-		<br></br>
-		<a class="retlink" href="/">Go To Login</a>
+			<input class="bbut" type="submit" name="add_pagination" value="Paged View">
 		{% endif %}
-	</body>
-</html>
+	</form>
+	<form method="post">
+		{% csrf_token %}
+		<input class="bbut" type="submit" name="export_data" value="Download as CSV">
+	</form>
+{% endblock content %}
+

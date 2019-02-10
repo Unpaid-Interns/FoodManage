@@ -40,24 +40,20 @@ def ingr_dep_menu(request):
 		if 'remove_pagination' in request.GET:
 			paginate = False
 			context['paginated'] = False
-
+	if 'sort' in request.GET:
+		request.session['choices'] = queryset.order_by(request.GET['sort']).values_list('id', flat=True)
+	else:
+		request.session['choices'] = list(queryset.values_list('id', flat=True))
 	table = IngredientTable(queryset)
 	context['table'] = table
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'dep_report/data.html', context)
 
-def ingr_dep_generate(request):
-	if request.method == 'POST' and 'choice' in request.POST:
-		request.session['choices'] = request.POST.getlist('choice')
-		return redirect('ingr_dep_report')
-	else:
-		return redirect('ingr_dep')
-
 def ingr_dep_report(request):
 	choices = request.session.get('choices')
 	ingredients = Ingredient.objects.filter(id__in=choices)
 
-	if request.method == 'POST':
+	if request.method == 'POST' and 'download' in request.POST:
 		response = HttpResponse(content_type='text/csv')
 		response['Content-Disposition'] = 'attachment; filename="report.csv"'
 		writer = csv.writer(response)
