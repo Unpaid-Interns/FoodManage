@@ -8,6 +8,7 @@
 	<head>
 		<meta charset="utf-8">
         	<title>HypoMeals</title>
+        	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
 	</head>
 	<body>
@@ -15,31 +16,19 @@
 		<h1>Data shown below:</h1>
 		<a class="ret" href="/search">Return</a>
 		<br></br>
-		<button class="collapsible">Filter Data</button>
-		<div class="content">
-		{% if filter %}
-			<form action="" method-"get" class="form form-inline">
-				{% bootstrap_form filter.form layout='inline' %}
-				{% bootstrap_button 'Filter' %}
-			</form>
-		{% endif %}
-		</div>
-		<script>
-			var coll = document.getElementsByClassName("collapsible");
-			var i;
-
-			for (i = 0; i < coll.length; i++) {
-  				coll[i].addEventListener("click", function() {
-    				this.classList.toggle("active");
-    				var content = this.nextElementSibling;
-    				if (content.style.display === "block") {
-      					content.style.display = "none";
-    				} else {
-      					content.style.display = "block";
-    				}
-  				});
-			}			
-		</script>
+		<form class="form-inline" method="get">
+			<input type="text" placeholder="Search..." name="keyword" value="{{ keyword }}">
+ 			<select name="skufilter" onchange='this.form.submit()'>
+ 				<option value="all">All SKUs</option>
+ 				{% for sku in all_skus %}
+ 					<option value="{{ sku.sku_num }}" 
+ 						{% if selected_sku == sku.sku_num %}selected="selected"{% endif %}>
+ 						{{ sku }}
+ 					</option>
+ 				{% endfor %}
+ 			</select>
+ 			<button type="submit"><i class="fa fa-search"></i></button>
+ 		</form>
 		{% if table.rows %}
 			<p>{{ table.rows|length }} result(s)</p>
 		{% endif %}
@@ -53,7 +42,6 @@
 				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
 			{% endif %}
 		</form>
-		<br>
 		<form method="post">
 			{% csrf_token %}
 			<input class="bbut" type="submit" name="export_data" value="Download as CSV">

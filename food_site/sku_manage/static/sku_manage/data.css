@@ -1,8 +1,12 @@
 body {
-        background-color: white;
-        text-align: center;
-        font-family: verdana;
-	font-size: 14pt
+    background-color: white;
+    text-align: left;
+    font-family: verdana;
+	font-size: 14pt;
+	margin-left: 50px;
+	margin-right: 50px;
+	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
 table {
@@ -23,48 +27,16 @@ tr:nth-child(even) {
 	background-color: #c4e8ff;
 }
 
-input {
-	width: 100%;
-	padding: 12px 8px;
-	margin: 8px 0;
-	box-sizing: border-box;
-	border: 2px solid #c4e8ff;
-	border-radius: 4px;
-	background-color: white;
-	color: black;
-}
-
-button {
-	background-color: #5dd8f7;
-	border: none;
-	color: black;
-	padding: 15px 32px;
-	text-align: center;
-	text-decoration: none;
-	display: inline-block;
-	font-size: 18px;
-}
-
 .content {
 	padding: 0 18px;
 	display: none;
 	overflow: hidden;
 	background-color: #f1f1f1;
 }
+
 text {
 	padding: 10px 10px;
 	color: white;
-}
-
-select {
-	width: 100%;
-        padding: 12px 8px;
-        margin: 8px 0;
-        box-sizing: border-box;
-        border: 2px solid #c4e8ff;
-        border-radius: 4px;
-        background-color: white;
-        color: black;
 }
 
 .ret {
@@ -112,4 +84,51 @@ a {
         color: black;
 	font-weight: bold;
 	
+}
+
+/* Style the form - display items horizontally */
+.form-inline { 
+   display: flex;
+   flex-flow: row wrap;
+   align-items: center;
+   height: 35px;
+   overflow: hidden;
+   -webkit-border-radius: 5px;
+   -moz-border-radius: 5px;
+   border-radius: 5px;
+}
+
+.form-inline input {
+  vertical-align: middle;
+  margin: 5px 10px 5px 0;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  width: 300px;
+}
+
+.form-inline select {
+  vertical-align: middle;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  height: 34px;
+  padding: 5px;
+}
+
+.form-inline button {
+  margin: 0 0 0 10px;
+  padding: 10px 12px;
+  background-color: dodgerblue;
+  border: 1px solid #ddd;
+  color: white;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.form-inline button:hover {
+  background-color: royalblue;
 }

@@ -31,7 +31,6 @@ class Ingredient(models.Model):
 	package_size = models.CharField(max_length=256)
 	cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero])
 	comment = models.TextField(blank=True)
-	skus = None
 	
 	def gen_num(self):
 		ingredients = Ingredient.objects.order_by('number')

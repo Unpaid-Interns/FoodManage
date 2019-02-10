@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import generic
+from django.db.models import Q
 from django.contrib.auth import logout
 from django_tables2 import RequestConfig, paginators
 from exporter import CSVExport
@@ -10,30 +11,47 @@ from .filters import IngredientFilter, ProductLineFilter, SKUFilter, IngredientQ
 # Create your views here.
 def IngredientView(request):
 	queryset = Ingredient.objects.all()
-	f = IngredientFilter(request.GET, queryset=queryset)
-	table = IngredientTable(f.qs)
-
 	context = {
-		'table': table, 
-		'filter': f, 
 		'paginated': True,
+		'keyword': '',
+		'all_skus': SKU.objects.all(),
+		'selected_sku': None,
 	}	
 	paginate = {
 		'paginator_class': paginators.LazyPaginator,
-		'per_page': 25
+		'per_page': 25,
 	}
-	if request.method == 'GET' and 'remove_pagination' in request.GET:
-		paginate = False
-		context['paginated'] = False
+
+	if request.method == 'GET':
+		if 'keyword' in request.GET:
+			keyword = request.GET['keyword']
+			queryset = queryset.filter(Q(name__icontains=keyword) | 
+				Q(number__iexact=keyword) |
+				Q(vendor_info__icontains=keyword) | 
+				Q(package_size__icontains=keyword) | 
+				Q(cost__iexact=keyword) | 
+				Q(comment__icontains=keyword))
+			context['keyword'] = keyword
+
+		if 'skufilter' in request.GET:
+			sku_num = request.GET['skufilter']
+			if sku_num != 'all':
+				queryset = queryset.filter(ingredientqty__sku__sku_num=sku_num)
+				context['selected_sku'] = int(sku_num)
+
+		if 'remove_pagination' in request.GET:
+			paginate = False
+			context['paginated'] = False
 
 	if request.method == 'POST' and 'export_data' in request.POST:
-		qs = f.qs
 		if 'sort' in request.GET:
-			qs = f.qs.order_by(request.GET['sort']) 
-		return CSVExport.export_to_csv('ingredients', qs)
+			queryset = queryset.order_by(request.GET['sort']) 
+		return CSVExport.export_to_csv('ingredients', queryset)
 
+	table = IngredientTable(queryset)
+	context['table'] = table
 	RequestConfig(request, paginate=paginate).configure(table)
-	return render(request, 'sku_manage/ingdata.html', context)
+	return render(request, 'sku_manage/data.html', context)
 
 class IngredientDetailView(generic.DetailView):
 	model = Ingredient
@@ -68,7 +86,7 @@ def ProductLineView(request):
 		return CSVExport.export_to_csv('product_lines', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
-	return render(request, 'sku_manage/prodata.html', context)
+	return render(request, 'sku_manage/data.html', context)
 
 class ProductLineDetailView(generic.DetailView):
 	model = ProductLine
@@ -99,7 +117,7 @@ def SKUView(request):
 		return CSVExport.export_to_csv('skus', qs)
 
 	RequestConfig(request, paginate=paginate).configure(table)
-	return render(request, 'sku_manage/skudata.html', context)
+	return render(request, 'sku_manage/data.html', context)
 
 class SKUDetailView(generic.DetailView):
 	model = SKU
