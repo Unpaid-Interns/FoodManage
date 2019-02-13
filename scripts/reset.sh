@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Warn user
+echo "Warning: This performs a hard reset on the database"
+echo "Are you sure you want to continue (y/N)"
+if ! read | grep -q "y"; then
+	exit
+fi
+
 # Clear database
 rm food_site/db.sqlite3
 dropdb food_db
