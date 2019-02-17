@@ -3,9 +3,12 @@
 # Warn user
 echo "Warning: This performs a hard reset on the database"
 echo "Are you sure you want to continue (y/N)"
-if ! read | grep -q "y"; then
+read resp
+if ! echo "$resp" | grep -q "y"; then
+	echo "Exiting"
 	exit
 fi
+echo "Resetting database"
 
 # Clear database
 rm food_site/db.sqlite3
