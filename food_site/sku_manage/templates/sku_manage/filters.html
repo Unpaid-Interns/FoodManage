@@ -1,0 +1,37 @@
+<form class="form-inline" method="get">
+	<input type="text" placeholder="Search..." name="keyword" value="{{ keyword }}">
+	{% if all_ingredients|length > 0 %}
+		<select name="ingredientfilter" onchange='this.form.submit()'>
+			<option value="all">All Ingredients</option>
+			{% for ingredient in all_ingredients %}
+				<option value="{{ ingredient.number }}" 
+					{% if selected_ingredient == ingredient.number %}selected="selected"{% endif %}>
+					{{ ingredient }}
+				</option>
+			{% endfor %}
+		</select>
+	{% endif %}
+	{% if all_product_lines|length > 0 %}
+		<select name="productlinefilter" onchange='this.form.submit()'>
+			<option value="all">All Product Lines</option>
+			{% for product_line in all_product_lines %}
+				<option value="{{ product_line.name }}" 
+					{% if selected_product_line == product_line.name %}selected="selected"{% endif %}>
+					{{ product_line }}
+				</option>
+			{% endfor %}
+		</select>
+	{% endif %}
+	{% if all_skus|length > 0 %}
+		<select name="skufilter" onchange='this.form.submit()'>
+			<option value="all">All SKUs</option>
+			{% for sku in all_skus %}
+				<option value="{{ sku.sku_num }}" 
+					{% if selected_sku == sku.sku_num %}selected="selected"{% endif %}>
+					{{ sku }}
+				</option>
+			{% endfor %}
+		</select>
+	{% endif %}
+	<button type="submit"><i class="fa fa-search"></i></button>
+</form>

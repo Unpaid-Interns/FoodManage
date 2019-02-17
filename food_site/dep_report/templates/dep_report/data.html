@@ -1,77 +1,30 @@
-<!-- sku_manage/templates/ingredient.html -->
-<!DOCTYPE html>
-<html>
-	{% load staticfiles %}
-	{% load static %}
+{% extends "sku_manage/base.html" %}
+{% block content %}
+	<h1>Filter Ingredients for Report:</h1>
+	<a class="ret" href="/">Return</a>
+	<br></br>
+	{% include "sku_manage/filters.html" %}
+	<div style="overflow-x:auto;">
 	{% load render_table from django_tables2 %}
 	{% load bootstrap3 %}
-	<head>
-		<meta charset="utf-8">
-        	<title>HypoMeals</title>
-        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
-	</head>
-	<body>
-		{% if user.is_authenticated %}
-		<h1>Ingredient Dependency Reporting</h1>
-		<a class="ret" href="/">Return</a>
-                <br></br>
-		<button class="collapsible">Filter Data</button>
-		<div class="content">
-		
-		<form action="" method-"get" class="form form-inline">
-				<div class="form-group has-success"><label class="sr-only" for="id_name">Ingredient Name contains</label><input type="text" name="name" placeholder="Ingredient Name contains" class="form-control" id="id_name" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_number">Ingredient#</label><input type="number" name="number" placeholder="Ingredient#" class="form-control" step="any" title="" id="id_number"></div>
-<div class="form-group has-success"><label class="sr-only" for="id_vendor_info">Vendor Information contains</label><input type="text" name="vendor_info" placeholder="Vendor Information contains" class="form-control" id="id_vendor_info" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_package_size">Package size contains</label><input type="text" name="package_size" placeholder="Package size contains" class="form-control" id="id_package_size" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_cost">Cost</label><input type="number" name="cost" placeholder="Cost" class="form-control" step="any" title="" id="id_cost"></div>
-<div class="form-group has-success"><label class="sr-only" for="id_comment">Comment contains</label><input type="text" name="comment" placeholder="Comment contains" class="form-control" id="id_comment" title=""></div>
-<div class="form-group has-success"><label class="sr-only" for="id_skus">SKUs</label><select name="skus" id="id_skus" class="form-control" title="">
-  <option value="" selected>---------</option>
-
-  <option value="1">nuts: 1 * 2</option>
-
-</select></div>
-				<button class="btn btn-default">filter</button>
-			</form>
-
-		</div>
-		<script>
-			var coll = document.getElementsByClassName("collapsible");
-			var i;
-
-			for (i = 0; i < coll.length; i++) {
-  				coll[i].addEventListener("click", function() {
-    				this.classList.toggle("active");
-    				var content = this.nextElementSibling;
-    				if (content.style.display === "block") {
-      					content.style.display = "none";
-    				} else {
-      					content.style.display = "block";
-    				}
-  				});
-			}			
-		</script>
-		{% if table.rows %}
-			<p>{{ table.rows|length }} result(s)</p>
-		{% endif %}
-		<form action="{% url 'ingr_dep_generate' %}" method="post">
-		{% csrf_token %}
-			<input class="bbut" type="submit" value="Generate">
-			<div style="overflow-x:auto;">
-			{% render_table table %}
-			</div>
-		</form>
-		<form method="get">
+	{% render_table input_table %}
+	</div>
+	<form method="get">
+		{% if queryset.all|length > 25 %}
 			{% if paginated %}
 				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
 			{% else %}
 				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
 			{% endif %}
-		</form>
-		{% else %}
-		<h1>You must be logged in to view data</h1>
-		<br></br>
-                <a class="retlink" href="/">Go To Login</a>
 		{% endif %}
-	</body>
-</html>
+	</form>
+	<br>
+	{% if selected_table.rows %}
+		<form action="{% url 'ingr_dep_gen' %}" method="post">
+			{% csrf_token %}
+			<input class="bbut" type="submit" name="gen_report" value="Generate Report - {{ selected_table.rows|length }} Result(s)">
+		</form>
+		{% render_table selected_table %}
+	{% endif %}
+
+{% endblock content %}

@@ -16,7 +16,6 @@ git pull
 source site_env/bin/activate
 pip install --upgrade django
 pip install --upgrade django-tables2
-pip install --upgrade django-filter
 pip install --upgrade django-bootstrap3
 pip install --upgrade psycopg2-binary
 

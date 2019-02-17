@@ -20,14 +20,22 @@
 	<li>Vendor Information: {{ ingredient.vendor_info }}</li>
 	<li>Comment: {{ ingredient.comment }}</li>
 </ul>
-<p>{{ ingredient.ingredientqty_set.all|length }} SKUs:</p>
+<p>{{ ingredient.ingredientqty_set.all|length }} Formulas:</p>
 <ul>
 	{% for choice in ingredient.ingredientqty_set.all %}
-		<li><a class="listy" href="{% url 'sku_detail' choice.sku.pk %}"> {{ choice.sku }}</a> - {{ choice.get_qty }} packages</li>
+		<li><a class="listy" href="{% url 'formula_detail' choice.formula.pk %}"> {{ choice.formula }}</a> - {{ choice.quantity }} packages</li>
 	{% endfor %}
 </ul>
-	<br></br>
-        <a class="btn btn-primary" href="/search">Return To Search</a>
+<p>SKUs:</p>
+<ul>
+	{% for ingq in ingredient.ingredientqty_set.all %}
+		{% for sku in ingq.formula.sku_set.all %}
+			<li><a class="listy" href="{% url 'sku_detail' sku.pk %}"> {{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
+		{% endfor %}
+	{% endfor %}
+</ul>
+<br></br>
+<a class="btn btn-primary" href="/search">Return To Search</a>
 {% else %}
 <h1>You must be logged in to view data.</h1>
 <br></br>
