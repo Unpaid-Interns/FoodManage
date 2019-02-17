@@ -4,8 +4,8 @@ from django.db.models import Q
 from django.contrib.auth import logout
 from django_tables2 import RequestConfig, paginators
 from exporter import CSVExport
-from .models import Ingredient, ProductLine, SKU, Formula
-from .tables import IngredientTable, ProductLineTable, SKUTable, FormulaTable
+from .models import Ingredient, ProductLine, SKU, Formula, ManufacturingLine
+from .tables import IngredientTable, ProductLineTable, SKUTable, FormulaTable, ManufacturingLineTable
 
 # Create your views here.
 def IngredientView(request):
@@ -190,10 +190,10 @@ def FormulaView(request):
 				context['selected_ingredient'] = int(ingr_num)
 
 		if 'skufilter' in request.GET:
-			sku_name = request.GET['skufilter']
-			if pl_name != 'all':
-				queryset = queryset.filter(sku__name=sku_name)
-				context['selected_sku'] = sku_name
+			sku_num = request.GET['skufilter']
+			if sku_num != 'all':
+				queryset = queryset.filter(sku__sku_num=sku_num)
+				context['selected_sku'] = int(sku_num)
 
 		if 'remove_pagination' in request.GET:
 			paginate = False
@@ -202,7 +202,7 @@ def FormulaView(request):
 	if request.method == 'POST' and 'export_data' in request.POST:
 		if 'sort' in request.GET:
 			queryset = queryset.order_by(request.GET['sort']) 
-		return CSVExport.export_to_csv('skus', queryset)
+		return CSVExport.export_to_csv('formulas', queryset)
 
 	table = FormulaTable(queryset)
 	context['table'] = table
@@ -212,6 +212,51 @@ def FormulaView(request):
 class FormulaDetailView(generic.DetailView):
 	model = Formula
 	template_name = 'sku_manage/formula_detail.html'
+
+def ManufacturingLineView(request):
+	queryset = ManufacturingLine.objects.all()
+	context = {
+		'paginated': True,
+		'keyword': '',
+		'all_skus': SKU.objects.all(),
+		'selected_sku': None,
+	}	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25
+	}
+
+	if request.method == 'GET':
+		if 'keyword' in request.GET:
+			keyword = request.GET['keyword']
+			queryset = queryset.filter(Q(name__icontains=keyword) | 
+				Q(shortname__icontains=keyword) |
+				Q(comment__icontains=keyword))
+			context['keyword'] = keyword
+
+		if 'skufilter' in request.GET:
+			sku_num = request.GET['skufilter']
+			if sku_num != 'all':
+				queryset = queryset.filter(skumfgline__sku__sku_num=sku_num)
+				context['selected_sku'] = int(sku_num)
+
+		if 'remove_pagination' in request.GET:
+			paginate = False
+			context['paginated'] = False
+
+	if request.method == 'POST' and 'export_data' in request.POST:
+		if 'sort' in request.GET:
+			queryset = queryset.order_by(request.GET['sort']) 
+		return CSVExport.export_to_csv('manufacturing_lines', queryset)
+
+	table = ManufacturingLineTable(queryset)
+	context['table'] = table
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'sku_manage/data.html', context)
+
+class ManufacturingLineDetailView(generic.DetailView):
+	model = ManufacturingLine
+	template_name = 'sku_manage/mfg_line_detail.html'
 
 def search(request):
 	return render(request, 'sku_manage/search.html', context=None)

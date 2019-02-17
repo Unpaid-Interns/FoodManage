@@ -3,6 +3,7 @@ from .models import Ingredient
 from .models import ProductLine
 from .models import SKU
 from .models import Formula
+from .models import ManufacturingLine
 
 class IngredientTable(tables.Table):
 	name = tables.TemplateColumn('<a class="ing" href="{{record.pk}}">{{ record.name }}</a>')
@@ -27,3 +28,9 @@ class FormulaTable(tables.Table):
 	class Meta:
 		model = Formula
 		fields = ['name', 'number']
+
+class ManufacturingLineTable(tables.Table):
+	name = tables.TemplateColumn('<a class="ing" href="{{record.pk}}">{{ record.name }}</a>')
+	class Meta:
+		model = ManufacturingLine
+		fields = ['name', 'shortname']
