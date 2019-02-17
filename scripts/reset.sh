@@ -21,11 +21,17 @@ rm food_site/*/migrations/*initial.py
 rm  -r food_site/*/migrations/__pycache__
 
 # Re-initialize database
-source site_env/bin/activate
-./food_site/manage.py makemigrations
-./food_site/manage.py migrate
-./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
-deactivate
+if [ -d site_env ]; then
+	source site_env/bin/activate
+	./food_site/manage.py makemigrations
+	./food_site/manage.py migrate
+	./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
+	deactivate
+else
+	python3 food_site/manage.py makemigrations
+	python3 food_site/manage.py migrate
+	python3 food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
+fi
 
 # Restart server
 sudo service apache2 restart
