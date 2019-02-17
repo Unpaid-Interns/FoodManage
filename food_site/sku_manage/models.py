@@ -26,7 +26,7 @@ def validate_gt_zero(value):
 
 def gen_ingr_num():
 	ingredients = Ingredient.objects.order_by('number')
-	if len(ingredients) > 0 and ingredients[len(ingredients) - 1] > len(ingredients) - 1:
+	if len(ingredients) > 0 and ingredients[len(ingredients) - 1].number > len(ingredients) - 1:
 		for i in range(0, len(ingredients)):
 			if(ingredients[i].number > i):
 				return i
@@ -34,7 +34,7 @@ def gen_ingr_num():
 
 def gen_sku_num():
 	skus = SKU.objects.order_by('sku_num')
-	if len(skus) > 0 and skus[len(skus) - 1] > len(skus) - 1:
+	if len(skus) > 0 and skus[len(skus) - 1].sku_num > len(skus) - 1:
 		for i in range(0, len(skus)):
 			if(skus[i].sku_num > i):
 				return i
@@ -42,7 +42,7 @@ def gen_sku_num():
 
 def gen_fla_num():
 	formulas = Formula.objects.order_by('number')
-	if len(formulas) > 0 and formulas[len(formulas) - 1] > len(formulas) - 1:
+	if len(formulas) > 0 and formulas[len(formulas) - 1].number > len(formulas) - 1:
 		for i in range(0, len(formulas)):
 			if(formulas[i].number > i):
 				return i
@@ -99,7 +99,7 @@ class ManufacturingLine(models.Model):
 		return "{name} ({shortname})".format(name=self.name, shortname=self.shortname)
 
 class IngredientQty(models.Model):
-	sku = models.ForeignKey(Formula, on_delete=models.CASCADE)
+	formula = models.ForeignKey(Formula, on_delete=models.CASCADE)
 	ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
 	quantity = models.FloatField(validators=[validate_gt_zero])
 

@@ -101,7 +101,7 @@ a {
 
 .form-inline input {
   vertical-align: middle;
-  margin: 5px 5px 5px 0;
+  margin: 0 5px 0 0;
   padding: 10px;
   background-color: #fff;
   border: 1px solid #ddd;
@@ -113,15 +113,15 @@ a {
 
 .form-inline select {
   vertical-align: middle;
-  margin: 5px 5px 5px 0;
+  margin: 0 5px 0 0;
   border: 1px solid #ddd;
   font-size: 12px;
   height: 34px;
-  padding: 5px;
+  padding: 10px;
 }
 
 .form-inline button {
-  margin: 5px 5px 5px 0;
+  margin: 0 5px 0 0;
   padding: 10px 12px;
   background-color: dodgerblue;
   border: 1px solid #ddd;
