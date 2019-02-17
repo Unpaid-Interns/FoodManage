@@ -12,20 +12,22 @@
 
 <h1>Ingredient Dependency Report</h1>
 
-<form method="post">
+<form action="{% url 'ingr_dep_download' %}" method="post">
     {% csrf_token %}
     <label>{{ count }}</label>
     <button type="submit" name="download">Download CSV</button>
 </form>
 
 <table>
-<tr><td>Ingredient</td><td>SKUs</td></tr>
+<tr><td>Ingredient</td><td>SKUs (SKU#: Name)</td></tr>
 {% for ingredient in ingredients.all %}
     <tr>
     	<td>{{ ingredient }}</td>
-    	{% for choice in ingredient.ingredientqty_set.all %}
-    		<td>{{ choice.sku }}</td>
-    	{% endfor %}
+        {% for choice in ingredient.ingredientqty_set.all %}
+            {% for sku in choice.formula.sku_set.all %}
+    		  <td>{{ sku.sku_num }}: {{ sku }}</td>
+            {% endfor %}
+        {% endfor %}
 	</tr>
 {% endfor %}
 </table>

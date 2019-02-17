@@ -4,22 +4,27 @@
 	<a class="ret" href="/">Return</a>
 	<br></br>
 	{% include "sku_manage/filters.html" %}
-		{% if table.rows %}
-		<form action="{% url 'ingr_dep_report' %}" method="post">
-		{% csrf_token %}
-		<input class="bbut" type="submit" name="gen_report" value="Generate Report - {{ table.rows|length }} Result(s)">
-	</form>
-	{% endif %}
 	<div style="overflow-x:auto;">
 	{% load render_table from django_tables2 %}
 	{% load bootstrap3 %}
-	{% render_table table %}
+	{% render_table input_table %}
 	</div>
 	<form method="get">
-		{% if paginated %}
-			<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
-		{% else %}
-			<input class="bbut" type="submit" name="add_pagination" value="Paged View">
+		{% if queryset.all|length > 25 %}
+			{% if paginated %}
+				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
+			{% else %}
+				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
+			{% endif %}
 		{% endif %}
 	</form>
+	<br>
+	{% if selected_table.rows %}
+		<form action="{% url 'ingr_dep_gen' %}" method="post">
+			{% csrf_token %}
+			<input class="bbut" type="submit" name="gen_report" value="Generate Report - {{ selected_table.rows|length }} Result(s)">
+		</form>
+		{% render_table selected_table %}
+	{% endif %}
+
 {% endblock content %}

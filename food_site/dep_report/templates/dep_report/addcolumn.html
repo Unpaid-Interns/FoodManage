@@ -1,0 +1,4 @@
+<form class="form-inline" action="{% url 'ingr_dep_add' record.pk %}" method="post">
+	{% csrf_token %}
+	<button type="submit"><i class="fa fa-plus"></i></button>
+</form>
