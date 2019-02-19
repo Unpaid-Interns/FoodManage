@@ -10,24 +10,26 @@ import os
 
 
 def simple_upload(request):
-    try:
-        if request.method == 'POST' and request.FILES['myfile']:
-            myfile = request.FILES['myfile']
-            fs = FileSystemStorage()
-            filename = fs.save(myfile.name, myfile)
-            importer_module = CSVImport.CSVImport()
-            importer_module.clear_filenames()
-            importer_module.add_filename(filename)
-            success, result_message = importer_module.parse()
-            print(result_message)
-            os.remove(filename)
-            serializable_conflict_dict = importer_module.make_serializable_conflict_dict(None)
-            request.session['serializable_conflict_dict'] = serializable_conflict_dict
-            request.session['result_message'] = result_message
-            return redirect("messages/")
-        return render(request, 'importer/index.html')
-    except:
-        return render(request, 'importer/index.html')
+    # try:
+    if request.method == 'POST' and request.FILES['myfile']:
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        importer_module = CSVImport.CSVImport()
+        importer_module.clear_filenames()
+        importer_module.add_filename(filename)
+        success, conflicts_exist, result_message = importer_module.import_csv()
+        #print(result_message)
+        os.remove(filename)
+        serializable_conflict_dict = importer_module.make_serializable_conflict_dict(None)
+        request.session['serializable_conflict_dict'] = serializable_conflict_dict
+        request.session['result_message'] = result_message
+        return redirect("messages/")
+    return render(request, 'importer/index.html')
+
+
+# except:
+#     return render(request, 'importer/index.html')
 
 
 def message_displayer(request):
@@ -35,7 +37,7 @@ def message_displayer(request):
     serializable_conflict_dict = request.session.get('serializable_conflict_dict')
     importer_module = CSVImport.CSVImport()
     conflict_dict = importer_module.get_conflict_dict_from_serializable(serializable_conflict_dict)
-    print(result_message)
+    #print(result_message)
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         messages.add_message(request, messages.INFO, " ", extra_tags="first")
     split_results_messages = result_message.split('\n')
@@ -76,28 +78,27 @@ def commit_to_database(request, messagenum):
                 data = conflict_tuple[0]
                 conflict_database_model = conflict_tuple[1]
                 # update conflict database model with data's fields
-                if data.__class__.__name__ == "SKUData":
-                    conflict_database_model.sku_num = int(data.sku_number)
+                if data.__class__.__name__ == "SKU":
+                    conflict_database_model.sku_num = data.sku_num
                     conflict_database_model.name = data.name
-                    conflict_database_model.case_upc = Decimal(data.case_upc)
-                    conflict_database_model.unit_upc = Decimal(data.unit_upc)
+                    conflict_database_model.case_upc = data.case_upc
+                    conflict_database_model.unit_upc = data.unit_upc
                     conflict_database_model.unit_size = data.unit_size
-                    print("Issue is with: " + data.case_count)
-                    conflict_database_model.units_per_case = int(data.case_count)
-                    temp_product_name_list = models.ProductLine.objects.filter(name=data.product_line)
+                    conflict_database_model.units_per_case = data.units_per_case
+                    temp_product_name_list = models.ProductLine.objects.filter(name=data.product_line.name)
                     if len(temp_product_name_list) > 0:
                         conflict_database_model.product_line = temp_product_name_list[0]
                     conflict_database_model.comment = data.comment
-                elif data.__class__.__name__ == "IngredientData":
-                    conflict_database_model.number = int(data.number)
+                elif data.__class__.__name__ == "Ingredient":
+                    conflict_database_model.number = data.number
                     conflict_database_model.name = data.name
                     conflict_database_model.vendor_info = data.vendor_info
                     conflict_database_model.package_size = data.package_size
-                    conflict_database_model.cost = Decimal(data.cost)
+                    conflict_database_model.cost = data.cost
                     conflict_database_model.comment = data.comment
-                elif data.__class__.__name__ == "ProductLineData":
+                elif data.__class__.__name__ == "ProductLine":
                     pass
-                elif data.__class__.__name__ == "SKUIngredientData":
+                elif data.__class__.__name__ == "IngredientQty":
                     pass
                 conflict_database_model.save()
             count += 1
@@ -122,37 +123,37 @@ def commit_all_to_database(request):
         conflict_records_list = conflict_dict[file_prefix]
         matching_tuple = None
         for conflict_tuple in conflict_records_list:
-                matching_tuple = conflict_tuple
-                data = conflict_tuple[0]
-                conflict_database_model = conflict_tuple[1]
-                # update conflict database model with data's fields
-                if data.__class__.__name__ == "SKUData":
-                    conflict_database_model.sku_num = int(data.sku_number)
-                    conflict_database_model.name = data.name
-                    conflict_database_model.case_upc = Decimal(data.case_upc)
-                    conflict_database_model.unit_upc = Decimal(data.unit_upc)
-                    conflict_database_model.unit_size = data.unit_size
-                    print("Issue is with: " + data.case_count)
-                    conflict_database_model.units_per_case = int(data.case_count)
-                    temp_product_name_list = models.ProductLine.objects.filter(name=data.product_line)
-                    if len(temp_product_name_list) > 0:
-                        conflict_database_model.product_line = temp_product_name_list[0]
-                    conflict_database_model.comment = data.comment
-                elif data.__class__.__name__ == "IngredientData":
-                    conflict_database_model.number = int(data.number)
-                    conflict_database_model.name = data.name
-                    conflict_database_model.vendor_info = data.vendor_info
-                    conflict_database_model.package_size = data.package_size
-                    conflict_database_model.cost = Decimal(data.cost)
-                    conflict_database_model.comment = data.comment
-                elif data.__class__.__name__ == "ProductLineData":
-                    pass
-                elif data.__class__.__name__ == "SKUIngredientData":
-                    pass
-                conflict_database_model.save()
+            matching_tuple = conflict_tuple
+            data = conflict_tuple[0]
+            conflict_database_model = conflict_tuple[1]
+            # update conflict database model with data's fields
+            if data.__class__.__name__ == "SKU":
+                conflict_database_model.sku_num = data.sku_num
+                conflict_database_model.name = data.name
+                conflict_database_model.case_upc = data.case_upc
+                conflict_database_model.unit_upc = data.unit_upc
+                conflict_database_model.unit_size = data.unit_size
+                conflict_database_model.units_per_case = data.units_per_case
+                temp_product_name_list = models.ProductLine.objects.filter(name=data.product_line.name)
+                if len(temp_product_name_list) > 0:
+                    conflict_database_model.product_line = temp_product_name_list[0]
+                conflict_database_model.comment = data.comment
+            elif data.__class__.__name__ == "Ingredient":
+                conflict_database_model.number = data.number
+                conflict_database_model.name = data.name
+                conflict_database_model.vendor_info = data.vendor_info
+                conflict_database_model.package_size = data.package_size
+                conflict_database_model.cost = data.cost
+                conflict_database_model.comment = data.comment
+            elif data.__class__.__name__ == "ProductLine":
+                pass
+            elif data.__class__.__name__ == "IngredientQty":
+                pass
+            conflict_database_model.save()
     request.session['serializable_conflict_dict'] = dict()
     request.session['result_message'] = "All entries committed to database"
     return redirect("message_displayer")
+
 
 def info(request):
     image_data = open('importer/import_instructions.pdf', 'rb').read()
