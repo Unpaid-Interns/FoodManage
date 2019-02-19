@@ -1,12 +1,14 @@
 import django_tables2 as tables
 from sku_manage.models import Ingredient
 
-
 class IngredientTable(tables.Table):
-	name = tables.TemplateColumn('''
-			<input type="checkbox" name="choice" id="choice"{{ record.pk }} value="{{ record.pk }}">
-			<label for="choice{{ record.pk }}">{{ record.name }}</label><br>
-		''')
+	add_colunm = tables.TemplateColumn(verbose_name="Add to Report", template_name='dep_report/addcolumn.html')
 	class Meta:
 		model = Ingredient
-		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost', 'comment']
+		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost']
+
+class SelectedTable(tables.Table):
+	remove_colunm = tables.TemplateColumn(verbose_name="Remove", template_name='dep_report/remcolumn.html')
+	class Meta:
+		model = Ingredient
+		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost']

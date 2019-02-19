@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Warn user
+echo "Warning: This performs a hard reset on the database"
+echo "Are you sure you want to continue (y/N)"
+read resp
+if ! echo "$resp" | grep -q "y"; then
+	echo "Exiting"
+	exit
+fi
+echo "Resetting database"
+
 # Clear database
 rm food_site/db.sqlite3
 dropdb food_db
@@ -11,11 +21,17 @@ rm food_site/*/migrations/*initial.py
 rm  -r food_site/*/migrations/__pycache__
 
 # Re-initialize database
-source site_env/bin/activate
-./food_site/manage.py makemigrations
-./food_site/manage.py migrate
-./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
-deactivate
+if [ -d site_env ]; then
+	source site_env/bin/activate
+	./food_site/manage.py makemigrations
+	./food_site/manage.py migrate
+	./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
+	deactivate
+else
+	python3 food_site/manage.py makemigrations
+	python3 food_site/manage.py migrate
+	python3 food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
+fi
 
 # Restart server
 sudo service apache2 restart

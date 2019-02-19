@@ -1,68 +1,27 @@
-<!-- sku_manage/templates/ingredient.html -->
-<!DOCTYPE html>
-<html>
-	{% load staticfiles %}
-	{% load static %}
+{% extends "sku_manage/base.html" %}
+{% block content %}
+	<h1>Data shown below:</h1>
+	<a class="ret" href="/search">Return</a>
+	<br></br>
+	{% include "sku_manage/filters.html" %}
+	{% if table.rows %}
+		<p>{{ table.rows|length }} result(s)</p>
+	{% endif %}
+	<div style="overflow-x:auto;">
 	{% load render_table from django_tables2 %}
 	{% load bootstrap3 %}
-	<head>
-		<meta charset="utf-8">
-        	<title>HypoMeals</title>
-        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
-	</head>
-	<body>
-		{% if user.is_authenticated %}
-		<h1>Data shown below:</h1>
-		<a class="ret" href="/search">Return</a>
-		<br></br>
-		<button class="collapsible">Filter Data</button>
-		<div class="content">
-		{% if filter %}
-			<form action="" method-"get" class="form form-inline">
-				{% bootstrap_form filter.form layout='inline' %}
-				{% bootstrap_button 'Filter' %}
-			</form>
-		{% endif %}
-		</div>
-		<script>
-			var coll = document.getElementsByClassName("collapsible");
-			var i;
-
-			for (i = 0; i < coll.length; i++) {
-  				coll[i].addEventListener("click", function() {
-    				this.classList.toggle("active");
-    				var content = this.nextElementSibling;
-    				if (content.style.display === "block") {
-      					content.style.display = "none";
-    				} else {
-      					content.style.display = "block";
-    				}
-  				});
-			}			
-		</script>
-		{% if table.rows %}
-			<p>{{ table.rows|length }} result(s)</p>
-		{% endif %}
-		<div style="overflow-x:auto;">
-		{% render_table table %}
-		</div>
-		<form method="get">
-			{% if paginated %}
-				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
-			{% else %}
-				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
-			{% endif %}
-		</form>
-		<br>
-		<form method="post">
-			{% csrf_token %}
-			<input class="bbut" type="submit" name="export_data" value="Download as CSV">
-		</form>
-
+	{% render_table table %}
+	</div>
+	<form method="get">
+		{% if paginated %}
+			<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
 		{% else %}
-		<h1>You must be logged in to view data.</h1>
-		<br></br>
-		<a class="retlink" href="/">Go To Login</a>
+			<input class="bbut" type="submit" name="add_pagination" value="Paged View">
 		{% endif %}
-	</body>
-</html>
+	</form>
+	<form method="post">
+		{% csrf_token %}
+		<input class="bbut" type="submit" name="export_data" value="Download as CSV">
+	</form>
+{% endblock content %}
+
