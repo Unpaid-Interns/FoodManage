@@ -7,17 +7,13 @@
 		<meta charset="utf-8">
         	<title>HypoMeals</title>
         	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/data.css" %}" />
+        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/style.css" %}" />
+        	{% block styling %}
+        	{% endblock styling %}
 	</head>
 	<body>
-		{% if user.is_authenticated %}
-			{% block content %}
-
-			{% endblock content %}
-		{% else %}
-		<h1>You must be logged in to view data.</h1>
-		<br></br>
-		<a class="retlink" href="/">Login</a>
-		{% endif %}
+		{% include "sku_manage/header.html" %}
+		{% block content %}
+		{% endblock content %}
 	</body>
 </html>

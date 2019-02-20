@@ -1,13 +1,12 @@
 {% extends "sku_manage/base.html" %}
 {% block content %}
 	<h1>Filter Ingredients for Report:</h1>
-	<a class="ret" href="/">Return</a>
-	<br></br>
 	{% include "sku_manage/filters.html" %}
-	<div style="overflow-x:auto;">
-	{% load render_table from django_tables2 %}
-	{% load bootstrap3 %}
-	{% render_table input_table %}
+	<br>
+	<div class="table" style="overflow-x:auto;">
+		{% load render_table from django_tables2 %}
+		{% load bootstrap3 %}
+		{% render_table input_table %}
 	</div>
 	<form method="get">
 		{% if queryset.all|length > 25 %}
@@ -24,7 +23,9 @@
 			{% csrf_token %}
 			<input class="bbut" type="submit" name="gen_report" value="Generate Report - {{ selected_table.rows|length }} Result(s)">
 		</form>
-		{% render_table selected_table %}
+		<div class="table" style="overflow-x:auto;">
+			{% render_table selected_table %}
+		</div>
 	{% endif %}
 
 {% endblock content %}
