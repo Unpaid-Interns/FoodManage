@@ -1,27 +1,28 @@
 {% extends "sku_manage/base.html" %}
 {% block content %}
 	<h1>Data shown below:</h1>
-	<a class="ret" href="/search">Return</a>
-	<br></br>
 	{% include "sku_manage/filters.html" %}
 	{% if table.rows %}
-		<p>{{ table.rows|length }} result(s)</p>
+		<form method="post">
+			{% csrf_token %}
+			<p>{{ table.rows|length }} result(s)</p>
+			<input class="bbut" type="submit" name="export_data" value="Download as CSV">
+		</form>
 	{% endif %}
-	<div style="overflow-x:auto;">
-	{% load render_table from django_tables2 %}
-	{% load bootstrap3 %}
-	{% render_table table %}
+	<br>
+	<div class="table", style="overflow-x:auto;">
+		{% load render_table from django_tables2 %}
+		{% load bootstrap3 %}
+		{% render_table table %}
 	</div>
-	<form method="get">
-		{% if paginated %}
-			<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
-		{% else %}
-			<input class="bbut" type="submit" name="add_pagination" value="Paged View">
-		{% endif %}
-	</form>
-	<form method="post">
-		{% csrf_token %}
-		<input class="bbut" type="submit" name="export_data" value="Download as CSV">
-	</form>
+	{% if queryset.all|length > 25 %}
+		<form method="get">
+			{% if paginated %}
+				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
+			{% else %}
+				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
+			{% endif %}
+		</form>
+	{% endif %}
 {% endblock content %}
 

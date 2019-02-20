@@ -1,49 +1,31 @@
-<!DOCTYPE html>
-<html>
+{% extends "sku_manage/base.html" %}
+{% block content %}
+	<h1>{{ sku }}</h1>
+	<p>General Information:</p>
+	<ul>
+		<li>Name: {{ sku.name }}</li>
+		<li>SKU#: {{ sku.sku_num }}</li>
+		<li>Case UPC: {{ sku.case_upc }}</li>
+		<li>Unit UPC: {{ sku.unit_upc }}</li>
+		<li>Unit Size: {{ sku.unit_size }}</li>
+		<li>Units Per Case: {{ sku.units_per_case }}</li>
+		<li>Product Line: <a class="detail_list" href="{% url 'product_line_detail' sku.product_line.pk %}">{{ sku.product_line }}</a></li>
+		<li>Formula: <a class="detail_list" href="{% url 'formula_detail' sku.formula.pk %}">{{ sku.formula }}</a></li>
+		<li>Formula Scale: {{ sku.formula_scale }}</li>
+		<li>Manufacturing Rate: {{ sku.mfg_rate }}</li>
+		<li>Comment: {{ sku.comment }}</li>
+	</ul>
+	<p>{{ sku.skumfgline_set.all|length }} Manufacturing Lines:</p>
+	<ul>
+		{% for choice in sku.skumfgline_set.all %}
+	    	<li> {{ choice.mfg_line.name }} ({{ choice.mfg_line.shortname }})</li>
+		{% endfor %}
+	</ul>
+	<p>Formula - {{ sku.formula.ingredientqty_set.all|length }} Ingredients:</p>
+	<ul>
+		{% for choice in sku.formula.ingredientqty_set.all %}
+	    	<li> <a class="detail_list" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
+		{% endfor %}
+	</ul>
+{% endblock content %}
 
-        {% load staticfiles %}
-        {% load static %}
-        <head>
-                <meta charset="utf-8">
-                <title>HypoMeals</title>
-                <link rel="stylesheet" type="text/css" href="{% static "sku_manage/detail.css" %}" />
-
-        </head>
-<body>
-{% if user.is_authenticated %}
-<h1>{{ sku }}</h1>
-<p>General Information:</p>
-<ul>
-	<li>Name: {{ sku.name }}</li>
-	<li>SKU#: {{ sku.sku_num }}</li>
-	<li>Case UPC: {{ sku.case_upc }}</li>
-	<li>Unit UPC: {{ sku.unit_upc }}</li>
-	<li>Unit Size: {{ sku.unit_size }}</li>
-	<li>Units Per Case: {{ sku.units_per_case }}</li>
-	<li>Product Line: <a class="listy" href="{% url 'product_line_detail' sku.product_line.pk %}">{{ sku.product_line }}</a></li>
-	<li>Formula: <a class="listy" href="{% url 'formula_detail' sku.formula.pk %}">{{ sku.formula }}</a></li>
-	<li>Formula Scale: {{ sku.formula_scale }}</li>
-	<li>Manufacturing Rate: {{ sku.mfg_rate }}</li>
-	<li>Comment: {{ sku.comment }}</li>
-</ul>
-<p>{{ sku.skumfgline_set.all|length }} Manufacturing Lines:</p>
-<ul>
-	{% for choice in sku.skumfgline_set.all %}
-    	<li> {{ choice.mfg_line.name }} ({{ choice.mfg_line.shortname }})</li>
-	{% endfor %}
-</ul>
-<p>Formula - {{ sku.formula.ingredientqty_set.all|length }} Ingredients:</p>
-<ul>
-	{% for choice in sku.formula.ingredientqty_set.all %}
-    	<li> <a class="listy" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
-	{% endfor %}
-</ul>
-	<br></br>
-        <a class="btn btn-primary" href="/search">Return To Search</a>
-{% else %}
-<h1>You must be logged in to view data.</h1>
-<br></br>
-<a class="btn btn-primary" href="/">Go To Login</a>
-{% endif %}
-</body>
-</html>

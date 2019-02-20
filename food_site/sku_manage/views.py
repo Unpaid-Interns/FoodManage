@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect
 from django.views import generic
 from django.db.models import Q
 from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django_tables2 import RequestConfig, paginators
 from exporter import CSVExport
 from .models import Ingredient, ProductLine, SKU, Formula, ManufacturingLine
 from .tables import IngredientTable, ProductLineTable, SKUTable, FormulaTable, ManufacturingLineTable
 
-# Create your views here.
+@login_required
 def IngredientView(request):
 	queryset = Ingredient.objects.all()
 	context = {
@@ -52,6 +54,7 @@ def IngredientView(request):
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
 
+@method_decorator(login_required, name='dispatch')
 class IngredientDetailView(generic.DetailView):
 	model = Ingredient
 	template_name = 'sku_manage/ingredient_detail.html'
@@ -59,7 +62,7 @@ class IngredientDetailView(generic.DetailView):
 	def get_fields(self):
 		return [(key, value) for key, value in self.__dict__.items()]
 
-
+@login_required
 def ProductLineView(request):
 	queryset = ProductLine.objects.all()
 	context = {
@@ -99,10 +102,12 @@ def ProductLineView(request):
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
 
+@method_decorator(login_required, name='dispatch')
 class ProductLineDetailView(generic.DetailView):
 	model = ProductLine
 	template_name = 'sku_manage/product_line_detail.html'
 
+@login_required
 def SKUView(request):
 	queryset = SKU.objects.all()
 	context = {
@@ -156,10 +161,12 @@ def SKUView(request):
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
 
+@method_decorator(login_required, name='dispatch')
 class SKUDetailView(generic.DetailView):
 	model = SKU
 	template_name = 'sku_manage/sku_detail.html'
 
+@login_required(login_url='index')
 def FormulaView(request):
 	queryset = Formula.objects.all()
 	context = {
@@ -209,10 +216,12 @@ def FormulaView(request):
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
 
+@method_decorator(login_required, name='dispatch')
 class FormulaDetailView(generic.DetailView):
 	model = Formula
 	template_name = 'sku_manage/formula_detail.html'
 
+@login_required
 def ManufacturingLineView(request):
 	queryset = ManufacturingLine.objects.all()
 	context = {
@@ -254,13 +263,16 @@ def ManufacturingLineView(request):
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'sku_manage/data.html', context)
 
+@method_decorator(login_required, name='dispatch')
 class ManufacturingLineDetailView(generic.DetailView):
 	model = ManufacturingLine
 	template_name = 'sku_manage/mfg_line_detail.html'
 
+@login_required
 def search(request):
 	return render(request, 'sku_manage/search.html', context=None)
 
+@login_required
 def authout(request):
         logout(request)
         response = redirect('/')

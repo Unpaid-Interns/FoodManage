@@ -1,28 +1,12 @@
-<!-- sku_manage/templates/data.html -->
-<!DOCTYPE html>
-<html>
-        {% load staticfiles %}
-        {% load static %}
-        <head>
-                <meta charset="utf-8">
-                <title>HypoMeals</title>
-                <link rel="stylesheet" type="text/css" href="{% static "sku_manage/search.css" %}">
-        </head>
-        <body>
-		{% if user.is_authenticated %}
-                <h1>What do you wish to search for?</h1>
-		<a class="btn btn-primary" href="/search/ingredient">Ingredient Details</a> 
-		<a class="btn btn-primary" href="/search/productline">Product Lines</a>
-		<a class="btn btn-primary" href="/search/sku">SKU Details</a>
-		<a class="btn btn-primary" href="/search/formula">Formulas</a>
-		<a class="btn btn-primary" href="/search/manufacturingline">Manufacturing Lines</a>
-		<br></br>
-		<a class="btn btn-primary" href="/">Return To Home</a>
-		{% else %}
-		<h1>You must be logged in to view data</h1>
-		<br></br>
-		<a class="btn btn-primary" href="/">Go To Login</a>
-		{% endif %}
-        </body>
-<html>
+{% extends "sku_manage/base.html" %}
+{% block content %}
+	<div class="menu-buttons">
+		<h1>What do you wish to search for?</h1>
+		<a href="{% url 'Ingredient' %}">Ingredient Details</a> 
+		<a href="{% url 'ProductLine' %}">Product Lines</a>
+		<a href="{% url 'SKU' %}">SKU Details</a>
+		<a href="{% url 'formula' %}">Formulas</a>
+		<a href="{% url 'ManufacturingLine' %}">Manufacturing Lines</a>
+	</div>
+{% endblock content %}
 

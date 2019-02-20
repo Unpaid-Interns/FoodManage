@@ -1,41 +1,22 @@
-<!DOCTYPE html>
-<html>
-
-        {% load staticfiles %}
-        {% load static %}
-        <head>
-                <meta charset="utf-8">
-                <title>HypoMeals</title>
-                <link rel="stylesheet" type="text/css" href="{% static "sku_manage/detail.css" %}" />
-
-        </head>
-<body>
-{% if user.is_authenticated %}
-<h1>{{ formula }}</h1>
-<p>General Information:</p>
-<ul>
-	<li>Name: {{ formula.name }}</li>
-	<li>Formula#: {{ formula.number }}</li>
-	<li>Comment: {{ formula.comment }}</li>
-</ul>
-<p>{{ formula.ingredientqty_set.all|length }} Ingredients:</p>
-<ul>
-	{% for choice in formula.ingredientqty_set.all %}
-    	<li> <a class="listy" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
-	{% endfor %}
-</ul>
-<p>{{ formula.sku_set.all|length }} SKUs:</p>
-<ul>
-	{% for sku in formula.sku_set.all %}
-    	<li> <a class="listy" href="{% url 'sku_detail' sku.pk %}">{{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
-	{% endfor %}
-</ul>
-	<br></br>
-        <a class="btn btn-primary" href="/search">Return To Search</a>
-{% else %}
-<h1>You must be logged in to view data.</h1>
-<br></br>
-<a class="btn btn-primary" href="/">Go To Login</a>
-{% endif %}
-</body>
-</html>
+{% extends "sku_manage/base.html" %}
+{% block content %}
+    <h1>{{ formula }}</h1>
+    <p>General Information:</p>
+    <ul>
+    	<li>Name: {{ formula.name }}</li>
+    	<li>Formula#: {{ formula.number }}</li>
+    	<li>Comment: {{ formula.comment }}</li>
+    </ul>
+    <p>{{ formula.ingredientqty_set.all|length }} Ingredients:</p>
+    <ul>
+    	{% for choice in formula.ingredientqty_set.all %}
+        	<li> <a class="detail_list" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
+    	{% endfor %}
+    </ul>
+    <p>{{ formula.sku_set.all|length }} SKUs:</p>
+    <ul>
+    	{% for sku in formula.sku_set.all %}
+        	<li> <a class="detail_list" href="{% url 'sku_detail' sku.pk %}">{{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
+    	{% endfor %}
+    </ul>
+{% endblock content %}
