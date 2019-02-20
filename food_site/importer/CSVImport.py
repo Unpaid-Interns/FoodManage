@@ -1,13 +1,14 @@
 import csv
 from sku_manage import models
 from decimal import Decimal
+import re
 
 headerDict = {
-    "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
-                 "Comment"],
+    "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "PL Name",
+                 "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"],
     "ingredients.csv": ["Ingr#", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
-    "formulas.csv": ["SKU#", "Ingr#", "Quantity"]
+    "formulas.csv": ["Formula#", "Name", "Ingr#", "Quantity", "Comment"]
 }
 
 '''
@@ -16,6 +17,37 @@ headerDict = {
     with any additions being after those 4 (names of those 4 can be changed freely!
 '''
 validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas"]
+
+validUnits = ['ounce', 'oz', 'pound', 'lb', 'ton', 'gram', 'g',
+              'kilogram', 'kg', 'fluidounce', 'floz.', 'pint', 'pt',
+              'quart', 'qt', 'gallon', 'gal', 'milliliter', 'ml',
+              'liter', 'l', 'ct', 'count']
+
+unit_mappings = {
+    "ounce": "oz.",
+    "oz": "oz.",
+    "pound": "lb.",
+    "lb": "lb.",
+    "ton": "ton.",
+    "gram": "g.",
+    "g": "g.",
+    "kilogram": "kg.",
+    "kg": "kg.",
+    "fluidounce": "fl.oz.",
+    "floz": "fl.oz.",
+    "pint": "pt.",
+    "pt": "pt.",
+    "quart": "qt.",
+    "qt": "qt.",
+    "gallon": "gal.",
+    "gal": "gal.",
+    "milliliter": "mL",
+    "ml": "mL",
+    "liter": "L",
+    "l": "L",
+    "ct": "count",
+    "count": "count"
+}
 
 path_prefix = "importer/"
 
@@ -44,7 +76,7 @@ class CSVImport:
             # if prefix valid, proceed with import
             if valid_prefix:
                 # read the file and check for conflicts
-                data, conflict_data, num_to_import, num_ignored, num_conflict, file_read_successfully, error_message \
+                data, sku_mfg_line_data, conflict_data, num_to_import, num_ignored, num_conflict, file_read_successfully, error_message \
                     = read_file(filename, file_prefix, self.data_dict)
                 # if successful, write all data to class returned from function
                 if file_read_successfully:
@@ -52,6 +84,8 @@ class CSVImport:
                     self.total_num_records_ignored += num_ignored
                     self.total_num_records_conflict += num_conflict
                     self.data_dict[file_prefix] = data
+                    if len(sku_mfg_line_data) > 0:
+                        self.data_dict["ML"] = sku_mfg_line_data
                     # if there are conflicts, make sure to add them to the dictionary
                     if len(conflict_data) > 0:
                         self.conflict_dict[file_prefix] = conflict_data
@@ -95,14 +129,15 @@ class CSVImport:
         fill_in_sku_nums(self.data_dict)
         fill_in_ingr_nums(self.data_dict)
 
-        if validFilePrefixes[2] in self.data_dict:
-            models.ProductLine.objects.bulk_create(self.data_dict[validFilePrefixes[2]])
-        if validFilePrefixes[0] in self.data_dict:
-            models.SKU.objects.bulk_create(self.data_dict[validFilePrefixes[0]])
         if validFilePrefixes[1] in self.data_dict:
             models.Ingredient.objects.bulk_create(self.data_dict[validFilePrefixes[1]])
+        if validFilePrefixes[2] in self.data_dict:
+            models.ProductLine.objects.bulk_create(self.data_dict[validFilePrefixes[2]])
         if validFilePrefixes[3] in self.data_dict:
             models.IngredientQty.objects.bulk_create(self.data_dict[validFilePrefixes[3]])
+        if validFilePrefixes[0] in self.data_dict:
+            models.SKU.objects.bulk_create(self.data_dict[validFilePrefixes[0]])
+            models.SkuMfgLine.objects.bulk_create(self.data_dict["ML"])
 
         return "", True
 
@@ -201,6 +236,7 @@ def read_file(filename, file_prefix, data_dict):
     # Initialize variables
     header_correct = headerDict[file_prefix + ".csv"]
     parsed_data = []
+    sku_mfg_lines_data = []
     conflicting_records_tpl = []
     num_records_parsed = 0
     num_record_ignored = 0
@@ -221,13 +257,13 @@ def read_file(filename, file_prefix, data_dict):
                     header_check_complete = True
                     continue
                 if not header_valid:
-                    return None, None, None, None, None, False, \
+                    return None, None, None, None, None, None, False, \
                            "HEADER INVALID: Terminating import... \n" + header_issue
 
                 # Call appropriate helper method
                 temp_data = "ERROR: Parser methods failed. You should not see this error, please alert an admin."
                 if file_prefix == validFilePrefixes[0]:
-                    temp_data = skus_parser_helper(row, num_records_parsed, data_dict)
+                    temp_data, sku_mfg_lines_array = skus_parser_helper(row, num_records_parsed, data_dict)
                 elif file_prefix == validFilePrefixes[1]:
                     temp_data = ingredients_parser_helper(row, num_records_parsed)
                 elif file_prefix == validFilePrefixes[2]:
@@ -235,7 +271,7 @@ def read_file(filename, file_prefix, data_dict):
                 elif file_prefix == validFilePrefixes[3]:
                     temp_data = formulas_parser_helper(row, num_records_parsed, data_dict)
                 if isinstance(temp_data, str):
-                    return None, None, None, None, None, False, temp_data
+                    return None, None, None, None, None, None, False, temp_data
 
                 # Check for matching database records
                 matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix, num_records_parsed)
@@ -246,6 +282,8 @@ def read_file(filename, file_prefix, data_dict):
                     if database_record_check == "":
                         # parsed_data.append(temp_data, file_prefix)
                         parsed_data.append(temp_data)
+                        if file_prefix == validFilePrefixes[0]:
+                            sku_mfg_lines_data = sku_mfg_lines_data + sku_mfg_lines_array
                         num_records_parsed += 1
                     elif database_record_check == "identical":
                         num_records_parsed += 1
@@ -255,16 +293,17 @@ def read_file(filename, file_prefix, data_dict):
                         num_records_parsed += 1
                         num_record_conflicted += 1
                     else:
-                        return None, None, None, None, None, False, database_record_check
+                        return None, None, None, None, None, None, False, database_record_check
                 else:
-                    return None, None, None, None, None, False, matching_check
+                    return None, None, None, None, None, None, False, matching_check
             if not has_rows:
-                return None, None, None, None, None, False, "ERROR: File is empty. Aborting import."
+                return None, None, None, None, None, None, False, "ERROR: File is empty. Aborting import."
     except FileNotFoundError:
-        return None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
+        return None, None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
     # except:
     #     return None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
-    return parsed_data, conflicting_records_tpl, num_records_parsed - num_record_ignored - num_record_conflicted, \
+    return parsed_data, sku_mfg_lines_data, conflicting_records_tpl, \
+           num_records_parsed - num_record_ignored - num_record_conflicted, \
            num_record_ignored, num_record_conflicted, True, ""
 
 
@@ -318,7 +357,7 @@ def header_check(header, header_correct, file_prefix):
     col = 0
     for item in header:
         # ensure that Excel added character \ufeff is removed
-        if header_correct[col] != item.replace(u'\ufeff', ''):
+        if header_correct[col].lower() != item.replace(u'\ufeff', '').lower():
             headerError = "ERROR: csv header = '" + item + "' but should be '" + header_correct[col] + "'"
             return False, headerError
         col += 1
@@ -332,50 +371,73 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
     :param num_records_parsed: The number of records parsed so far - used for determining current row in file
     :param data_dict: Dictionary of data parsed so far, indexed by file prefix
     :return: str for error if there is one, otherwise return the data
+    :return: sku/manufacturing line array
     """
-
-    pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
-    if not pl_success:
-        return chosen_product_line_or_error_message
+    # Header: ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "PL Name",
+    #           0       1       2           3           4               5               6
+    #                  "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"]
+    #                   7              8                9               10      11
 
     if len(row) != len(headerDict[validFilePrefixes[0] + ".csv"]):
         return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_parsed + 2) +
-                ", needs 8 entries but has " + str(len(row)) + " entries.")
+                ", needs 8 entries but has " + str(len(row)) + " entries."), None
     if row[0] == "":
         row[0] = "-1"
     else:
         if not integer_check(row[0]):
-            return "ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
-                   + "and col #1."
-    for i in range(1, 7):
+            return ("ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
+                   + "and col #1."), None
+    formula_factor = None
+    for i in range(1, 9):
         if row[i] == "":
-            return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                    + str(i + 1) + ". Entry in this row/column is required but is blank.")
-        if i in [2, 3]:
+            if i == 8:
+                formula_factor = 1
+            else:
+                return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                        + str(i + 1) + ". Entry in this row/column is required but is blank."), None
+        if i in [2, 3, 8, 10]:
             if not decimal_check(row[i]):
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not.")
+                        + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not."), None
             if i == 2:
                 try:
                     models.validate_upc(Decimal(row[i]))
                 except:
                     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                            + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards.")
+                            + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards."), None
             if i == 3:
                 try:
                     models.validate_upc(Decimal(row[i]))
                 except:
                     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                            + str(i + 1) + ". unit_upc in this row/col is invalid/does not conform to standards.")
+                            + str(i + 1) + ". unit_upc in this row/col is invalid/does not conform to standards."), None
         if i in [5]:
             if not integer_check(row[i]):
                 return ("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a integer value "
-                                                      "but is not.")
-    return models.SKU(sku_num=int(row[0]), name=row[1], case_upc=Decimal(row[2]),
-                      unit_upc=Decimal(row[3]), unit_size=row[4],
-                      units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
-                      comment=row[7])
+                                                      "but is not."), None
+    pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
+    if not pl_success:
+        return chosen_product_line_or_error_message, None
+
+    formula_success, chosen_formula_or_error_message = choose_formula_for_sku(int(row[7]), data_dict)
+    if not formula_success:
+        return chosen_formula_or_error_message, None
+
+    sku = models.SKU(sku_num=int(row[0]), name=row[1], case_upc=Decimal(row[2]), unit_upc=Decimal(row[3]),
+                     unit_size=row[4], units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
+                     formula=chosen_formula_or_error_message, formula_scale=Decimal(row[8]), mfg_rate=Decimal(row[10]),
+                     comment=row[11])
+    mfg_line_array = []
+    for ml_shortname in row[9]:
+        ml_success, chosen_mfg_line = make_sku_mfg_line(ml_shortname, sku)
+        if not ml_success:
+            return ("ERROR: Problem with 'ML Shortnames' in SKU CSV file in row #" + str(num_records_parsed + 2)
+                    + " and col #" + str(i + 1) + ". Entry '" + ml_shortname + "' in the list of shortnames does "
+                                                                               "not exist in the database."), None
+        else:
+            mfg_line_array.append(chosen_mfg_line)
+    return sku, mfg_line_array
 
 
 def choose_product_line_for_sku(product_line_string, data_dict):
@@ -404,6 +466,34 @@ def choose_product_line_for_sku(product_line_string, data_dict):
         return True, chosen_product_line
 
 
+def choose_formula_for_sku(formula_number, data_dict):
+    chosen_formula = None
+
+    formula_list = models.Formula.objects.filter(number=formula_number)
+    if len(formula_list) > 0:
+        chosen_formula = formula_list[0]
+
+    if validFilePrefixes[3] in data_dict:
+        for formula in data_dict[validFilePrefixes[3]]:
+            if formula.number == formula_number:
+                chosen_formula = formula
+
+    if chosen_formula is not None:
+        return True, chosen_formula
+    else:
+        return False, None
+
+
+def make_sku_mfg_line(ml_shortname, sku):
+    # Do I need to check here if something exists in database?
+    mfg_line_list = models.ManufacturingLine.objects.filter(shortname=ml_shortname)
+    if len(mfg_line_list) > 0:
+        mfg_line = mfg_line_list[0]
+    else:
+        return False, None
+    return True, models.SkuMfgLine(sku=sku, mfg_line=mfg_line)
+
+
 def ingredients_parser_helper(row, num_records_parsed):
     """
     Helper function for ingredient.csv file
@@ -411,6 +501,8 @@ def ingredients_parser_helper(row, num_records_parsed):
     :param num_records_parsed: The number of records parsed so far - used for determining current row in file
     :return: str for error if there is one, otherwise return the data
     """
+    # Header:  [    "Ingr#",    "Name",     "Vendor Info",  "Size",     "Cost",     "Comment"]
+    # Header#: [        0           1               2           3           4           5
     if len(row) != len(headerDict[validFilePrefixes[1] + ".csv"]):
         return ("ERROR: Problem with number of entries in Ingredients CSV file at row #" + str(
             num_records_parsed + 2) +
@@ -425,6 +517,24 @@ def ingredients_parser_helper(row, num_records_parsed):
         if row[i] == "":
             return ("ERROR: Problem in Ingredient CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                     + str(i + 1) + ". Entry in this row/column is required but is blank.")
+        if i == 3:
+            number_string, unit_string, matches_regex, size_success = get_number_and_unit(row[i])
+            if not matches_regex:
+                return ("ERROR: Problem with 'Size' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
+                        + " and col #" + str(i + 1) + ". Entry in this row/column does not conform to required "
+                                                      "package size standard.")
+            if not size_success:
+                error_string = "ERROR: Problem with 'Size' in Ingredient CSV file in row #" \
+                               + str(num_records_parsed + 2) + " and col #" + str(i + 1) + ". "
+                if number_string is None and unit_string is None:
+                    error_addition = "number and unit"
+                elif number_string is None:
+                    error_addition = "number"
+                elif unit_string is None:
+                    error_addition = "unit"
+                error_string = error_string + "Entry in this row/column has an invalid " + error_addition + " in the " \
+                               + "number/unit pair."
+                return error_string
         if i in [4]:
             if not decimal_check(row[i]):
                 return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
@@ -435,7 +545,8 @@ def ingredients_parser_helper(row, num_records_parsed):
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a positive value "
                                                       "but is not.")
     return models.Ingredient(number=int(row[0]), name=row[1], vendor_info=row[2],
-                             package_size=row[3], cost=Decimal(row[4]), comment=row[5])
+                             package_size=Decimal(number_string), package_size_units=unit_string,
+                             cost=Decimal(row[4]), comment=row[5])
 
 
 def product_lines_parser_helper(row, num_records_parsed):
@@ -685,12 +796,16 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     item.case_upc == record.case_upc and item.unit_upc == record.unit_upc
                     and item.unit_size == record.unit_size and item.units_per_case ==
                     record.units_per_case and item.product_line.name == record.product_line.name and
+                    item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
+                    item.mfg_rate == record.mfg_rate and
                     item.comment == record.comment):
                 return "identical", None
             elif (item.name == record.name and record.sku_num == -1 and
                   item.case_upc == record.case_upc and item.unit_upc == record.unit_upc
                   and item.unit_size == record.unit_size and item.units_per_case ==
                   record.units_per_case and item.product_line.name == record.product_line.name and
+                  item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
+                  item.mfg_rate == record.mfg_rate and
                   item.comment == record.comment):
                 return "identical", None
         list2 = models.SKU.objects.filter(case_upc=record.case_upc)
@@ -712,20 +827,16 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
     if file_prefix == validFilePrefixes[1]:
         models_list = models.Ingredient.objects.filter(name=record.name)
         for item in models_list:
-            print(item.name, record.name)
-            print(item.number, record.number)
-            print(item.vendor_info, record.vendor_info)
-            print(item.package_size, record.package_size)
-            print(Decimal(item.cost), Decimal(record.cost))
-            print(item.comment, record.comment)
             if (item.name == record.name and item.number == record.number
                     and item.vendor_info == record.vendor_info and
-                    item.package_size == record.package_size and item.cost == record.cost
+                    item.package_size == record.package_size and item.cost == record.cost and
+                    item.package_size_units == record.package_size_units
                     and item.comment == record.comment):
                 return "identical", None
             elif (item.name == record.name and record.number == -1
                   and item.vendor_info == record.vendor_info and
-                  item.package_size == record.package_size and item.cost == record.cost
+                  item.package_size == record.package_size and item.cost == record.cost and
+                  item.package_size_units == record.package_size_units
                   and item.comment == record.comment):
                 return "identical", None
         list2 = models.Ingredient.objects.filter(name=record.name)
@@ -760,7 +871,7 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
 
 def sort_filename_array(filename_array):
     new_filename_array = []
-    for i in [2, 0, 1, 3]:
+    for i in [1, 2, 3, 0]:
         valid, filename = sort_filename_helper(filename_array, validFilePrefixes[i])
         if valid:
             new_filename_array.append(filename)
@@ -775,3 +886,36 @@ def sort_filename_helper(filename_array, prefix_to_search_for):
         if prefix_to_search_for in filename:
             return True, filename
     return False, ""
+
+
+def get_number_and_unit(mixed_unit):
+    """
+        Checks for identical and/or conflicting records in the database
+        :param mixed_unit: string of the mixed unit (number and unit)
+        :return: number string, unit string, boolean for matching regex, boolean for success
+        """
+    matches_regex, number_string, unit_string = mixed_unit_valid_check(mixed_unit)
+    if matches_regex:
+        if not decimal_check(number_string):
+            return None, unit_string, matches_regex, False
+        # strip unit of spaces, '.', make lowercase, and removes trailing 's'
+        unit_string = unit_string.strip().replace('.', '').replace(' ', '').lower()
+        if unit_string.endswith('s'):
+            unit_string = unit_string[:-1]
+        if unit_string in validUnits:
+            # get proper string for database entry
+            unit_string = unit_mappings[unit_string]
+            return number_string, unit_string, matches_regex, True
+        else:
+            return number_string, None, matches_regex, False
+    else:
+        return None, None, matches_regex, False
+
+
+def mixed_unit_valid_check(mixed_unit):
+    pattern = re.compile("^(\d*\.?\d+)\s*(\D.*|)$")
+    match = pattern.fullmatch(mixed_unit)
+    if match is not None:
+        return True, match.group(1), match.group(2)
+    else:
+        return False, None, None
