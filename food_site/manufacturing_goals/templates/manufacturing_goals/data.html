@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 	<h1>Filter SKUs for Mapping:</h1>
+	<h2>{{ errormsg }}</h2>
 	{% include "data/filters.html" %}
 	<br>
 	<div class="table" style="overflow-x:auto;">
@@ -19,19 +20,8 @@
 	</form>
 	<br>
 	{% if selected_table.rows %}
-		<form class="form-inline" action="{% url 'edit_mapping' %}" method="post">
-			{% csrf_token %}
-			<select name="mfg-line-op">
-				<option value="add">Add</option>
-				<option value="rem">Remove</option>
-			</select>
-			<select name="mfg-line-select">
-				<option value="none">-----</option>
-				{% for line in mfg_lines %}
-					<option value="{{ line.pk }}">{{ line }}</option>
-				{% endfor %}
-			</select>
-			<button type="submit" name="gen_report">Map SKUs</button>
+		<form class="form-inline" method="get">
+			<button type="submit" name="done">Done</button>
 		</form>
 		<div class="table" style="overflow-x:auto;">
 			{% render_table selected_table %}
