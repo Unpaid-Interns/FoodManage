@@ -12,7 +12,8 @@ def manufacturing(request):
 		form = GoalsForm(request.POST)
 		if form.is_valid():
 			name = form.cleaned_data['name']
-			goal_obj = ManufacturingGoal(name=name, user=request.user)
+			deadline = form.cleaned_data['deadline']
+			goal_obj = ManufacturingGoal(name=name, user=request.user, deadline=deadline)
 			goal_obj.save()
 			request.session['goal_id'] = goal_obj.id
 			return redirect('manufqty')
