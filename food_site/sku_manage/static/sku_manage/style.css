@@ -26,22 +26,6 @@ body {
   font-weight: bold;
 }
 
-.special-button {
-  width: 200px;
-  padding: 4px 8px;
-  margin: 8px 0;
-  box-sizing: border-box;
-  border-radius: 4px;
-  background-color: #93baf9;
-  color: black;
-  font-weight: bold;
-}
-
-.special-button a:hover, a:active {
-  background-color: #74a4f2;
-}
-
-
 /* Main View Menu Styling */
 .menu-buttons {
   text-align: center;
