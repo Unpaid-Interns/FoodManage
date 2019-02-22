@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+<link rel="stylesheet" type="text/css" href="{% static "sku_manage/style.css" %}" />
+{% endblock %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}{% endblock %}
+
+{% block nav-global %}
+	{% include "sku_manage/header.html" %}
+{% endblock %}

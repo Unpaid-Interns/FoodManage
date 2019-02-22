@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'manufacturing_goals.apps.ManufacturingGoalsConfig',
     'importer.apps.ImportConfig',
     'dep_report.apps.DepReportConfig',
+    'mfg_map.apps.MfgMapConfig',
     'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -69,7 +70,7 @@ ROOT_URLCONF = 'food_site.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

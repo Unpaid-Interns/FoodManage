@@ -10,7 +10,6 @@ from .tables import IngredientTable, SelectedTable
 def ingr_dep_menu(request):
 	if 'ingredients' not in request.session or request.session.get('ingredients') == None:
 		request.session['ingredients'] = list()
-	print(request.session.get('ingredients'))
 	queryset = Ingredient.objects.all()
 	context = {
 		'paginated': True,
