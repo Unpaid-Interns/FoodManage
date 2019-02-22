@@ -1,8 +1,10 @@
 from django import forms
 from .models import ManufacturingGoal
+import datetime
 
 class GoalsForm(forms.Form):
 	name = forms.CharField(label='Goal Name', max_length=500, required=True)
+	deadline = forms.DateField(initial=datetime.date.today)
 
 class GoalsChoiceForm(forms.Form):
 	goal = forms.ModelChoiceField(queryset=ManufacturingGoal.objects.all())

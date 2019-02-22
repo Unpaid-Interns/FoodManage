@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<head>
-		{% load static %}
-                <meta charset="utf-8">
-                <title>HypoMeals</title>
-                <link rel="stylesheet" type="text/css" href="{% static "sku_manage/style.css" %}" />
-                <link rel="stylesheet" type="text/css" href="{% static "manufacturing_goals/data.css" %}" />
-</head>
-
-<body>
-	{% include "header.html" %}
+{% extends "sku_manage/base.html" %}
+{% block content %}
 	<h3>Manufacturing Goals</h3>
 	<p>Create a new manufacturing goal</p>
 	<form id="goal-form" method="POST" action="/manufacturing/">
 		{% csrf_token %}
 		<p><label>Goal Name: </label><br><input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Input a name for this goal"></p>
-		<button type="submit" id="submit" name="submit">Save Goal</button>
+		<p><label>Deadline: </label><br><input value="{{ deadline }}" type="text" name="deadline" required="required" placeholder="mm/dd/yyyy"></p>
+		<button type="submit" id="submit" name="submit">Create New Goal</button>
 	</form>
 	<p><strong>OR</strong></p>
-	<a class="bbut" href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a><br></br>
-  <a class="bbut" href='/manufacturing/manufcsv/'>Export a manufacturing goal</a><br></br>
-</body>
+	<p>View a Manufacturing Goal and its ingredient quantity calculation.</p>
+	<form id="goal-choice-form" method="post">
+		{% csrf_token %}
+		{{ form2 }}
+		<button type="submit" id="submit" name="submit">Select Goal</button>
+	</form>
+{% endblock content %}

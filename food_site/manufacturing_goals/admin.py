@@ -7,7 +7,7 @@ class ManufacturingQtyInline(admin.TabularInline):
 	extra = 0
 
 class ManufacturingGoalAdmin(admin.ModelAdmin):
-	fields = ['name','user']
+	fields = ['name','user','deadline']
 	inlines = [ManufacturingQtyInline]
 
 admin_site.register(ManufacturingGoal, ManufacturingGoalAdmin)
