@@ -1,15 +1,13 @@
 import csv
 from sku_manage import models
-import re
 from decimal import Decimal
-from django.core.exceptions import ValidationError
 
 headerDict = {
-    "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "PL Name",
-                 "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"],
+    "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "Product Line Name",
+                 "Comment"],
     "ingredients.csv": ["Ingr#", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
-    "formulas.csv": ["Formula#", "Name", "Ingr#", "Quantity", "Comment"]
+    "formulas.csv": ["SKU#", "Ingr#", "Quantity"]
 }
 
 '''
@@ -18,37 +16,6 @@ headerDict = {
     with any additions being after those 4 (names of those 4 can be changed freely!
 '''
 validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas"]
-
-validUnits = ['ounce', 'oz', 'pound', 'lb', 'ton', 'gram', 'g',
-              'kilogram', 'kg', 'fluidounce', 'floz.', 'pint', 'pt',
-              'quart', 'qt', 'gallon', 'gal', 'milliliter', 'ml',
-              'liter', 'l', 'ct', 'count']
-
-unit_mappings = {
-    "ounce": "Ounce",
-    "oz": "Ounce",
-    "pound": "Pound",
-    "lb": "Pound",
-    "ton": "Ton",
-    "gram": "Gram",
-    "g": "Gram",
-    "kilogram": "Kilogram",
-    "kg": "Kilogram",
-    "fluidounce": "Fluid Ounce",
-    "floz": "Fluid Ounce",
-    "pint": "Pint",
-    "pt": "Pint",
-    "quart": "Quart",
-    "qt": "Quart",
-    "gallon": "Gallon",
-    "gal": "Gallon",
-    "milliliter": "Milliliter",
-    "ml": "Milliliter",
-    "liter": "Liter",
-    "l": "Liter",
-    "ct": "Count",
-    "count": "Count"
-}
 
 path_prefix = "importer/"
 
@@ -77,7 +44,7 @@ class CSVImport:
             # if prefix valid, proceed with import
             if valid_prefix:
                 # read the file and check for conflicts
-                data, sku_mfg_line_data, formulas_data, conflict_data, num_to_import, num_ignored, num_conflict, file_read_successfully, error_message \
+                data, conflict_data, num_to_import, num_ignored, num_conflict, file_read_successfully, error_message \
                     = read_file(filename, file_prefix, self.data_dict)
                 # if successful, write all data to class returned from function
                 if file_read_successfully:
@@ -85,10 +52,6 @@ class CSVImport:
                     self.total_num_records_ignored += num_ignored
                     self.total_num_records_conflict += num_conflict
                     self.data_dict[file_prefix] = data
-                    if len(formulas_data) > 0:
-                        self.data_dict["formulas_extra"] = formulas_data
-                    if len(sku_mfg_line_data) > 0:
-                        self.data_dict["ML"] = sku_mfg_line_data
                     # if there are conflicts, make sure to add them to the dictionary
                     if len(conflict_data) > 0:
                         self.conflict_dict[file_prefix] = conflict_data
@@ -131,27 +94,15 @@ class CSVImport:
 
         fill_in_sku_nums(self.data_dict)
         fill_in_ingr_nums(self.data_dict)
-        fill_in_formula_nums(self.data_dict)
 
-        try:
-            clean_data(self.data_dict)
-        except ValidationError as error_message:
-            print(error_message)
-
-        if validFilePrefixes[1] in self.data_dict:
-            models.Ingredient.objects.bulk_create(self.data_dict[validFilePrefixes[1]])
         if validFilePrefixes[2] in self.data_dict:
             models.ProductLine.objects.bulk_create(self.data_dict[validFilePrefixes[2]])
-        if validFilePrefixes[3] in self.data_dict:
-            if "formulas_extra" in self.data_dict:
-                models.Formula.objects.bulk_create(self.data_dict["formulas_extra"])
-                fix_ingredient_qty(self.data_dict)
-            models.IngredientQty.objects.bulk_create(self.data_dict[validFilePrefixes[3]])
         if validFilePrefixes[0] in self.data_dict:
             models.SKU.objects.bulk_create(self.data_dict[validFilePrefixes[0]])
-            if "ML" in self.data_dict:
-                fix_sku_mfg_lines(self.data_dict)
-                models.SkuMfgLine.objects.bulk_create(self.data_dict["ML"])
+        if validFilePrefixes[1] in self.data_dict:
+            models.Ingredient.objects.bulk_create(self.data_dict[validFilePrefixes[1]])
+        if validFilePrefixes[3] in self.data_dict:
+            models.IngredientQty.objects.bulk_create(self.data_dict[validFilePrefixes[3]])
 
         return "", True
 
@@ -186,49 +137,36 @@ class CSVImport:
         return serializable_dict
 
     def get_conflict_dict_from_serializable(self, serializable_dict):
-        print("START OF GET SERIALZABLE")
         original_dict = dict()
         for file_prefix in serializable_dict:
-            print(file_prefix + " in GET SERIALZABLE")
             new_conflict_records_list = []
             conflict_records_list = serializable_dict[file_prefix]
             for conflict_tuple in conflict_records_list:
                 data_string_array = conflict_tuple[0]
-                print(len(data_string_array))
                 message = conflict_tuple[1]
                 data = None
-                if len(data_string_array) + 1 == len(headerDict[validFilePrefixes[0] + ".csv"]):
-                    print("HELLO FROM GET SERIAZABLE")
-                    _, chosen_product_line = choose_product_line_for_sku(data_string_array[6], self.data_dict)
-                    _, chosen_formula = choose_formula_for_sku(int(data_string_array[7]), self.data_dict)
+                if len(data_string_array) == len(headerDict[validFilePrefixes[0] + ".csv"]):
+                    chosen_product_line = choose_product_line_for_sku(data_string_array[6], self.data_dict)
                     data = models.SKU(sku_num=int(data_string_array[0]), name=data_string_array[1],
-                                      case_upc=data_string_array[2], unit_upc=data_string_array[3],
-                                      unit_size=data_string_array[4], units_per_case=int(data_string_array[5]),
-                                      product_line=chosen_product_line,
-                                      formula=chosen_formula, formula_scale=float(data_string_array[8]),
-                                      mfg_rate=float(data_string_array[9]),
-                                      comment=data_string_array[10])
-                elif len(data_string_array)-1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
+                                      case_upc=Decimal(data_string_array[2]),
+                                      unit_upc=Decimal(data_string_array[3]), unit_size=data_string_array[4],
+                                      units_per_case=int(data_string_array[5]),
+                                      product_line=chosen_product_line, comment=data_string_array[7])
+                elif len(data_string_array) == len(headerDict[validFilePrefixes[1] + ".csv"]):
                     data = models.Ingredient(number=int(data_string_array[0]), name=data_string_array[1],
                                              vendor_info=data_string_array[2],
-                                             package_size=float(data_string_array[3]),
-                                             package_size_units=data_string_array[4],
-                                             cost=Decimal(data_string_array[5]),
-                                             comment=data_string_array[6])
+                                             package_size=data_string_array[3], cost=Decimal(data_string_array[4]),
+                                             comment=data_string_array[5])
                 elif len(data_string_array) == len(headerDict[validFilePrefixes[2] + ".csv"]):
                     data = models.ProductLine(name=data_string_array[0])
                 elif len(data_string_array) == len(headerDict[validFilePrefixes[3] + ".csv"]):
-                    _, _, chosen_ingredient = choose_ingredient_for_formula(int(data_string_array[1]), self.data_dict)
-                    _, chosen_ingredient = get_formula_if_exists_for_formula(int(data_string_array[0]), self.data_dict,
-                                                                             None, False)
-                    data = models.IngredientQty(formula=chosen_ingredient, ingredient=chosen_ingredient,
-                                                quantity=float(data_string_array[2]))
+                    _, _, chosen_sku, chosen_ingredient = choose_sku_and_ingredient_for_formula(
+                        int(data_string_array[0]), int(data_string_array[2]), self.data_dict)
+                    data = models.IngredientQty(chosen_sku, chosen_ingredient, Decimal(data_string_array[2]))
                 if data is None:
-                    print("RETURNING EARLY 1")
                     return original_dict
                 conflict_database_data = None
-                if len(data_string_array) + 1 == len(headerDict[validFilePrefixes[0] + ".csv"]):
-                    print("HELLO AGAIN FROM GET SERIALIZABLE")
+                if len(data_string_array) == len(headerDict[validFilePrefixes[0] + ".csv"]):
                     # TODO: Figure out a way that this won't create a conflict
                     case_upc_conflicts = models.SKU.objects.filter(case_upc=data.case_upc)
                     sku_num_conflicts = models.SKU.objects.filter(sku_num=data.sku_num)
@@ -236,7 +174,7 @@ class CSVImport:
                         conflict_database_data = case_upc_conflicts[0]
                     elif len(sku_num_conflicts) > 0:
                         conflict_database_data = sku_num_conflicts[0]
-                elif len(data_string_array)-1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
+                elif len(data_string_array) == len(headerDict[validFilePrefixes[1] + ".csv"]):
                     # TODO: Figure out a way that this won't create a conflict
                     ingr_num_conflicts = models.Ingredient.objects.filter(number=data.number)
                     ingr_name_conflicts = models.Ingredient.objects.filter(name=data.name)
@@ -245,10 +183,8 @@ class CSVImport:
                     elif len(ingr_num_conflicts) > 0:
                         conflict_database_data = ingr_num_conflicts[0]
                 if conflict_database_data is None:
-                    print("RETURNING EARLY 2")
                     return original_dict
                 new_conflict_records_list.append([data, conflict_database_data, message])
-            print(new_conflict_records_list)
             original_dict[file_prefix] = new_conflict_records_list
         return original_dict
 
@@ -265,8 +201,6 @@ def read_file(filename, file_prefix, data_dict):
     # Initialize variables
     header_correct = headerDict[file_prefix + ".csv"]
     parsed_data = []
-    sku_mfg_lines_data = []
-    formulas_data = []
     conflicting_records_tpl = []
     num_records_parsed = 0
     num_record_ignored = 0
@@ -280,7 +214,6 @@ def read_file(filename, file_prefix, data_dict):
             header_check_complete = False
             header_issue = ""
             has_rows = False
-            used_formulas_neg_numbers_list = [-1]
             for row in data_reader:
                 has_rows = True
                 if not header_check_complete:
@@ -288,27 +221,24 @@ def read_file(filename, file_prefix, data_dict):
                     header_check_complete = True
                     continue
                 if not header_valid:
-                    return None, None, None, None, None, None, None, False, \
+                    return None, None, None, None, None, False, \
                            "HEADER INVALID: Terminating import... \n" + header_issue
 
                 # Call appropriate helper method
                 temp_data = "ERROR: Parser methods failed. You should not see this error, please alert an admin."
                 if file_prefix == validFilePrefixes[0]:
-                    temp_data, sku_mfg_lines_array = skus_parser_helper(row, num_records_parsed, data_dict)
+                    temp_data = skus_parser_helper(row, num_records_parsed, data_dict)
                 elif file_prefix == validFilePrefixes[1]:
                     temp_data = ingredients_parser_helper(row, num_records_parsed)
                 elif file_prefix == validFilePrefixes[2]:
                     temp_data = product_lines_parser_helper(row, num_records_parsed)
                 elif file_prefix == validFilePrefixes[3]:
-                    temp_data, formula, used_formulas_neg_numbers_list = \
-                        formulas_parser_helper(row, num_records_parsed, data_dict, formulas_data,
-                                               used_formulas_neg_numbers_list)
+                    temp_data = formulas_parser_helper(row, num_records_parsed, data_dict)
                 if isinstance(temp_data, str):
-                    return None, None, None, None, None, None, None, False, temp_data
+                    return None, None, None, None, None, False, temp_data
 
                 # Check for matching database records
-                matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix,
-                                                            num_records_parsed)
+                matching_check = check_for_match_name_or_id(temp_data, parsed_data, file_prefix, num_records_parsed)
                 if matching_check == "":
                     database_record_check, conflicting_database_model = check_for_identical_record(temp_data,
                                                                                                    file_prefix,
@@ -316,11 +246,6 @@ def read_file(filename, file_prefix, data_dict):
                     if database_record_check == "":
                         # parsed_data.append(temp_data, file_prefix)
                         parsed_data.append(temp_data)
-                        if file_prefix == validFilePrefixes[0]:
-                            sku_mfg_lines_data = sku_mfg_lines_data + sku_mfg_lines_array
-                        if file_prefix == validFilePrefixes[3]:
-                            if formula is not None:
-                                formulas_data.append(formula)
                         num_records_parsed += 1
                     elif database_record_check == "identical":
                         num_records_parsed += 1
@@ -330,17 +255,16 @@ def read_file(filename, file_prefix, data_dict):
                         num_records_parsed += 1
                         num_record_conflicted += 1
                     else:
-                        return None, None, None, None, None, None, None, False, database_record_check
+                        return None, None, None, None, None, False, database_record_check
                 else:
-                    return None, None, None, None, None, None, None, False, matching_check
+                    return None, None, None, None, None, False, matching_check
             if not has_rows:
-                return None, None, None, None, None, None, None, False, "ERROR: File is empty. Aborting import."
+                return None, None, None, None, None, False, "ERROR: File is empty. Aborting import."
     except FileNotFoundError:
-        return None, None, None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
+        return None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
     # except:
-    #     return None, None, None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
-    return parsed_data, sku_mfg_lines_data, formulas_data, conflicting_records_tpl, \
-           num_records_parsed - num_record_ignored - num_record_conflicted, \
+    #     return None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
+    return parsed_data, conflicting_records_tpl, num_records_parsed - num_record_ignored - num_record_conflicted, \
            num_record_ignored, num_record_conflicted, True, ""
 
 
@@ -394,7 +318,7 @@ def header_check(header, header_correct, file_prefix):
     col = 0
     for item in header:
         # ensure that Excel added character \ufeff is removed
-        if header_correct[col].lower() != item.replace(u'\ufeff', '').lower():
+        if header_correct[col] != item.replace(u'\ufeff', ''):
             headerError = "ERROR: csv header = '" + item + "' but should be '" + header_correct[col] + "'"
             return False, headerError
         col += 1
@@ -408,75 +332,50 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
     :param num_records_parsed: The number of records parsed so far - used for determining current row in file
     :param data_dict: Dictionary of data parsed so far, indexed by file prefix
     :return: str for error if there is one, otherwise return the data
-    :return: sku/manufacturing line array
     """
-    # Header: ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "PL Name",
-    #           0       1       2           3           4               5               6
-    #                  "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"]
-    #                   7              8                9               10      11
+
+    pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
+    if not pl_success:
+        return chosen_product_line_or_error_message
 
     if len(row) != len(headerDict[validFilePrefixes[0] + ".csv"]):
         return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_parsed + 2) +
-                ", needs " + str(len(headerDict[validFilePrefixes[0] + ".csv"])) +
-                " entries but has " + str(len(row)) + " entries."), None
+                ", needs 8 entries but has " + str(len(row)) + " entries.")
     if row[0] == "":
         row[0] = "-1"
     else:
         if not integer_check(row[0]):
-            return ("ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
-                    + "and col #1."), None
-    for i in range(1, 9):
+            return "ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
+                   + "and col #1."
+    for i in range(1, 7):
         if row[i] == "":
-            if i == 8:
-                row[i] = "1"
-            else:
+            return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                    + str(i + 1) + ". Entry in this row/column is required but is blank.")
+        if i in [2, 3]:
+            if not decimal_check(row[i]):
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is required but is blank."), None
-        if i in [2, 3, 8, 10]:
-            if not float_check(row[i]):
-                return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not."), None
+                        + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not.")
             if i == 2:
-                pass
-                # try:
-                #     models.validate_upc(float(row[i]))
-                # except:
-                #     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                #             + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards."), None
+                try:
+                    models.validate_upc(Decimal(row[i]))
+                except:
+                    return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                            + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards.")
             if i == 3:
-                pass
-                # try:
-                #     models.validate_upc(float(row[i]))
-                # except:
-                #     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                #             + str(i + 1) + ". unit_upc in this row/col is invalid/does not conform to standards."), None
+                try:
+                    models.validate_upc(Decimal(row[i]))
+                except:
+                    return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                            + str(i + 1) + ". unit_upc in this row/col is invalid/does not conform to standards.")
         if i in [5]:
             if not integer_check(row[i]):
                 return ("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a integer value "
-                                                      "but is not."), None
-    pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
-    if not pl_success:
-        return chosen_product_line_or_error_message, None
-
-    formula_success, chosen_formula_or_error_message = choose_formula_for_sku(int(row[7]), data_dict)
-    if not formula_success:
-        return chosen_formula_or_error_message, None
-
-    sku = models.SKU(sku_num=int(row[0]), name=row[1], case_upc=row[2], unit_upc=row[3],
-                     unit_size=row[4], units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
-                     formula=chosen_formula_or_error_message, formula_scale=float(row[8]), mfg_rate=float(row[10]),
-                     comment=row[11])
-    mfg_line_array = []
-    for ml_shortname in row[9].split(','):
-        ml_success, chosen_mfg_line = make_sku_mfg_line(ml_shortname, sku)
-        if not ml_success:
-            return ("ERROR: Problem with 'ML Shortnames' in SKU CSV file in row #" + str(num_records_parsed + 2)
-                    + " and col #" + str(i + 1) + ". Entry '" + ml_shortname + "' in the list of shortnames does "
-                                                                               "not exist in the database."), None
-        else:
-            mfg_line_array.append(chosen_mfg_line)
-    return sku, mfg_line_array
+                                                      "but is not.")
+    return models.SKU(sku_num=int(row[0]), name=row[1], case_upc=Decimal(row[2]),
+                      unit_upc=Decimal(row[3]), unit_size=row[4],
+                      units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
+                      comment=row[7])
 
 
 def choose_product_line_for_sku(product_line_string, data_dict):
@@ -505,45 +404,6 @@ def choose_product_line_for_sku(product_line_string, data_dict):
         return True, chosen_product_line
 
 
-def choose_formula_for_sku(formula_number, data_dict):
-    chosen_formula = None
-
-    if formula_number == -1:
-        return False, None
-
-    formula_list = models.Formula.objects.filter(number=formula_number)
-    if len(formula_list) > 0:
-        chosen_formula = formula_list[0]
-
-    if "formulas_extra" in data_dict:
-        for formula in data_dict["formulas_extra"]:
-            if formula.number == formula_number:
-                chosen_formula = formula
-
-    if chosen_formula is not None:
-        return True, chosen_formula
-    else:
-        return False, None
-
-
-def make_sku_mfg_line(ml_shortname, sku):
-    # Do I need to check here if something exists in database?
-    mfg_line_list = models.ManufacturingLine.objects.filter(shortname=ml_shortname)
-    if len(mfg_line_list) > 0:
-        mfg_line = mfg_line_list[0]
-    else:
-        return False, None
-    return True, models.SkuMfgLine(sku=sku, mfg_line=mfg_line)
-
-
-def fix_sku_mfg_lines(data_dict):
-    if "ML" in data_dict:
-        for sku_mfg_line in data_dict["ML"]:
-            skus_list = models.SKU.objects.filter(sku_num=sku_mfg_line.sku.sku_num)
-            if len(skus_list) > 0:
-                sku_mfg_line.sku = skus_list[0]
-
-
 def ingredients_parser_helper(row, num_records_parsed):
     """
     Helper function for ingredient.csv file
@@ -551,13 +411,10 @@ def ingredients_parser_helper(row, num_records_parsed):
     :param num_records_parsed: The number of records parsed so far - used for determining current row in file
     :return: str for error if there is one, otherwise return the data
     """
-    # Header:  [    "Ingr#",    "Name",     "Vendor Info",  "Size",     "Cost",     "Comment"]
-    # Header#: [        0           1               2           3           4           5
     if len(row) != len(headerDict[validFilePrefixes[1] + ".csv"]):
         return ("ERROR: Problem with number of entries in Ingredients CSV file at row #" + str(
             num_records_parsed + 2) +
-                ", needs " + str(len(headerDict[validFilePrefixes[1] + ".csv"])) + " entries but has " + str(
-                    len(row)) + " entries.")
+                ", needs 6 entries but has " + str(len(row)) + " entries.")
     if row[0] == "":
         row[0] = "-1"
     else:
@@ -568,36 +425,17 @@ def ingredients_parser_helper(row, num_records_parsed):
         if row[i] == "":
             return ("ERROR: Problem in Ingredient CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                     + str(i + 1) + ". Entry in this row/column is required but is blank.")
-        if i == 3:
-            number_string, unit_string, matches_regex, size_success = get_number_and_unit(row[i])
-            if not matches_regex:
-                return ("ERROR: Problem with 'Size' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
-                        + " and col #" + str(i + 1) + ". Entry in this row/column does not conform to required "
-                                                      "package size standard.")
-            if not size_success:
-                error_string = "ERROR: Problem with 'Size' in Ingredient CSV file in row #" \
-                               + str(num_records_parsed + 2) + " and col #" + str(i + 1) + ". "
-                if number_string is None and unit_string is None:
-                    error_addition = "number and unit"
-                elif number_string is None:
-                    error_addition = "number"
-                elif unit_string is None:
-                    error_addition = "unit"
-                error_string = error_string + "Entry in this row/column has an invalid " + error_addition + " in the " \
-                               + "number/unit pair."
-                return error_string
         if i in [4]:
-            if not float_check(row[i]):
+            if not decimal_check(row[i]):
                 return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a decimal value "
                                                       "but is not.")
-            if float(row[i]) < 0:
+            if Decimal(row[i]) < 0:
                 return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
-                        + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a non-zero "
-                                                      "value but is not.")
+                        + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a positive value "
+                                                      "but is not.")
     return models.Ingredient(number=int(row[0]), name=row[1], vendor_info=row[2],
-                             package_size=float(number_string), package_size_units=unit_string,
-                             cost=Decimal(row[4]), comment=row[5])
+                             package_size=row[3], cost=Decimal(row[4]), comment=row[5])
 
 
 def product_lines_parser_helper(row, num_records_parsed):
@@ -609,95 +447,67 @@ def product_lines_parser_helper(row, num_records_parsed):
     """
     if len(row) != len(headerDict[validFilePrefixes[2] + ".csv"]):
         return ("ERROR: Problem with number of entries in Product Lines CSV file at row #" + str(
-            num_records_parsed + 2) + ", needs " + str(len(headerDict[validFilePrefixes[2] + ".csv"]))
-                + " entries but has " + str(len(row)) + " entries.")
+            num_records_parsed + 2) + ", needs 1 entries but has " + str(len(row)) + " entries.")
     return models.ProductLine(name=row[0])
 
 
-def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_data, used_neg_numbers_list):
+def formulas_parser_helper(row, num_records_parsed, data_dict):
     """
     Helper function for formulas.csv file
     :param row: The row being parsed
     :param num_records_parsed: The number of records parsed so far - used for determining current row in file
-    :param data_dict: dictionary of data parsed so far
-    :return: str for error if there is one, None; otherwise return IngredientQty and Formula (none if already imported)
+    :return: str for error if there is one, otherwise return the data
     """
-    # Header: ["Formula#", "Name", "Ingr#", "Quantity", "Comment"]
-    #            0           1       2           3           4
 
     if len(row) != len(headerDict[validFilePrefixes[3] + ".csv"]):
         return ("ERROR: Problem with number of entries in Formulas CSV file at row #"
-                + str(num_records_parsed + 2) + ", needs " + str(len(headerDict[validFilePrefixes[3] + ".csv"]))
-                + " entries but has " + str(len(row)) + " entries."), None, None
+                + str(num_records_parsed + 2) + ", needs 3 entries but has " + str(len(row)) + " entries.")
     for i in [0, 1, 2]:
-        if i == 0:
-            if row[i] == "":
-                row[0] = str(used_neg_numbers_list[len(used_neg_numbers_list) - 1] - 1)
-                used_neg_numbers_list.append(int(row[0]))
-        if i in [1]:
-            if row[i] == "":
-                return ("ERROR: Problem in Formulas CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is required but is blank."), None, None
-        if i in [0, 2]:
+        if i in [0, 1]:
             if not integer_check(row[i]):
                 return "ERROR: Problem in Formulas CSV file in row #" + str(num_records_parsed + 2) + " and col #" \
-                       + str(i + 1) + ". Entry in this column must be an integer value but is not.", None, None
-        if i in [3]:
-            if not float_check(row[i]):
+                       + str(i + 1) + ". Entry in this column must be an integer value but is not."
+        if i in [2]:
+            if not decimal_check(row[i]):
                 return "ERROR: Problem in Formulas CSV file with 'Quantity' in row #" + str(num_records_parsed + 2) \
                        + " and col #" \
-                       + str(i + 1) + ". Entry in this column must be an decimal value but is not.", None, None
+                       + str(i + 1) + ". Entry in this column must be an decimal value but is not."
 
-    ing_chosen_successfully, error_message, chosen_ing = \
-        choose_ingredient_for_formula(int(row[2]), data_dict)
-    if not ing_chosen_successfully:
-        return error_message, None, None
+    chosen_successfully, error_message, chosen_sku, chosen_ing = \
+        choose_sku_and_ingredient_for_formula(int(row[0]), int(row[1]), data_dict)
 
-    formula_chosen_successfully, chosen_formula = get_formula_if_exists_for_formula(int(row[0]), data_dict,
-                                                                                    formula_local_data, True)
-    if not formula_chosen_successfully:
-        chosen_formula = models.Formula(name=row[1], number=int(row[0]), comment=row[4])
-        return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
-                                    quantity=float(row[3])), chosen_formula, used_neg_numbers_list
+    if not chosen_successfully:
+        return error_message
     else:
-        return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
-                                    quantity=float(row[3])), None, used_neg_numbers_list
+        return models.IngredientQty(sku=chosen_sku, ingredient=chosen_ing,
+                                    quantity=Decimal(row[2]))
 
 
-def get_formula_if_exists_for_formula(formula_number, data_dict, formula_local_data, check_local):
-    chosen_formula = None
-    formula_number_in_database = False
-    formula_number_in_local = False
-
-    # check if ingredient_number for i is in database
-    temp_formula_list = models.Formula.objects.filter(number=formula_number)
-    if len(temp_formula_list) > 0:
-        formula_number_in_database = True
-        chosen_formula = temp_formula_list[0]
-
-    if check_local:
-        # check if ingredient_number for i is in to-be-imported stuff
-        if "formulas_extra" in data_dict:
-            for formula in data_dict["formulas_extra"]:
-                if formula.number == formula_number:
-                    formula_number_in_local = True
-                    chosen_formula = formula
-        if len(formula_local_data) > 0:
-            for formula in formula_local_data:
-                if formula.number == formula_number:
-                    formula_number_in_local = True
-                    chosen_formula = formula
-
-    formula_number_valid = formula_number_in_database or formula_number_in_local
-
-    if not formula_number_valid:
-        return False, None
-
-    return True, chosen_formula
-
-
-def choose_ingredient_for_formula(ing_number, data_dict):
+def choose_sku_and_ingredient_for_formula(sku_num, ing_number, data_dict):
+    chosen_sku = None
     chosen_ingredient = None
+
+    # check if sku_number for i is in database
+    sku_number_in_database = False
+    temp_sku_list = models.SKU.objects.filter(sku_num=sku_num)
+    if len(temp_sku_list) > 0:
+        sku_number_in_database = True
+        chosen_sku = temp_sku_list[0]
+
+    # check if sku_number for i is in to-be-imported stuff
+    sku_number_in_local = False
+    if validFilePrefixes[0] in data_dict:
+        for sku in data_dict[validFilePrefixes[0]]:
+            if sku.sku_num == sku_num:
+                sku_number_in_local = True
+                chosen_sku = sku
+
+    sku_number_valid = sku_number_in_local or sku_number_in_database
+
+    if not sku_number_valid:
+        return False, "Import failed for formulas CSV file. \nERROR: SKU Number '" + str(sku_num) \
+               + "' in formulas CSV file is invalid. It does not " \
+                 "exist in either the database or the SKU CSV being imported.", None, None
 
     # check if ingredient_number for i is in database
     ingredient_number_in_database = False
@@ -719,19 +529,19 @@ def choose_ingredient_for_formula(ing_number, data_dict):
     if not ingredient_number_valid:
         return False, "Import failed for formulas CSV file. \nERROR: Ingredient Number '" + str(ing_number) \
                + "' in formulas CSV file is invalid. It does not " \
-                 "exist in either the database or the Ingredient CSV being imported.", None
+                 "exist in either the database or the Ingredient CSV being imported.", None, None
 
-    return True, "", chosen_ingredient
+    return True, "", chosen_sku, chosen_ingredient
 
 
-def float_check(number_string):
+def decimal_check(number_string):
     """
-    Checks if a string can be converted to a float
-    :param number_string: str input to be checked as a float
-    :return: True/False to indicate if it is/is not a float
+    Checks if a string can be converted to a decimal
+    :param number_string: str input to be checked as a decimal
+    :return: True/False to indicate if it is/is not a decimal
     """
     try:
-        _ = float(number_string)
+        _ = Decimal(number_string)
         return True
     except:
         return False
@@ -762,11 +572,12 @@ def fill_in_sku_nums(data_dict):
     skus_that_need_numbers = []
     skus_num_list = []
     if validFilePrefixes[0] in data_dict:
-        for i in data_dict[validFilePrefixes[0]]:
-            if i.sku_num != -1:
-                skus_num_list.append(i.sku_num)
-            else:
-                skus_that_need_numbers.append(i)
+        if validFilePrefixes[0] in data_dict:
+            for i in data_dict[validFilePrefixes[0]]:
+                if i.sku_num != -1:
+                    skus_num_list.append(i.sku_num)
+                else:
+                    skus_that_need_numbers.append(i)
         for s in models.SKU.objects.all():
             skus_num_list.append(s.sku_num)
         skus_num_list.sort()
@@ -780,10 +591,7 @@ def fill_in_sku_nums(data_dict):
                     skus_num_list.append(chosen_num)
                     skus_num_list.sort()
             if chosen_num == -1:
-                if len(skus_num_list) > 0:
-                    chosen_num = skus_num_list[len(skus_num_list) - 1] + 1
-                else:
-                    chosen_num = 1
+                chosen_num = skus_num_list[len(skus_num_list) - 1] + 1
                 skus_num_list.append(chosen_num)
                 skus_num_list.sort()
             s.sku_num = chosen_num
@@ -792,12 +600,13 @@ def fill_in_sku_nums(data_dict):
 def fill_in_ingr_nums(data_dict):
     ingredients_that_need_numbers = []
     ingr_nums_list = []
-    if validFilePrefixes[1] in data_dict:
-        for i in data_dict[validFilePrefixes[1]]:
-            if i.number != -1:
-                ingr_nums_list.append(i.number)
-            else:
-                ingredients_that_need_numbers.append(i)
+    if validFilePrefixes[0] in data_dict:
+        if validFilePrefixes[1] in data_dict:
+            for i in data_dict[validFilePrefixes[1]]:
+                if i.number != -1:
+                    ingr_nums_list.append(i.number)
+                else:
+                    ingredients_that_need_numbers.append(i)
         for i in models.Ingredient.objects.all():
             ingr_nums_list.append(i.number)
         ingr_nums_list.sort()
@@ -811,49 +620,10 @@ def fill_in_ingr_nums(data_dict):
                     ingr_nums_list.append(chosen_num)
                     ingr_nums_list.sort()
             if chosen_num == -1:
-                if len(ingr_nums_list) > 0:
-                    chosen_num = ingr_nums_list[len(ingr_nums_list) - 1] + 1
-                else:
-                    chosen_num = 1
+                chosen_num = ingr_nums_list[len(ingr_nums_list) - 1] + 1
                 ingr_nums_list.append(chosen_num)
                 ingr_nums_list.sort()
             i.number = chosen_num
-
-
-def fill_in_formula_nums(data_dict):
-    formulas_that_need_numbers = []
-    formulas_nums_list = []
-    if "formulas_extra" in data_dict:
-        for f in data_dict["formulas_extra"]:
-            if f.number >= 0:
-                formulas_nums_list.append(f.number)
-            else:
-                formulas_that_need_numbers.append(f)
-        for f in models.Formula.objects.all():
-            formulas_nums_list.append(f.number)
-        formulas_nums_list.sort()
-        for f in formulas_that_need_numbers:
-            chosen_num = -1
-            for index in range(0, len(formulas_nums_list) - 1):
-                if chosen_num != -1:
-                    continue
-                if formulas_nums_list[index] + 1 != formulas_nums_list[index + 1]:
-                    chosen_num = formulas_nums_list[index+1] + 1
-                    formulas_nums_list.append(chosen_num)
-                    formulas_nums_list.sort()
-            if chosen_num == -1:
-                if len(formulas_nums_list) > 0:
-                    chosen_num = formulas_nums_list[len(formulas_nums_list) - 1] + 1
-                else:
-                    chosen_num = 1
-                formulas_nums_list.append(chosen_num)
-                formulas_nums_list.sort()
-            f.number = chosen_num
-        if validFilePrefixes[3] in data_dict:
-            ing_qty_list = data_dict[validFilePrefixes[3]]
-            for ing_qty in ing_qty_list:
-                if ing_qty.formula.name == f.name:
-                    ing_qty.formula = f
 
 
 def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records_imported):
@@ -889,16 +659,12 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
                 return "ERROR: Duplicate name '" + new_record.name + "' in Product Lines CSV file at lines '" \
                        + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
         if file_prefix == validFilePrefixes[3]:
-            # if new_record.formula.name == record.name:
-            #     return "ERROR: Duplicate formula name '" + str(new_record.name) \
-            #            + "' in Formulas CSV file at lines '" + str(row_num) + "' and '" \
-            #            + str(num_records_imported + 2) + "'"
-            # if new_record == record.ingredient.number:
-            #     return "ERROR: Duplicate ingredient number '" \
-            #            + str(new_record.ingredient.number) \
-            #            + "' in Formulas CSV file at lines '" + str(row_num) + "' and '" \
-            #            + str(num_records_imported + 2) + "'"
-            pass
+            if new_record.sku.sku_num == record.sku.sku_num and \
+                    new_record.ingredient.number == record.ingredient.number:
+                return "ERROR: Matching SKU/Ingredient pairing '" + str(new_record.sku.sku_num) \
+                       + " / " + str(new_record.ingredient.number) \
+                       + "' in Formulas CSV file at lines '" + str(row_num) + "' and '" \
+                       + str(num_records_imported + 2) + "'"
     return ""
 
 
@@ -919,36 +685,14 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     item.case_upc == record.case_upc and item.unit_upc == record.unit_upc
                     and item.unit_size == record.unit_size and item.units_per_case ==
                     record.units_per_case and item.product_line.name == record.product_line.name and
-                    item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
-                    item.mfg_rate == record.mfg_rate and
                     item.comment == record.comment):
                 return "identical", None
             elif (item.name == record.name and record.sku_num == -1 and
                   item.case_upc == record.case_upc and item.unit_upc == record.unit_upc
                   and item.unit_size == record.unit_size and item.units_per_case ==
                   record.units_per_case and item.product_line.name == record.product_line.name and
-                  item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
-                  item.mfg_rate == record.mfg_rate and
                   item.comment == record.comment):
                 return "identical", None
-            if item.case_upc != record.case_upc:
-                print(type(item.case_upc))
-                print(type(record.case_upc))
-                print(item.case_upc)
-                print(record.case_upc)
-                print("case_upc is the issue")
-            if item.unit_upc != record.unit_upc:
-                print("unit_upc is the issue")
-            if item.unit_size != record.unit_size:
-                print("unit_size is the issue")
-            if item.units_per_case != record.units_per_case:
-                print("units_per_case is the issue")
-            if item.formula.number != record.formula.number:
-                print("formula.number is the issue")
-            if item.formula_scale != record.formula_scale:
-                print("formula_scale is the issue")
-            if item.mfg_rate != record.mfg_rate:
-                print("mfg_rate is the issue")
         list2 = models.SKU.objects.filter(case_upc=record.case_upc)
         list3 = models.SKU.objects.filter(sku_num=record.sku_num)
         if len(list2) > 0:
@@ -961,23 +705,27 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                    str(number_records_imported + 2) + "' in the SKU CSV file.", list2[0]
         if len(list3) > 0:
             return "CONFLICT: Conflicting SKU record found with name '" + record.name + "' and SKU number '" \
-                   + str(record.sku_num) + "', in conflict with database entry with with name '" \
+                   + str(record.sku_number) + "', in conflict with database entry with with name '" \
                    + list3[0].name + "' and SKU number '" \
                    + str(list3[0].sku_num) \
                    + "' at line '" + str(number_records_imported + 2) + "' in the SKU CSV file.", list3[0]
     if file_prefix == validFilePrefixes[1]:
         models_list = models.Ingredient.objects.filter(name=record.name)
         for item in models_list:
+            print(item.name, record.name)
+            print(item.number, record.number)
+            print(item.vendor_info, record.vendor_info)
+            print(item.package_size, record.package_size)
+            print(Decimal(item.cost), Decimal(record.cost))
+            print(item.comment, record.comment)
             if (item.name == record.name and item.number == record.number
                     and item.vendor_info == record.vendor_info and
-                    item.package_size == record.package_size and item.cost == record.cost and
-                    item.package_size_units == record.package_size_units
+                    item.package_size == record.package_size and item.cost == record.cost
                     and item.comment == record.comment):
                 return "identical", None
             elif (item.name == record.name and record.number == -1
                   and item.vendor_info == record.vendor_info and
-                  item.package_size == record.package_size and item.cost == record.cost and
-                  item.package_size_units == record.package_size_units
+                  item.package_size == record.package_size and item.cost == record.cost
                   and item.comment == record.comment):
                 return "identical", None
         list2 = models.Ingredient.objects.filter(name=record.name)
@@ -1000,19 +748,19 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
             if item.name == record.name:
                 return "identical", None
     if file_prefix == validFilePrefixes[3]:
-        models_list = models.IngredientQty.objects.filter(formula__number=record.formula.number)
+        models_list = models.IngredientQty.objects.filter(quantity=record.quantity)
         for item in models_list:
-            if (item.ingredient.number == record.ingredient.number and item.quantity == record.quantity
+            if (item.sku.sku_num == record.sku.sku_num and item.ingredient.number == record.ingredient.number
                     and item.quantity == record.quantity):
                 return "identical", None
         # Do we need to check or non-identical match here?
-        models.IngredientQty.objects.filter(formula__number=record.formula.number).delete()
+        models.IngredientQty.objects.filter(sku__sku_num=record.sku.sku_num).delete()
     return "", None
 
 
 def sort_filename_array(filename_array):
     new_filename_array = []
-    for i in [1, 2, 3, 0]:
+    for i in [2, 0, 1, 3]:
         valid, filename = sort_filename_helper(filename_array, validFilePrefixes[i])
         if valid:
             new_filename_array.append(filename)
@@ -1027,50 +775,3 @@ def sort_filename_helper(filename_array, prefix_to_search_for):
         if prefix_to_search_for in filename:
             return True, filename
     return False, ""
-
-
-def get_number_and_unit(mixed_unit):
-    """
-        Checks for identical and/or conflicting records in the database
-        :param mixed_unit: string of the mixed unit (number and unit)
-        :return: number string, unit string, boolean for matching regex, boolean for success
-        """
-    matches_regex, number_string, unit_string = mixed_unit_valid_check(mixed_unit)
-    if matches_regex:
-        if not float_check(number_string):
-            return None, unit_string, matches_regex, False
-        # strip unit of spaces, '.', make lowercase, and removes trailing 's'
-        unit_string = unit_string.strip().replace('.', '').replace(' ', '').lower()
-        if unit_string.endswith('s'):
-            unit_string = unit_string[:-1]
-        if unit_string in validUnits:
-            # get proper string for database entry
-            unit_string = unit_mappings[unit_string]
-            return number_string, unit_string, matches_regex, True
-        else:
-            return number_string, None, matches_regex, False
-    else:
-        return None, None, matches_regex, False
-
-
-def mixed_unit_valid_check(mixed_unit):
-    pattern = re.compile("^(\d*\.?\d+)\s*(\D.*|)$")
-    match = pattern.fullmatch(mixed_unit)
-    if match is not None:
-        return True, match.group(1), match.group(2)
-    else:
-        return False, None, None
-
-
-def clean_data(data_dict):
-    for key in data_dict:
-        for item in data_dict[key]:
-            item.full_clean()
-
-
-def fix_ingredient_qty(data_dict):
-    for item in data_dict[validFilePrefixes[3]]:
-        formula_chosen_successfully, chosen_formula = get_formula_if_exists_for_formula(item.formula.number, data_dict,
-                                                                                        None, False)
-        if formula_chosen_successfully:
-            item.formula = chosen_formula

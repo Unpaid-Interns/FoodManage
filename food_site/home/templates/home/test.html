@@ -1,0 +1,30 @@
+
+<!-- home/templates/index.html -->
+<!DOCTYPE html>
+<html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <title>HypoMeals</title>
+	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/search.css" %}">
+    </head>
+    <body>
+        <h1>Please wait to be redirected...</h1>
+	<br>
+	<form action="/netret/" method="post" id="theform">
+		{% csrf_token %}
+		<input type="hidden" id="goodtoken" name="token">
+	</form>
+	<script>
+        function goodload(){
+                var torep1 = window.location.hash;
+                var torep2 = torep1.split("=");
+                var torep3 = torep2[1].split("&");
+                var torep4 = torep3[0];
+                document.getElementById("goodtoken").value = torep4;
+		document.getElementById("theform").submit();
+        };
+	window.onload = goodload;
+        </script>	
+    </body>
+</html>
