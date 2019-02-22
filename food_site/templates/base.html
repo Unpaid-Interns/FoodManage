@@ -8,11 +8,10 @@
         	<title>HypoMeals</title>
         	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/style.css" %}" />
-        	{% block styling %}
-        	{% endblock styling %}
+        	{% block styling %}{% endblock styling %}
 	</head>
 	<body>
-		{% include "sku_manage/header.html" %}
+		{% if user.is_authenticated %} {% include "header.html" %} {% endif %}
 		{% block content %}
 		{% endblock content %}
 	</body>

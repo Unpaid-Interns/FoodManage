@@ -1,5 +1,5 @@
 <div class="topnav">
-	<a {% if request.path == '' %} class="active" {% endif %} href="/">Home</a>
+	<a {% if request.path == '/' %} class="active" {% endif %} href="/">Home</a>
 	<div class="dropdown">
 		<a {% if request.path|slice:":7" == '/search' %} class="active" {% endif %} href="/search/">Data</a>
 		<div class="dropdown-content">

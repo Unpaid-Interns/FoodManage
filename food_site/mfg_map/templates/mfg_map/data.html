@@ -1,7 +1,7 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<h1>Filter SKUs for Mapping:</h1>
-	{% include "sku_manage/filters.html" %}
+	{% include "data/filters.html" %}
 	<br>
 	<div class="table" style="overflow-x:auto;">
 		{% load render_table from django_tables2 %}

@@ -1,7 +1,7 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<h1>Data shown below:</h1>
-	{% include "sku_manage/filters.html" %}
+	{% include "data/filters.html" %}
 	{% if table.rows %}
 		<form method="post">
 			{% csrf_token %}
