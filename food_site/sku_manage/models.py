@@ -71,7 +71,8 @@ class Ingredient(models.Model):
         return self.name
 
     def get_serializable_string_array(self):
-        return [str(self.number), self.name, self.vendor_info, self.package_size, str(self.cost), self.comment]
+        return [str(self.number), self.name, self.vendor_info, str(self.package_size), self.package_size_units,
+                str(self.cost), self.comment]
 
 
 class ProductLine(models.Model):
@@ -88,6 +89,9 @@ class Formula(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_serializable_string_array(self):
+        return [str(self.number), self.name, str(self.comment)]
 
 
 class SKU(models.Model):
@@ -107,6 +111,11 @@ class SKU(models.Model):
         return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size,
                                                                units_per_case=self.units_per_case)
 
+    def get_serializable_string_array(self):
+        return [str(self.sku_num), self.name, self.case_upc, self.unit_upc, self.unit_size, str(self.units_per_case),
+                self.product_line.name, str(self.formula.number), str(self.formula_scale), str(self.mfg_rate),
+                self.comment]
+
 
 class ManufacturingLine(models.Model):
     name = models.CharField(max_length=32)
@@ -123,7 +132,7 @@ class IngredientQty(models.Model):
     quantity = models.FloatField(validators=[validate_gt_zero])
 
     def get_serializable_string_array(self):
-        return [str(self.sku.sku_num), str(self.ingredient.number), str(self.quantity)]
+        return [str(self.formula.number), str(self.ingredient.number), str(self.quantity)]
 
 
 class SkuMfgLine(models.Model):

@@ -45,17 +45,15 @@ def message_displayer(request):
         messages.add_message(request, messages.INFO, message_to_display, extra_tags="result")
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         for file_prefix in conflict_dict:
+            print(file_prefix + " in message_displayer")
             conflict_records_list = conflict_dict[file_prefix]
             for conflict_tuple in conflict_records_list:
                 # data = conflict_tuple[0]
                 # conflict_database_model = conflict_tuple[1]
                 database_record_check_message = conflict_tuple[2]
+                print(conflict_tuple[2] + " in message_displayer")
                 messages.add_message(request, messages.INFO, database_record_check_message, extra_tags="conflict")
     return render(request, 'importer/messages.html')
-    # uploaded_file_url = fs.url(filename)
-    # return render(request, 'importer/uploadView.html', {
-    #     'uploaded_file_url': uploaded_file_url
-    # })z
 
 
 def commit_to_database(request, messagenum):
@@ -88,12 +86,18 @@ def commit_to_database(request, messagenum):
                     temp_product_name_list = models.ProductLine.objects.filter(name=data.product_line.name)
                     if len(temp_product_name_list) > 0:
                         conflict_database_model.product_line = temp_product_name_list[0]
+                    temp_formula_list = models.Formula.objects.filter(number=data.formula.number)
+                    if len(temp_formula_list) > 0:
+                        conflict_database_model.formula = temp_formula_list[0]
+                    conflict_database_model.formula_scale = data.formula_scale
+                    conflict_database_model.mfg_rate = data.mfg_rate
                     conflict_database_model.comment = data.comment
                 elif data.__class__.__name__ == "Ingredient":
                     conflict_database_model.number = data.number
                     conflict_database_model.name = data.name
                     conflict_database_model.vendor_info = data.vendor_info
                     conflict_database_model.package_size = data.package_size
+                    conflict_database_model.package_size_units = data.package_size_units
                     conflict_database_model.cost = data.cost
                     conflict_database_model.comment = data.comment
                 elif data.__class__.__name__ == "ProductLine":
@@ -137,12 +141,18 @@ def commit_all_to_database(request):
                 temp_product_name_list = models.ProductLine.objects.filter(name=data.product_line.name)
                 if len(temp_product_name_list) > 0:
                     conflict_database_model.product_line = temp_product_name_list[0]
+                temp_formula_list = models.Formula.objects.filter(number=data.formula.number)
+                if len(temp_formula_list) > 0:
+                    conflict_database_model.formula = temp_formula_list[0]
+                conflict_database_model.formula_scale = data.formula_scale
+                conflict_database_model.mfg_rate = data.mfg_rate
                 conflict_database_model.comment = data.comment
             elif data.__class__.__name__ == "Ingredient":
                 conflict_database_model.number = data.number
                 conflict_database_model.name = data.name
                 conflict_database_model.vendor_info = data.vendor_info
                 conflict_database_model.package_size = data.package_size
+                conflict_database_model.package_size_units = data.package_size_units
                 conflict_database_model.cost = data.cost
                 conflict_database_model.comment = data.comment
             elif data.__class__.__name__ == "ProductLine":
