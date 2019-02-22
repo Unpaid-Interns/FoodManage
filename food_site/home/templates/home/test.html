@@ -1,0 +1,31 @@
+
+<!-- home/templates/index.html -->
+<!DOCTYPE html>
+<html>
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+        <title>HypoMeals</title>
+	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/search.css" %}">
+    </head>
+	<script>
+	window.onload = function(){
+		var torep1 = window.location.hash;
+		var torep2 = torep1.split("=");
+		var torep3 = torep2[1].split("&");
+		var torep4 = torep3[0];
+		document.getElementById('goodtoken').innerHTML = torep4;
+	};
+	</script>
+    <body>
+        <h1>The world is quiet here.</h1>
+	<p id="goodtoken"></p>
+	<br>
+	<form action="/netret/" method="post">
+		{% csrf_token %}
+		<!-- <input id="goodtoken" type="hidden" name="token"> -->
+		<input type="text" name="token" placeholder="Copy above token here">
+		<input type="submit" value="Continue">
+	</form>	
+    </body>
+</html>
