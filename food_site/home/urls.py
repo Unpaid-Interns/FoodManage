@@ -9,4 +9,7 @@ urlpatterns = [
     path('authin/', views.authin, name='authin'),
     path('invalidlogin/', views.invalidlogin, name='invalidlogin'),
     path('help/', views.help, name='help'),
+    path('netlog/', views.netlog, name='netlog'),
+    path('netret/', views.netret, name='netret'),
+    path('authmid/', views.authmid, name='authmid'),
 ]

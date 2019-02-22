@@ -25,6 +25,10 @@
 	<input class="bt" type="submit" value="Login">
 	</form>
 	<br></br>
+	<h2>NetID Login</h2>
+	<form action="/netlog/" method="get">
+		<input type="submit" value="Login">
+	</form>
 	{% endif %}
 	{% if request.user.is_staff %}
 	<a class="btn btn-primary" href="/admin">Administration</a>
@@ -37,6 +41,7 @@
         <form action='/authout'>
                 <input type="submit" value="Logout">
         </form>
+	<p>User: {{ request.user.username }}</p>
 	{% endif %}
     </body>
 </html>
