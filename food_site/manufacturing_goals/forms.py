@@ -15,3 +15,6 @@ class GoalsChoiceForm(forms.Form):
 		
 		if this_user:
 			self.fields['goal'].queryset = ManufacturingGoal.objects.filter(user=this_user)
+
+class ManufacturingSchedForm(forms.Form):
+	data = forms.CharField(label='Data', required=True)

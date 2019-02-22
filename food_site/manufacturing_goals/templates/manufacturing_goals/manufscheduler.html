@@ -3,12 +3,19 @@
 {% block content %}
 	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
 	<script type="text/javascript" src="{% static 'manufacturing_goals/vis.min.js' %}"></script>
+	<style>
+		li::before {
+			content: "+";
+			padding-right: 8px;
+			color: blue;
+		}
+	</style>
 	<div id="visualization" style="padding:10px;"></div>
 	<div class='items-panel'>
 		<div class='side'>
 			<!-- This should pull from the db -->
 			<h3>Items:</h3>
-			<ul class="items">
+			<ul class="items" style="list-style: none;">
 				<!-- there should be a way to change the coloration here -->
 				<!-- as well as a second change if deleted on timeline -->
 				<!-- literally cannot get drag&drop working. I think it's busted on visjs' side -->
@@ -17,13 +24,12 @@
 			</ul>
 		</div>
 	</div>
-	<div id="addActivityModal" class="modal" style="display:none;">
-		<div class="modal-content">
-			<span class="close">&times;</span>
-			<p id="activityID" hidden>0</p>
-			<p>Enter the time for this manufacturing activity to start.<br><label>Date</label><input value="" id="activityStartDate" placeholder="mm/dd/yyyy"><br><label>Time</label><input type="time" id="activityStartTime"></p><br><button onclick="addAtStartTime()">Add to Timeline</button>
-		</div>
-	</div>
+	<!--<button onclick="saveTLData()">Save Timeline</button>-->
+	<form class="form-inline" method="POST" action="/manufacturing/">
+		{% csrf_token %}
+		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
+		<button type="submit" onclick="saveTLData()">Save Timeline</button>
+	</form>
 	<script type="text/javascript">
 		var container = document.getElementById('visualization');
 		// eventually want this to be pulled from the database of manufacturing lines
@@ -70,50 +76,37 @@
 			}
 		};
 		var timeline = new vis.Timeline(container, items, groups, options);
+		var now = new Date();
+		var visibleStart = new Date(now.getFullYear(),now.getMonth(),now.getDate(), 0, 0, 0, 0);
+		timeline.on('rangechange', function(properties) {
+			visibleStart = properties.start;
+		});
+		//timeline.on('mouseOver', function(properties) {
+		//	visibleStart = properties.start;
+		//});
 
-		var modal = document.getElementById('addActivityModal');
-		var closer = document.getElementsByClassName("close")[0];
+		//var modal = document.getElementById('addActivityModal');
+		//var closer = document.getElementsByClassName("close")[0];
 		function addToTimeline(id){
 			// actual ids on the timeline should be generated on the fly
-			document.getElementById('activityID').innerHTML = id;
-			modal.style.display = "block";
+			//document.getElementById('activityID').innerHTML = id;
+			//modal.style.display = "block";
+			// presumably group will also be determined by db
+			//console.log(visibleStart);
+			items.add([{id: nextItem, content: id, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + 1, visibleStart.getMinutes(), 0, 0), type: 'range', group: 1}]);
+			nextItem++;
 		}
-		function addAtStartTime(){
-			var startDate = document.getElementById('activityStartDate').value;
-			var startTime = document.getElementById('activityStartTime').value;
-			var h = "";
-			var mi = "";
-			var mo = "";
-			var d = "";
-			var y = "";
-			var today = new Date();
-			if((startDate.split("/")[0] && startDate.split("/")[1] && startDate.split("/")[2])) {
-				mo = parseInt(startDate.split("/")[0]);
-				d = parseInt(startDate.split("/")[1]);
-				y = parseInt(startDate.split("/")[2]);
-			} else {
-				mo = today.getMonth();
-				d = today.getDate();
-				y = today.getFullYear();
-			}
-			if((startTime.split(":")[0] && startTime.split(":")[1])) {
-				h = parseInt(startDate.split(":")[0]);
-				mi = parseInt(startDate.split(":")[1]);
-			} else {
-				h = today.getHours();
-				m = today.getMinutes();
-			}
-			// base this on duration/group in actual db
-			items.add([{id: nextItem, content: document.getElementById('activityID').innerHTML, start: new Date(y, mo, d, h, mi, 0, 0), end: new Date(y, mo, d, h+1, mi, 0, 0), group: 1}]);
-			modal.style.display = "none";
+
+		function saveTLData() {
+			var data = items.get({
+				type: {
+					start: 'ISODate',
+					end: 'ISODate'
+				}
+			});
+			document.getElementById("data").value = JSON.stringify(data, null, 2);
+			//console.log(JSON.stringify(data, null, 2));
 		}
-		closer.onclick = function() {
-			modal.style.display = "none";
-		}
-		window.onclick = function(event) {
-			if (event.target == modal){
-				modal.style.display = "none";
-			}
-		}
+		// also need to load data from db
 	</script>
 {% endblock content %}

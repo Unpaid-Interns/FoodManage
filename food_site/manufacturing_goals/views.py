@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty
 from .models import ManufacturingQty, ManufacturingGoal
-from .forms import GoalsForm, GoalsChoiceForm
+from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
 from django.views import generic
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
+import json
 
 @login_required(login_url='index')
 def manufacturing(request):
@@ -144,4 +145,15 @@ def manufdetails(request):
 
 @login_required(login_url='index')
 def timeline(request):
-	return render(request, 'manufacturing_goals/manufscheduler.html')
+	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
+	form = ManufacturingSchedForm()
+	if request.method == "POST":
+		form = ManufacturingSchedForm(request.POST)
+		if form.is_valid():
+			data = form.cleaned_data['data']
+			d = json.loads(data)
+			for item in d:
+				# actually store the information
+				print(item)
+			return redirect('manufacturing')
+	return render(request, 'manufacturing_goals/manufscheduler.html', {'form': form})
