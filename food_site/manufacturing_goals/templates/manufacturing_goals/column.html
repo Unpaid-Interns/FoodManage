@@ -1,3 +1,0 @@
-{% for choice in record.skumfgline_set.all %}
-{{ choice.mfg_line }}{% if forloop.counter < record.skumfgline_set.all|length %},{% endif %} 
-{% endfor %}

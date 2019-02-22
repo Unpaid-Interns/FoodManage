@@ -1,4 +1,5 @@
-<form class="form-inline" action="{% url 'mfg_map_add' record.pk %}" method="post">
+<form class="form-inline" action="{% url 'mfg_goal_add' record.pk %}" method="post">
 	{% csrf_token %}
+	<input type="number" name="case_qty" placeholder="Case Quantity">
 	<button type="submit"><i class="fa fa-plus"></i></button>
 </form>

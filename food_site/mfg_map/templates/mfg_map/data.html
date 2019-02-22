@@ -11,9 +11,9 @@
 	<form class="form-inline" method="get">
 		{% if queryset.all|length > 25 %}
 			{% if paginated %}
-				<input type="submit" name="remove_pagination" value="View All Records">
+				<button type="submit" name="remove_pagination">View All Records</button>
 			{% else %}
-				<input type="submit" name="add_pagination" value="Paged View">
+				<button type="submit" name="add_pagination">Paged View</button>
 			{% endif %}
 		{% endif %}
 	</form>

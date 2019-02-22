@@ -189,6 +189,11 @@ body {
   border-radius: 5px;
 }
 
+.form-inline p {
+  margin: 0 5px 0 0;
+  padding: 10px;
+}
+
 .form-inline input {
   vertical-align: middle;
   margin: 0 5px 0 0;
@@ -198,7 +203,7 @@ body {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
-  width: 300px;
+  width: 200px;
 }
 
 .form-inline select {
