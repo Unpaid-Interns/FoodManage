@@ -55,6 +55,8 @@ def netret(request):
 	un = tr.get('firstName')+'_'+tr.get('netid')
 	pw = tr.get('netid')+'teMporArySecurityMeasUUreDogesAlAdwhaLeTaLeYasGuD28ME'
 	em = tr.get('mail')
+	fn = tr.get('firstName')
+	ln = tr.get('lastName')
 	user = authenticate(request, username=un, password=pw)
 	if user is not None:
 		login(request, user)
@@ -69,7 +71,9 @@ def netret(request):
 		user = User.objects.create_user(
 			username = un,
 			password = pw,
-			email = em
+			email = em,
+			first_name = fn,
+			last_name = ln
 		)
 		user.save( )
 		user = authenticate(request, username = un, password=pw)
