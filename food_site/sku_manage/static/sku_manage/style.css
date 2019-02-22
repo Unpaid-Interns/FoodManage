@@ -26,7 +26,7 @@ body {
   font-weight: bold;
 }
 
-.bbut {
+.special-button {
   width: 200px;
   padding: 4px 8px;
   margin: 8px 0;
@@ -37,7 +37,7 @@ body {
   font-weight: bold;
 }
 
-.bbut a:hover, a:active {
+.special-button a:hover, a:active {
   background-color: #74a4f2;
 }
 

@@ -8,12 +8,12 @@
 		{% load bootstrap3 %}
 		{% render_table input_table %}
 	</div>
-	<form method="get">
+	<form class="form-inline" method="get">
 		{% if queryset.all|length > 25 %}
 			{% if paginated %}
-				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
+				<input type="submit" name="remove_pagination" value="View All Records">
 			{% else %}
-				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
+				<input type="submit" name="add_pagination" value="Paged View">
 			{% endif %}
 		{% endif %}
 	</form>

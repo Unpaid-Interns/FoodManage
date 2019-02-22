@@ -3,10 +3,12 @@
 		{% load static %}
                 <meta charset="utf-8">
                 <title>HypoMeals</title>
+                <link rel="stylesheet" type="text/css" href="{% static "sku_manage/style.css" %}" />
                 <link rel="stylesheet" type="text/css" href="{% static "manufacturing_goals/data.css" %}" />
 </head>
 
 <body>
+	{% include "header.html" %}
 	<h3>Manufacturing Goals</h3>
 	<p>Create a new manufacturing goal</p>
 	<form id="goal-form" method="POST" action="/manufacturing/">
@@ -17,5 +19,4 @@
 	<p><strong>OR</strong></p>
 	<a class="bbut" href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a><br></br>
   <a class="bbut" href='/manufacturing/manufcsv/'>Export a manufacturing goal</a><br></br>
-	<a class="bbut" href="{% url 'index' %}">Return to Home</a>
 </body>

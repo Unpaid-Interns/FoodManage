@@ -8,20 +8,20 @@
 		{% load bootstrap3 %}
 		{% render_table input_table %}
 	</div>
-	<form method="get">
+	<form class="form-inline" method="get">
 		{% if queryset.all|length > 25 %}
 			{% if paginated %}
-				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
+				<button type="submit" name="remove_pagination">View All Records</button>
 			{% else %}
-				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
+				<button type="submit" name="add_pagination">Paged View</button>
 			{% endif %}
 		{% endif %}
 	</form>
 	<br>
 	{% if selected_table.rows %}
-		<form action="{% url 'ingr_dep_gen' %}" method="post">
+		<form class="form-inline" action="{% url 'ingr_dep_gen' %}" method="post">
 			{% csrf_token %}
-			<input class="bbut" type="submit" name="gen_report" value="Generate Report - {{ selected_table.rows|length }} Result(s)">
+			<button type="submit" name="gen_report">Generate Report - {{ selected_table.rows|length }} Result(s)</button>
 		</form>
 		<div class="table" style="overflow-x:auto;">
 			{% render_table selected_table %}
