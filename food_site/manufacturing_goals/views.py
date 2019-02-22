@@ -141,3 +141,7 @@ def manufdetails(request):
 	goal_info = request.session['goal_export_info']
 	goal_calc = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc})
+
+@login_required(login_url='index')
+def timeline(request):
+	return render(request, 'manufacturing_goals/manufscheduler.html')

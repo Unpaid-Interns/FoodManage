@@ -15,6 +15,9 @@
 		{{ form2 }}
 		<button type="submit" id="submit" name="submit">Select Goal</button>
 	</form>
+	{% if request.user.is_staff %}
+	<a class="bbut" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
+	{% endif %}
 	<!--<a class="bbut" href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a><br></br>
   <a class="bbut" href='/manufacturing/manufcsv/'>Export a manufacturing goal</a><br></br>
 	<a class="bbut" href="{% url 'index' %}">Return to Home</a>-->
