@@ -186,19 +186,19 @@ class CSVImport:
         return serializable_dict
 
     def get_conflict_dict_from_serializable(self, serializable_dict):
-        print("START OF GET SERIALZABLE")
+        # print("START OF GET SERIALZABLE")
         original_dict = dict()
         for file_prefix in serializable_dict:
-            print(file_prefix + " in GET SERIALZABLE")
+            # print(file_prefix + " in GET SERIALZABLE")
             new_conflict_records_list = []
             conflict_records_list = serializable_dict[file_prefix]
             for conflict_tuple in conflict_records_list:
                 data_string_array = conflict_tuple[0]
-                print(len(data_string_array))
+                # print(len(data_string_array))
                 message = conflict_tuple[1]
                 data = None
                 if len(data_string_array) + 1 == len(headerDict[validFilePrefixes[0] + ".csv"]):
-                    print("HELLO FROM GET SERIAZABLE")
+                    # print("HELLO FROM GET SERIAZABLE")
                     _, chosen_product_line = choose_product_line_for_sku(data_string_array[6], self.data_dict)
                     _, chosen_formula = choose_formula_for_sku(int(data_string_array[7]), self.data_dict)
                     data = models.SKU(sku_num=int(data_string_array[0]), name=data_string_array[1],
@@ -208,7 +208,7 @@ class CSVImport:
                                       formula=chosen_formula, formula_scale=float(data_string_array[8]),
                                       mfg_rate=float(data_string_array[9]),
                                       comment=data_string_array[10])
-                elif len(data_string_array)-1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
+                elif len(data_string_array) - 1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
                     data = models.Ingredient(number=int(data_string_array[0]), name=data_string_array[1],
                                              vendor_info=data_string_array[2],
                                              package_size=float(data_string_array[3]),
@@ -224,11 +224,11 @@ class CSVImport:
                     data = models.IngredientQty(formula=chosen_ingredient, ingredient=chosen_ingredient,
                                                 quantity=float(data_string_array[2]))
                 if data is None:
-                    print("RETURNING EARLY 1")
+                    # print("RETURNING EARLY 1")
                     return original_dict
                 conflict_database_data = None
                 if len(data_string_array) + 1 == len(headerDict[validFilePrefixes[0] + ".csv"]):
-                    print("HELLO AGAIN FROM GET SERIALIZABLE")
+                    # print("HELLO AGAIN FROM GET SERIALIZABLE")
                     # TODO: Figure out a way that this won't create a conflict
                     case_upc_conflicts = models.SKU.objects.filter(case_upc=data.case_upc)
                     sku_num_conflicts = models.SKU.objects.filter(sku_num=data.sku_num)
@@ -236,7 +236,7 @@ class CSVImport:
                         conflict_database_data = case_upc_conflicts[0]
                     elif len(sku_num_conflicts) > 0:
                         conflict_database_data = sku_num_conflicts[0]
-                elif len(data_string_array)-1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
+                elif len(data_string_array) - 1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
                     # TODO: Figure out a way that this won't create a conflict
                     ingr_num_conflicts = models.Ingredient.objects.filter(number=data.number)
                     ingr_name_conflicts = models.Ingredient.objects.filter(name=data.name)
@@ -245,10 +245,10 @@ class CSVImport:
                     elif len(ingr_num_conflicts) > 0:
                         conflict_database_data = ingr_num_conflicts[0]
                 if conflict_database_data is None:
-                    print("RETURNING EARLY 2")
+                    # print("RETURNING EARLY 2")
                     return original_dict
                 new_conflict_records_list.append([data, conflict_database_data, message])
-            print(new_conflict_records_list)
+            # print(new_conflict_records_list)
             original_dict[file_prefix] = new_conflict_records_list
         return original_dict
 
@@ -439,7 +439,7 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
             if i == 2:
                 pass
                 # try:
-                #     models.validate_upc(float(row[i]))
+                #     models.validate_upc(row[i])
                 # except:
                 #     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                 #             + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards."), None
@@ -838,7 +838,7 @@ def fill_in_formula_nums(data_dict):
                 if chosen_num != -1:
                     continue
                 if formulas_nums_list[index] + 1 != formulas_nums_list[index + 1]:
-                    chosen_num = formulas_nums_list[index+1] + 1
+                    chosen_num = formulas_nums_list[index + 1] + 1
                     formulas_nums_list.append(chosen_num)
                     formulas_nums_list.sort()
             if chosen_num == -1:
@@ -931,24 +931,6 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                   item.mfg_rate == record.mfg_rate and
                   item.comment == record.comment):
                 return "identical", None
-            if item.case_upc != record.case_upc:
-                print(type(item.case_upc))
-                print(type(record.case_upc))
-                print(item.case_upc)
-                print(record.case_upc)
-                print("case_upc is the issue")
-            if item.unit_upc != record.unit_upc:
-                print("unit_upc is the issue")
-            if item.unit_size != record.unit_size:
-                print("unit_size is the issue")
-            if item.units_per_case != record.units_per_case:
-                print("units_per_case is the issue")
-            if item.formula.number != record.formula.number:
-                print("formula.number is the issue")
-            if item.formula_scale != record.formula_scale:
-                print("formula_scale is the issue")
-            if item.mfg_rate != record.mfg_rate:
-                print("mfg_rate is the issue")
         list2 = models.SKU.objects.filter(case_upc=record.case_upc)
         list3 = models.SKU.objects.filter(sku_num=record.sku_num)
         if len(list2) > 0:
@@ -1000,11 +982,34 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
             if item.name == record.name:
                 return "identical", None
     if file_prefix == validFilePrefixes[3]:
-        models_list = models.IngredientQty.objects.filter(formula__number=record.formula.number)
+        models_list = models.IngredientQty.objects.filter(formula__name=record.formula.name)
+        print("RECORD NUMBER = " + str(record.formula.number))
+        print("RECORD NAME = " + str(record.formula.name))
+        print("RECORD ING NUM = " + str(record.ingredient.number))
+        print("RECORD QUANTITY = " + str(record.quantity))
+        print("TYPE = " + str(type(record.formula.number)))
         for item in models_list:
-            if (item.ingredient.number == record.ingredient.number and item.quantity == record.quantity
+            if (item.formula.number == record.formula.number and item.formula.name == record.formula.name
+                    and item.ingredient.number == record.ingredient.number
                     and item.quantity == record.quantity):
+                print("IDENTICAL")
+                print()
                 return "identical", None
+            if (record.formula.number < 0 and item.formula.name == record.formula.name
+                    and item.ingredient.number == record.ingredient.number
+                    and item.quantity == record.quantity):
+                print("IDENTICAL")
+                print()
+                return "identical", None
+            if not record.formula.number < 0:
+                print("form num is issue")
+            if item.formula.name != record.formula.name:
+                print("form name is issue")
+            if item.ingredient.number != record.ingredient.number:
+                print("ing num is issue")
+            if item.quantity != record.quantity:
+                print('quant is issue')
+            print()
         # Do we need to check or non-identical match here?
         models.IngredientQty.objects.filter(formula__number=record.formula.number).delete()
     return "", None
