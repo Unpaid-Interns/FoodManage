@@ -1,4 +1,4 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<h3>Manufacturing Goals</h3>
 	<p>Create a new manufacturing goal</p>
@@ -15,7 +15,4 @@
 		{{ form2 }}
 		<button type="submit" id="submit" name="submit">Select Goal</button>
 	</form>
-	<!--<a class="bbut" href='/manufacturing/manufcalc/'>Calculate ingredient quantities for a manufacturing goal</a><br></br>
-  <a class="bbut" href='/manufacturing/manufcsv/'>Export a manufacturing goal</a><br></br>
-	<a class="bbut" href="{% url 'index' %}">Return to Home</a>-->
 {% endblock content %}

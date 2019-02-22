@@ -1,0 +1,32 @@
+<div class="topnav">
+	<a {% if request.path == '/' %} class="active" {% endif %} href="/">Home</a>
+	<div class="dropdown">
+		<a {% if request.path|slice:":7" == '/search' %} class="active" {% endif %} href="/search/">Data</a>
+		<div class="dropdown-content">
+			<a href="/search/ingredient/">Ingredients</a>
+			<a href="/search/productline/">Product Lines</a>
+			<a href="/search/sku/">SKUs</a>
+			<a href="/search/formula/">Formulas</a>
+			<a href="/search/manufacturingline/">Manufacturing Lines</a>
+		</div>
+	</div>
+	<div class="dropdown">
+		<a {% if request.path|slice:":10" == '/reporting' %} class="active" {% endif %} href="/reporting/ingredient/">Reporting</a>
+		<div class="dropdown-content">
+			<a href="/reporting/ingredient/">Ingredient Dependency</a>
+			<a href="/reporting/ingredient/">Manufacturing Schedule</a>
+		</div>
+	</div>
+	<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>
+	{% if request.user.is_staff %}
+		<div class="dropdown">
+			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' %} class="active" {% endif %} href="/admin/">Administration</a>
+			<div class="dropdown-content">
+				<a href="/admin/">Edit Users and Data</a>
+				<a href="/importer/">Bulk Data Import</a>
+				<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
+			</div>
+		</div>
+	{% endif %}
+	<a class="right-justify" href="/authout/">Log Out</a>
+</div>
