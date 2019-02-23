@@ -2,17 +2,17 @@
 {% block content %}
 	<h3>Manufacturing Goals</h3>
 	<p>Create a new manufacturing goal</p>
-	<form id="goal-form" method="POST" action="/manufacturing/">
+	<form class="form-inline" method="POST" action="/manufacturing/">
 		{% csrf_token %}
-		<p><label>Goal Name: </label><br><input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Input a name for this goal"></p>
-		<p><label>Deadline: </label><br><input value="{{ deadline }}" type="text" name="deadline" required="required" placeholder="mm/dd/yyyy"></p>
+		<input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Goal Name">
+		<input value="{{ deadline }}" type="text" name="deadline" required="required" placeholder="Deadline (mm/dd/yyyy)">
 		<button type="submit" id="submit" name="submit">Create New Goal</button>
 	</form>
 	<p><strong>OR</strong></p>
 	<p>View a Manufacturing Goal and its ingredient quantity calculation.</p>
-	<form id="goal-choice-form" method="post">
+	<form class="form-inline" method="post">
 		{% csrf_token %}
 		{{ form2 }}
-		<button type="submit" id="submit" name="submit">Select Goal</button>
+		<button type="submit" id="submit" name="submit">Go</button>
 	</form>
 {% endblock content %}

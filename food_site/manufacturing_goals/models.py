@@ -11,8 +11,8 @@ class ManufacturingGoal(models.Model):
 		return self.name
 
 class ManufacturingQty(models.Model):
-	sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
-	caseqty = models.DecimalField(max_digits=20, decimal_places=10)
+	sku = models.ForeignKey(SKU, on_delete=models.CASCADE, verbose_name='SKU')
+	caseqty = models.DecimalField(max_digits=20, decimal_places=10, verbose_name='Case Quantity')
 	goal = models.ForeignKey(ManufacturingGoal, on_delete=models.CASCADE)
 
 class ManufacturingSchedule(mdoels.Model):

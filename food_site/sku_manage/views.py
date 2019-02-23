@@ -8,6 +8,7 @@ from django_tables2 import RequestConfig, paginators
 from exporter import CSVExport
 from .models import Ingredient, ProductLine, SKU, Formula, ManufacturingLine
 from .tables import IngredientTable, ProductLineTable, SKUTable, FormulaTable, ManufacturingLineTable
+from . import ex_data
 
 @login_required
 def IngredientView(request):
@@ -271,6 +272,11 @@ class ManufacturingLineDetailView(generic.DetailView):
 @login_required
 def search(request):
 	return render(request, 'sku_manage/search.html', context=None)
+
+@login_required
+def populate(request):
+	ex_data.load_data()
+	return redirect('search')
 
 @login_required
 def authout(request):

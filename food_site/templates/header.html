@@ -23,7 +23,7 @@
 			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' %} class="active" {% endif %} href="/admin/">Administration</a>
 			<div class="dropdown-content">
 				<a href="/admin/">Edit Users and Data</a>
-				<a href="/importer/">Bulk Data Import</a>
+				<a href="/importer/">CSV Data Import</a>
 				<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
 			</div>
 		</div>
