@@ -51,6 +51,7 @@ unit_mappings = {
 }
 
 path_prefix = "importer/"
+path_prefix2 = "importer/import_test_suite/"
 
 
 class CSVImport:
@@ -353,6 +354,8 @@ def prefix_check(filename):
     filename_no_importer_prefix = filename
     if filename.startswith(path_prefix):
         filename_no_importer_prefix = filename[len(path_prefix):]
+    if filename.startswith(path_prefix2):
+        filename_no_importer_prefix = filename[len(path_prefix2):]
     file_prefix = ""
     valid = True
     for prefix in validFilePrefixes:
