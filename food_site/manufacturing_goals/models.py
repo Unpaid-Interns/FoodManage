@@ -17,7 +17,7 @@ class ManufacturingQty(models.Model):
 	caseqty = models.DecimalField(max_digits=20, decimal_places=10, verbose_name='Case Quantity')
 	goal = models.ForeignKey(ManufacturingGoal, on_delete=models.CASCADE)
 
-class ScheduleItem(mdoels.Model):
+class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
 	start = models.DateTimeField()
 
