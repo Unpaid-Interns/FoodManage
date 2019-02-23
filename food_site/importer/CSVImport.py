@@ -51,6 +51,7 @@ unit_mappings = {
 }
 
 path_prefix = "importer/"
+path_prefix2 = "importer/import_test_suite/"
 
 
 class CSVImport:
@@ -353,6 +354,8 @@ def prefix_check(filename):
     filename_no_importer_prefix = filename
     if filename.startswith(path_prefix):
         filename_no_importer_prefix = filename[len(path_prefix):]
+    if filename.startswith(path_prefix2):
+        filename_no_importer_prefix = filename[len(path_prefix2):]
     file_prefix = ""
     valid = True
     for prefix in validFilePrefixes:
@@ -435,26 +438,27 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
         if i in [2, 3, 8, 10]:
             if not float_check(row[i]):
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is required to be a decimal value but is not."), None
+                        + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required to be a "
+                                                                   "decimal value but is not."), None
             if i == 2:
-                pass
-                # try:
-                #     models.validate_upc(row[i])
-                # except:
-                #     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                #             + str(i + 1) + ". case_upc in this row/col is invalid/does not conform to standards."), None
+                try:
+                    models.validate_upc(row[i])
+                except ValidationError as error_message:
+                    return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                            + str(i + 1) + ". case_upc '" + str(row[i]) + "' in this row/col is invalid/does not conform"
+                            " to standards. " + error_message.message + "."), None
             if i == 3:
-                pass
-                # try:
-                #     models.validate_upc(float(row[i]))
-                # except:
-                #     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                #             + str(i + 1) + ". unit_upc in this row/col is invalid/does not conform to standards."), None
+                try:
+                    models.validate_upc(row[i])
+                except ValidationError as error_message:
+                    return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                            + str(i + 1) + ". unit_upc'" + str(row[i]) + "' in this row/col is invalid/does not conform"
+                            " to standards. " + error_message.message + "."), None
         if i in [5]:
             if not integer_check(row[i]):
                 return ("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
-                        + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a integer value "
-                                                      "but is not."), None
+                        + " and col #" + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required "
+                        "to be a integer value but is not."), None
     pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
     if not pl_success:
         return chosen_product_line_or_error_message, None
@@ -467,6 +471,7 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
                      unit_size=row[4], units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
                      formula=chosen_formula_or_error_message, formula_scale=float(row[8]), mfg_rate=float(row[10]),
                      comment=row[11])
+
     mfg_line_array = []
     for ml_shortname in row[9].split(','):
         ml_success, chosen_mfg_line = make_sku_mfg_line(ml_shortname, sku)
@@ -523,7 +528,9 @@ def choose_formula_for_sku(formula_number, data_dict):
     if chosen_formula is not None:
         return True, chosen_formula
     else:
-        return False, None
+        return False, ("Import failed for SKU CSV file. \nERROR: Formula number '" + str(formula_number)
+                       + "' in SKU CSV file is not a valid formula. It is not in the database "
+                         "or in a formulas CSV file attempting to be imported.")
 
 
 def make_sku_mfg_line(ml_shortname, sku):
@@ -934,6 +941,15 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
         list2 = models.SKU.objects.filter(case_upc=record.case_upc)
         list3 = models.SKU.objects.filter(sku_num=record.sku_num)
         if len(list2) > 0:
+            if len(list3) > 0:
+                if list2[0].sku_num != list3[0].sku_num:
+                    return "ERROR: Conflict with multiple records in database. Record to be imported with " \
+                           "number '" + str(record.sku_num) + "' and case_upc '" + str(record.case_upc) + "' at line '" \
+                           + str(number_records_imported + 2) + "' in the SKU CSV file is conflict with " \
+                           "database record with number '" + str(list2[0].sku_num) + "' and case_upc '" \
+                           + str(list2[0].case_upc) + \
+                           "' and database record with number '" + str(list3[0].sku_num) + "' and case_upc '" \
+                           + str(list3[0].case_upc) + "'.", None
             return "CONFLICT: Conflicting SKU record found with name '" + record.name + "' and Case UPC '" \
                    + str(record.case_upc) \
                    + "', in conflict with database entry with name '" \
@@ -965,6 +981,14 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
         list2 = models.Ingredient.objects.filter(name=record.name)
         list3 = models.Ingredient.objects.filter(number=record.number)
         if len(list2) > 0:
+            if len(list3) > 0:
+                if list2[0].name != list3[0].name:
+                    return "ERROR: Conflict with multiple records in database. Record to be imported with " \
+                           "name '" + record.name + "' and number '" + str(record.number) + "' at line '" \
+                           + str(number_records_imported + 2) + "' in the Ingredient CSV file is conflict with " \
+                           "database record with name '" + list2[0].name + "' and number '" + str(list2[0].number) + \
+                           "' and database record with name '" + list3[0].name + "' and number '" \
+                           + str(list3[0].number) + "'.", None
             return "CONFLICT: Conflicting Ingredient record found with name '" + record.name \
                    + "' and number '" + str(record.number) + "', in conflict with database entry with name '" \
                    + list2[0].name + "' and number '" \
@@ -983,33 +1007,15 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                 return "identical", None
     if file_prefix == validFilePrefixes[3]:
         models_list = models.IngredientQty.objects.filter(formula__name=record.formula.name)
-        print("RECORD NUMBER = " + str(record.formula.number))
-        print("RECORD NAME = " + str(record.formula.name))
-        print("RECORD ING NUM = " + str(record.ingredient.number))
-        print("RECORD QUANTITY = " + str(record.quantity))
-        print("TYPE = " + str(type(record.formula.number)))
         for item in models_list:
             if (item.formula.number == record.formula.number and item.formula.name == record.formula.name
                     and item.ingredient.number == record.ingredient.number
                     and item.quantity == record.quantity):
-                print("IDENTICAL")
-                print()
                 return "identical", None
             if (record.formula.number < 0 and item.formula.name == record.formula.name
                     and item.ingredient.number == record.ingredient.number
                     and item.quantity == record.quantity):
-                print("IDENTICAL")
-                print()
                 return "identical", None
-            if not record.formula.number < 0:
-                print("form num is issue")
-            if item.formula.name != record.formula.name:
-                print("form name is issue")
-            if item.ingredient.number != record.ingredient.number:
-                print("ing num is issue")
-            if item.quantity != record.quantity:
-                print('quant is issue')
-            print()
         # Do we need to check or non-identical match here?
         models.IngredientQty.objects.filter(formula__number=record.formula.number).delete()
     return "", None
