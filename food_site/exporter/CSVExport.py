@@ -9,7 +9,8 @@ headerDict = {
                  "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"],
     "ingredients.csv": ["Ingr#", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
-    "formulas.csv": ["Formula#", "Name", "Ingr#", "Quantity", "Comment"]
+    "formulas.csv": ["Formula#", "Name", "Ingr#", "Quantity", "Comment"],
+    "manufacturing_lines.csv": ["Name", "Shortname", "Comment"]
 }
 
 '''
@@ -17,7 +18,7 @@ headerDict = {
     skus, ingredients, product_lines, formulas
     with any additions being after those 4 (names of those 4 can be changed freely!
 '''
-validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas"]
+validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas", "manufacturing_lines"]
 
 
 class CSVExport():
@@ -100,6 +101,10 @@ def export_to_csv(filename, data):
                 exportData.append(str(item.comment))
                 count = count + 1
                 dataWriter.writerow(exportData)
+        if validFilePrefixes[4] in filename:
+            exportData.append(item.name)
+            exportData.append(item.shortname)
+            exportData.append(item.comment)
         if len(exportData) > 0 and validFilePrefixes[3] not in filename:
             dataWriter.writerow(exportData)
     return response
