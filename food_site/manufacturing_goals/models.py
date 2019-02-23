@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.db import models
-from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty
+from sku_manage.models import Ingredient, ProductLine, SKU, ManufacturingLine, IngredientQty
 from django.contrib.auth.models import User
 
 class ManufacturingGoal(models.Model):
@@ -19,7 +19,12 @@ class ManufacturingQty(models.Model):
 
 class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
+	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
 	start = models.DateTimeField()
+
+	def clean(self):
+		if SkuMfgLine.objects.filter(sku=self.mfgqty.sku, mfg_line=self.mfgline).count() == 0:
+			raise ValidationError('Cannot produce selected SKU on manufacturing line')
 
 	def duration(self):
 		return timedelta(hours=(self.mfgqty.sku.mfg_rate*self.mfgqty.caseqty))
