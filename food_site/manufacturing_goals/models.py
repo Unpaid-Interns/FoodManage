@@ -14,3 +14,7 @@ class ManufacturingQty(models.Model):
 	sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
 	caseqty = models.DecimalField(max_digits=20, decimal_places=10)
 	goal = models.ForeignKey(ManufacturingGoal, on_delete=models.CASCADE)
+
+class ManufacturingSchedule(mdoels.Model):
+	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
+	startdate = models.DateField()
