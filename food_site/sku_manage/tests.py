@@ -59,7 +59,8 @@ class ForeignKeyTests(TransactionTestCase):
 		sku.save()
 		ml = models.ManufacturingLine(name='Soup Line', shortname='SL1')
 		ml.save()
-		models.SkuMfgLine(sku=sku, mfg_line=ml)
+		models.SkuMfgLine(sku=sku, mfg_line=ml).save()
+		self.assertIs(models.SkuMfgLine.objects.count(), 1)
 
 
 	def test_skumfgline_missing_sku(self):
@@ -70,7 +71,8 @@ class ForeignKeyTests(TransactionTestCase):
 		sku = models.SKU(name='Can O Soup', sku_num=0, case_upc=0, unit_upc=13, unit_size='32oz', units_per_case=16, product_line=pl, formula=fo, mfg_rate=1.0)
 		ml = models.ManufacturingLine(name='Soup Line', shortname='SL1')
 		ml.save()
-		models.SkuMfgLine(sku=sku, mfg_line=ml)
+		with self.assertRaisesMessage(ValueError, 'save() prohibited'):
+			models.SkuMfgLine(sku=sku, mfg_line=ml).save()
 
 	def test_skumfgline_missing_mfgline(self):
 		pl = models.ProductLine(name='Soups')
@@ -80,7 +82,8 @@ class ForeignKeyTests(TransactionTestCase):
 		sku = models.SKU(name='Can O Soup', sku_num=0, case_upc=0, unit_upc=13, unit_size='32oz', units_per_case=16, product_line=pl, formula=fo, mfg_rate=1.0)
 		sku.save()
 		ml = models.ManufacturingLine(name='Soup Line', shortname='SL1')
-		models.SkuMfgLine(sku=sku, mfg_line=ml)
+		with self.assertRaisesMessage(ValueError, 'save() prohibited'):
+			models.SkuMfgLine(sku=sku, mfg_line=ml).save()
 
 
 class UniquenessTests(TransactionTestCase):
