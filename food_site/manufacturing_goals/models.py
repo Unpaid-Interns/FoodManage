@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty
 from django.contrib.auth.models import User
@@ -18,3 +20,6 @@ class ManufacturingQty(models.Model):
 class ScheduleItem(mdoels.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
 	start = models.DateTimeField()
+
+	def duration(self):
+		return timedelta(hours=(self.mfgqty.sku.mfg_rate*self.mfgqty.caseqty))
