@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-	<h1>Filter Ingredients for Report:</h1>
+	<h1>Filter SKUs for Mapping:</h1>
+	<h2>{{ errormsg }}</h2>
 	{% include "data/filters.html" %}
 	<br>
 	<div class="table" style="overflow-x:auto;">
@@ -19,9 +20,8 @@
 	</form>
 	<br>
 	{% if selected_table.rows %}
-		<form class="form-inline" action="{% url 'ingr_dep_gen' %}" method="post">
-			{% csrf_token %}
-			<button type="submit" name="gen_report">Generate Report - {{ selected_table.rows|length }} Result(s)</button>
+		<form class="form-inline" method="get">
+			<button type="submit" name="done">Done</button>
 		</form>
 		<div class="table" style="overflow-x:auto;">
 			{% render_table selected_table %}

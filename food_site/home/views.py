@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 # Create your views here.
 def index(request):
-	return render(request, 'home/index.html', context=None)
+	return render(request, 'home/index.html', context={'invalidlogin': False})
 
 def authin(request):
 	username = request.POST['username']
@@ -15,22 +15,19 @@ def authin(request):
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
 		login(request, user)
-		response = redirect('/')
-		return response
+		return redirect('/')
 	else:
-		response = redirect('/invalidlogin')
-		return response
+		return redirect('/invalidlogin')
 
 def invalidlogin(request):
-	return render(request, 'home/invalidlogin.html', context=None)
+	return render(request, 'home/index.html', context={'invalidlogin': True})
 
 def help(request):
 	return render(request, 'home/help.html', context=None)
 
 def authout(request):
         logout(request)
-        response = redirect('/')
-        return response
+        return redirect('/')
 
 token = None
 

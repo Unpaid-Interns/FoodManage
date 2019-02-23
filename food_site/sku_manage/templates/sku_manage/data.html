@@ -1,26 +1,25 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<h1>Data shown below:</h1>
-	{% include "sku_manage/filters.html" %}
+	{% include "data/filters.html" %}
+	<br>
 	{% if table.rows %}
-		<form method="post">
+		<form class="form-inline" method="post">
 			{% csrf_token %}
-			<p>{{ table.rows|length }} result(s)</p>
-			<input class="bbut" type="submit" name="export_data" value="Download as CSV">
+			<button type="submit" name="export_data">Download - {{ table.rows|length }} result(s)</button>
 		</form>
 	{% endif %}
-	<br>
 	<div class="table", style="overflow-x:auto;">
 		{% load render_table from django_tables2 %}
 		{% load bootstrap3 %}
 		{% render_table table %}
 	</div>
 	{% if queryset.all|length > 25 %}
-		<form method="get">
+		<form class="form-inline" method="get">
 			{% if paginated %}
-				<input class="bbut" type="submit" name="remove_pagination" value="View All Records">
+				<button type="submit" name="remove_pagination">View All Records</button>
 			{% else %}
-				<input class="bbut" type="submit" name="add_pagination" value="Paged View">
+				<button type="submit" name="add_pagination"">Paged View</button>
 			{% endif %}
 		</form>
 	{% endif %}

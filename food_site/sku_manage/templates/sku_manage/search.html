@@ -1,10 +1,10 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<div class="menu-buttons">
 		<h1>What do you wish to search for?</h1>
-		<a href="{% url 'Ingredient' %}">Ingredient Details</a> 
-		<a href="{% url 'ProductLine' %}">Product Lines</a>
-		<a href="{% url 'SKU' %}">SKU Details</a>
+		<a href="{% url 'Ingredient' %}">Ingredients</a> 
+		<a href="{% url 'ProductLine' %}">Products</a>
+		<a href="{% url 'SKU' %}">SKUs</a>
 		<a href="{% url 'formula' %}">Formulas</a>
 		<a href="{% url 'ManufacturingLine' %}">Manufacturing Lines</a>
 	</div>
