@@ -1,4 +1,4 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% load static %}
 {% block content %}
 	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
@@ -25,7 +25,7 @@
 		</div>
 	</div>
 	<!--<button onclick="saveTLData()">Save Timeline</button>-->
-	<form class="form-inline" method="POST" action="/manufacturing/">
+	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
 		{% csrf_token %}
 		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
 		<button type="submit" onclick="saveTLData()">Save Timeline</button>
