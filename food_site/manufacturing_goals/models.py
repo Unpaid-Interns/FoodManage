@@ -20,7 +20,7 @@ class ManufacturingQty(models.Model):
 class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
 	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
-	start = models.DateTimeField()
+	start = models.DateTimeField(blank=True, null=True)
 
 	def clean(self):
 		if SkuMfgLine.objects.filter(sku=self.mfgqty.sku, mfg_line=self.mfgline).count() == 0:

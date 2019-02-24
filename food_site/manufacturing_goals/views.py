@@ -3,7 +3,7 @@ from django.db.models import Q
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, IngredientQty, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
 from .tables import SKUTable, MfgQtyTable
-from .models import ManufacturingQty, ManufacturingGoal
+from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
 from django.views import generic
 from django.forms import inlineformset_factory
@@ -38,7 +38,6 @@ def manufacturing(request):
 				# Calculation and report
 				mq_dict = dict()
 				iqtotalslist = list()
-				#iqtotalslist_pkgs = list()
 				mq_dict["sku"] = str(sku)
 				mq_dict["sku_num"] = sku.sku_num
 				mq_dict["unit_size"] = sku.unit_size
@@ -210,6 +209,15 @@ def manufdetails(request):
 def timeline(request):
 	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
 	form = ManufacturingSchedForm()
+	'''scheditems = ScheduleItem.objects.all()
+	tldata_input = list()
+	if not scheditems:
+		tldata_input = []'''
+	'''
+	else:
+	for s in scheditems:
+		populate js with things
+	'''
 	if request.method == "POST":
 		form = ManufacturingSchedForm(request.POST)
 		if form.is_valid():
