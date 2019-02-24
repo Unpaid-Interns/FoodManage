@@ -9,7 +9,7 @@
     <p>{{ manufacturingline.skumfgline_set.all|length }} SKUs:</p>
     <ul>
     	{% for choice in manufacturingline.skumfgline_set.all %}
-        	<li><a class="detail_list" href="{% url 'sku_detail' choice.sku.pk %}"> {{ choice.sku }} (SKU# = {{ choice.sku.sku_num }})</a></li>
+        	<li><a class="detail_list" href="{% url 'sku_detail' choice.sku.pk %}"> {{ choice.sku }}</a></li>
     	{% endfor %}
     </ul>
 {% endblock content %}

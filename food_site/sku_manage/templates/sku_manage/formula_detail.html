@@ -16,7 +16,7 @@
     <p>{{ formula.sku_set.all|length }} SKUs:</p>
     <ul>
     	{% for sku in formula.sku_set.all %}
-        	<li> <a class="detail_list" href="{% url 'sku_detail' sku.pk %}">{{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
+        	<li> <a class="detail_list" href="{% url 'sku_detail' sku.pk %}">{{ sku }}</a></li>
     	{% endfor %}
     </ul>
 {% endblock content %}
