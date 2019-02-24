@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load ex_tags %}
+{% block content %}
+
+    <div class="inline">
+        <h1>{{ manufacturingline }}</h1>
+        <button onclick="window.print()"><i class="fa fa-print"></i></button>
+    </div>
+    <h2>Time Span</h2>
+    <form class="form-inline" method="get">
+        <p>Start:</p>
+        <input class="narrow" name="starttime" type="date">
+        <p>End:</p>
+        <input class="narrow" name="endtime" type="date">
+        <button type="submit"><i class="fa fa-arrow-right"></i></button>
+    </form>
+    <h2>Agenda</h2>
+    <ol>
+        {% for item in schedule_items %}
+            <li>{{ item.mfgqty.sku }}: {{ item.mfgqty.caseqty }} Cases</li>
+            <ul>
+                <li>Start: {{ item.start }}</li>
+                <li>End: {{ item.end }}</li>
+                <li>{{ item.duration|hours }} manufacturing hours</li>
+                <li>Ingredients</li>
+                <ul>
+                    {% for choice in item.mfgqty.sku.formula.ingredientqty_set.all %}
+                        <li>{{ choice.ingredient }}: **units** {{ choice.quantity|mult:item.mfgqty.caseqty }} packages</li>
+                    {% endfor %}
+                </ul>
+            </ul>
+        {% endfor %}
+    </ol>
+    <h2>Ingredients Summary</h2>
+    <ul>
+        {% for ingredient, quantity in ingredients.items %}
+            <li>{{ ingredient.name }} (INGR#{{ ingredient.number }}): **units** {{ quantity }} packages</li>
+        {% endfor %}
+    </ul>
+{% endblock content %}
+

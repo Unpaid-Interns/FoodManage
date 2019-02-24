@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ManufacturingQty, ManufacturingGoal
+from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from sku_manage.admin import admin_site
 
 class ManufacturingQtyInline(admin.TabularInline):
@@ -11,3 +11,4 @@ class ManufacturingGoalAdmin(admin.ModelAdmin):
 	inlines = [ManufacturingQtyInline]
 
 admin_site.register(ManufacturingGoal, ManufacturingGoalAdmin)
+admin_site.register(ScheduleItem)
