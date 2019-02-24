@@ -111,6 +111,7 @@ def manufqty(request):
 			context['paginated'] = False
 
 		if 'done' in request.GET:
+			print(mfgqtys)
 			return redirect('manufacturing')
 
 	input_table = SKUTable(queryset)
