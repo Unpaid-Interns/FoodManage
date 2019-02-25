@@ -27,6 +27,7 @@ def ingr_dep_menu(request):
 		'per_page': 25,
 	}
 	selected_set = Ingredient.objects.filter(id__in=request.session.get('ingredients'))
+	queryset = queryset.exclude(id__in=request.session.get('ingredients'))
 	if request.method == 'GET':
 		if 'keyword' in request.GET:
 			keyword = request.GET['keyword']

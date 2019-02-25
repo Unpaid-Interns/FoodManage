@@ -130,6 +130,9 @@ class IngredientQty(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
     quantity = models.FloatField(validators=[validate_gt_zero])
 
+    class Meta:
+        unique_together = ("formula", "ingredient")
+
     def get_serializable_string_array(self):
         return [str(self.formula.number), str(self.ingredient.number), str(self.quantity)]
 
@@ -137,3 +140,6 @@ class IngredientQty(models.Model):
 class SkuMfgLine(models.Model):
     sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
     mfg_line = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ("sku", "mfg_line")
