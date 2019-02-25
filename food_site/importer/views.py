@@ -75,6 +75,7 @@ def commit_to_database(request, messagenum):
                 matching_tuple = conflict_tuple
                 data = conflict_tuple[0]
                 conflict_database_model = conflict_tuple[1]
+                shortnames_array = conflict_tuple[3]
                 # update conflict database model with data's fields
                 if data.__class__.__name__ == "SKU":
                     conflict_database_model.sku_num = data.sku_num
@@ -92,6 +93,7 @@ def commit_to_database(request, messagenum):
                     conflict_database_model.formula_scale = data.formula_scale
                     conflict_database_model.mfg_rate = data.mfg_rate
                     conflict_database_model.comment = data.comment
+                    fix_mfg_lines(conflict_database_model, shortnames_array)
                 elif data.__class__.__name__ == "Ingredient":
                     conflict_database_model.number = data.number
                     conflict_database_model.name = data.name
@@ -130,6 +132,7 @@ def commit_all_to_database(request):
             matching_tuple = conflict_tuple
             data = conflict_tuple[0]
             conflict_database_model = conflict_tuple[1]
+            shortnames_array = conflict_tuple[3]
             # update conflict database model with data's fields
             if data.__class__.__name__ == "SKU":
                 conflict_database_model.sku_num = data.sku_num
@@ -147,6 +150,8 @@ def commit_all_to_database(request):
                 conflict_database_model.formula_scale = data.formula_scale
                 conflict_database_model.mfg_rate = data.mfg_rate
                 conflict_database_model.comment = data.comment
+                conflict_database_model.save()
+                fix_mfg_lines(conflict_database_model, shortnames_array)
             elif data.__class__.__name__ == "Ingredient":
                 conflict_database_model.number = data.number
                 conflict_database_model.name = data.name
@@ -155,14 +160,29 @@ def commit_all_to_database(request):
                 conflict_database_model.package_size_units = data.package_size_units
                 conflict_database_model.cost = data.cost
                 conflict_database_model.comment = data.comment
+                conflict_database_model.save()
             elif data.__class__.__name__ == "ProductLine":
                 pass
             elif data.__class__.__name__ == "IngredientQty":
                 pass
-            conflict_database_model.save()
     request.session['serializable_conflict_dict'] = dict()
     request.session['result_message'] = "All entries committed to database"
     return redirect("message_displayer")
+
+
+def fix_mfg_lines(sku, shortnames_array):
+    # Delete all Sku_Mfg_Line's associated with SKU
+    models.SkuMfgLine.objects.filter(sku__sku_num=sku.sku_num).delete()
+
+    # Create all Sku_Mfg_Line's again
+    sku_mfg_line_array = []
+    for ml_shortname in shortnames_array:
+        if ml_shortname == "":
+            continue
+        _, chosen_mfg_line = CSVImport.make_sku_mfg_line(ml_shortname, sku)
+        sku_mfg_line_array.append(chosen_mfg_line)
+    if len(sku_mfg_line_array) > 0:
+        models.SkuMfgLine.objects.bulk_create(sku_mfg_line_array)
 
 
 def info(request):

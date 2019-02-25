@@ -16,5 +16,6 @@ urlpatterns = [
 	path('search/formula/<int:pk>/', views.FormulaDetailView.as_view(), name='formula_detail'),
 	path('search/manufacturingline/<int:pk>/', views.ManufacturingLineDetailView.as_view(), name='mfg_line_detail'),
 	path('authout/', views.authout, name='authout'),
-	path('populate/', views.populate, name='populate')
+	path('populate/', views.populate, name='populate'),
+	path('clear/', views.clear, name='clear'),
 ]
