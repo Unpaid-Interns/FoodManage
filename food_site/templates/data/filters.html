@@ -44,5 +44,8 @@
 			{% endfor %}
 		</select>
 	{% endif %}
+	{% if all_product_lines|length > 0 %}
+		<input type="checkbox" name="group" value="group">	
+	{% endif %}
 	<button type="submit"><i class="fa fa-search"></i></button>
 </form>
