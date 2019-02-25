@@ -10,6 +10,7 @@ from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 import json
 from django.core.exceptions import ValidationError
+from datetime import datetime
 
 @login_required
 def manufacturing(request):
@@ -31,7 +32,7 @@ def manufacturing(request):
 			for mq in goal_qty:
 				# Details about the Goal itself
 				sku = mq.sku
-				norm_qty = mq.caseqty.normalize()
+				norm_qty = mq.caseqty
 				caseqty = '{:f}'.format(norm_qty)
 				mq_info = {"name": sku.name, "sku_number": sku.sku_num, "unit_size": sku.unit_size, "units_per_case": sku.units_per_case, "case_quantity": caseqty}
 				goal_list.append(mq_info)
@@ -48,7 +49,7 @@ def manufacturing(request):
 					i_qty = iq.quantity
 					formula_scale = sku.formula_scale
 					ipkg_size = ingredient.package_size
-					ingtotalunits = (i_qty * float(mq.caseqty) * formula_scale)
+					ingtotalunits = (i_qty * mq.caseqty * formula_scale)
 					ingtotalpkgs = (ingtotalunits/ipkg_size)
 					iqtotalslist.append({ingredient.name: ['{:g}'.format(ingtotalunits)+' '+ingredient.package_size_units, '{:g}'.format(ingtotalpkgs)+' packages']})
 				mq_dict["ingredienttotals"] = iqtotalslist
@@ -111,7 +112,10 @@ def manufqty(request):
 			context['paginated'] = False
 
 		if 'done' in request.GET:
-			print(mfgqtys)
+			# print(mfgqtys)
+			for m in mfgqtys:
+				sch_item = ScheduleItem(mfgqty=m)
+				sch_item.save()
 			return redirect('manufacturing')
 
 	input_table = SKUTable(queryset)
@@ -210,22 +214,78 @@ def manufdetails(request):
 def timeline(request):
 	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
 	form = ManufacturingSchedForm()
-	'''scheditems = ScheduleItem.objects.all()
-	tldata_input = list()
+	scheditems = ScheduleItem.objects.all()
+	tldata_list = list()
+	data_list = list()
+	mfgl_list = list()
+	mfdurations = list()
 	if not scheditems:
-		tldata_input = []'''
-	'''
+		pass
 	else:
-	for s in scheditems:
-		populate js with things
-	'''
+		for s in scheditems:
+			# populate js with data from existing schedule items
+			data_item = dict()
+			data_item['content'] = '' + s.mfgqty.goal.name + ': ' + s.mfgqty.sku.name + ', due by ' + '{:%Y-%m-%d}'.format(s.mfgqty.goal.deadline)
+			data_item['id'] = s.pk
+			if s.mfgline:
+				data_item['group'] = s.mfgline.pk
+			data_item['type'] = 'range'
+			if s.start:
+				data_item['start'] = s.start.strftime("%Y-%m-%dT%H:%M:%S%z")
+				data_item['end'] = s.end().strftime("%Y-%m-%dT%H:%M:%S%z")
+				tldata_list.append(data_item)
+			else:
+				data_list.append(data_item)
+			duration = dict()
+			duration['id'] = s.pk
+			# raw, how many hours it takes via calculated time
+			ttl_hrs = s.duration().seconds / 3600.0
+			# 8 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
+			ttl_wrkd = ttl_hrs // 8
+			hrs = (ttl_wrkd * 24) # gives the appearance of multiple days on the timeline
+			# and the remainder is the additional hours needed to add on
+			hrs = hrs + (ttl_hrs % 8)
+			duration['duration'] = hrs
+			mfdurations.append(duration)
+		for mfgl in ManufacturingLine.objects.all():
+			mfg_lines = dict()
+			mfg_lines['content'] = '' + mfgl.name + ' (' + mfgl.shortname + ')'
+			mfg_lines['id'] = mfgl.pk
+			mfgl_list.append(mfg_lines)
+	#print("Data List (not in timeline)")	
+	#print(data_list)
+	#print("TL Data List (in timeline)")
+	#print(tldata_list)
+	#print("Manuf. Lines (groups in timeline)")
+	#print(mfgl_list)
+	
 	if request.method == "POST":
 		form = ManufacturingSchedForm(request.POST)
 		if form.is_valid():
 			data = form.cleaned_data['data']
 			d = json.loads(data)
+			ids_in_tl = list()
 			for item in d:
 				# actually store the information
-				print(item)
+				#print(item)
+				schedItem = ScheduleItem.objects.get(pk=item['id'])
+				schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
+				if len(item['start'].split('.'))>1:
+					schedItem.start = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+				elif len(item['start'].split(':'))>=4:
+					schedItem.start = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+				else:
+					schedItem.start = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
+				ids_in_tl.append(item['id'])
+				schedItem.save()
+			for i in tldata_list:
+				# if it WAS in the TL, and now its not, remove info
+				if i['id'] in ids_in_tl:
+					pass
+				else:
+					schedItem2 = ScheduleItem.objects.get(pk=i['id'])
+					schedItem2.mfgline = None
+					schedItem2.start = None
+					schedItem2.save()
 			return redirect('manufacturing')
-	return render(request, 'manufacturing_goals/manufscheduler.html', {'form': form})
+	return render(request, 'manufacturing_goals/manufscheduler.html', {'form': form, 'data_list': data_list, 'tldata_list': tldata_list, 'mfgl_list': mfgl_list, 'mfdurations': mfdurations})

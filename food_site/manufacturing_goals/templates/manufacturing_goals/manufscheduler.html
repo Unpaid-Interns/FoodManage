@@ -4,7 +4,7 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
 	<script type="text/javascript" src="{% static 'manufacturing_goals/vis.min.js' %}"></script>
 	<style>
-		li::before {
+		li.item::before {
 			content: "+";
 			padding-right: 8px;
 			color: blue;
@@ -14,13 +14,19 @@
 	<div class='items-panel'>
 		<div class='side'>
 			<!-- This should pull from the db -->
-			<h3>Items:</h3>
+			<h3>Unscheduled Manufacturing Activities:</h3>
 			<ul class="items" style="list-style: none;">
 				<!-- there should be a way to change the coloration here -->
 				<!-- as well as a second change if deleted on timeline -->
 				<!-- literally cannot get drag&drop working. I think it's busted on visjs' side -->
-				<li class="item" id="activity-2" onclick="addToTimeline('item 2')">item 2</li>
-				<li class="item" id="activity-3" onclick="addToTimeline('item 3')">item 3</li>
+				<!--<li class="item" id="activity-2" onclick="addToTimeline('item 2')">item 2</li>
+				<li class="item" id="activity-3" onclick="addToTimeline('item 3')">item 3</li>-->
+				{% for d in data_list %}
+				<li class="item" id="{{ d.id }}" onclick="addToTimeline({{ d.id }})">{{ d.content }}</li>
+				{% endfor %}
+				{% for tld in tldata_list %}
+				<li class="item" id="{{ tld.id }}" onclick="addToTimeline({{ tld.id }})" style="display:none;">{{ tld.content }}</li>
+				{% endfor %}
 			</ul>
 		</div>
 	</div>
@@ -30,16 +36,28 @@
 		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
 		<button type="submit" onclick="saveTLData()">Save Timeline</button>
 	</form>
+	<button onclick="showHelp()">Help</button>
+	<div id="help" style="display:none;">
+		<ul>
+			<li>Click the items under "Unscheduled Manufacturing Activities" to add the selected activity to the manufacturing schedule.</li>
+			<li>Click the items in the schedule to select them.</li>
+			<li>You can drag a selected item in the schedule to a different location to change it's placement in time.</li>
+			<li>You can drag a selected item across manufacturing lines to change its associated manufacturing line.</li>
+			<li>You can select an item, then click the "x" next to it to remove the item from the schedule. This returns it to the list of unscheduled manufacturing activities.</li>
+		</ul>
+	</div>
 	<script type="text/javascript">
 		var container = document.getElementById('visualization');
 		// eventually want this to be pulled from the database of manufacturing lines
-		var groups = new vis.DataSet([
-			{id: 1, content: 'group 1'}
-		]);
+		var groups = new vis.DataSet();
+		{% for mld in mfgl_list %}
+		groups.add([{id: {{ mld.id }}, content: '{{ mld.content }}'}]);
+		{% endfor %}
 		// and this from the manufacturing goals/activities?
-		var items = new vis.DataSet([
-			{id: 1, content: 'item 1', start: '2019-02-22', end: '2019-02-23', group: 1}
-		]);
+		var items = new vis.DataSet();
+		{% for tld in tldata_list %}
+		items.add([{content: '{{ tld.content }}', id: {{ tld.id }}, group: {{ tld.group }}, type: '{{ tld.type }}', start: '{{ tld.start }}', end: '{{ tld.end }}'}]);
+		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
 		// also may want to consider hiding non-business hours?
@@ -76,6 +94,10 @@
 			onDropObjectOnItem: function(objectData, item, callback) {
 				if (!item){ return; }
 				alert('dropped object: "' + objectData.content + '" on item: "' + item.content + '"');
+			},
+			onRemove: function(item, callback) {
+				document.getElementById(item.id).style.display = "block";
+				callback(item);
 			}
 		};
 		var timeline = new vis.Timeline(container, items, groups, options);
@@ -96,8 +118,15 @@
 			//modal.style.display = "block";
 			// presumably group will also be determined by db
 			//console.log(visibleStart);
-			items.add([{id: nextItem, content: id, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + 1, visibleStart.getMinutes(), 0, 0), type: 'range', group: 1}]);
-			nextItem++;
+			var dur = 1;
+			{% for md in mfdurations %}
+			if({{ md.id }} == id){
+			dur = {{ md.duration }};	
+			}
+			{% endfor %}
+			items.add([{id: id, content: document.getElementById(id).innerHTML, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + dur, visibleStart.getMinutes(), 0, 0), type: 'range', group: 1}]);
+			//nextItem++;
+			document.getElementById(id).style.display = "none";
 		}
 
 		function saveTLData() {
@@ -111,5 +140,15 @@
 			//console.log(JSON.stringify(data, null, 2));
 		}
 		// also need to load data from db
+		var shown = false;
+		function showHelp() {
+			if(!shown) {
+				document.getElementById("help").style.display = "block";
+				shown = true;
+			} else {
+				document.getElementById("help").style.display = "none";
+				shown = false;
+			}
+		}
 	</script>
 {% endblock content %}

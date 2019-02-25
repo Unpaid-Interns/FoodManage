@@ -25,7 +25,7 @@ class ManufacturingQty(models.Model):
 
 class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
-	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
+	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT, blank=True, null=True)
 	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 
 	def clean(self):
