@@ -160,12 +160,10 @@ def SKUView(request):
 				if obj.product_line not in pline:
 					pline.append(obj.product_line)
 			context['numtab'] = True
-			number = 0
 			for n in pline:
-				number = number+1
 				temp = list()
 				for obj in queryset:
-					if obj.product_line is n:
+					if obj.product_line.pk == n.pk:
 						temp.append(obj)
 				tlist.append(SKUTable(temp))
 			context['t'] = tlist			
