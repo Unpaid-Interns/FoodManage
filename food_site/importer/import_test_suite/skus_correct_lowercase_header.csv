@@ -1,4 +1,4 @@
-SKU#,Name,Case UPC,Unit UPC,Unit size,Count per case,PL Name,Formula#,Formula factor,ML Shortnames,Rate,Comment
+sku#,name,case upc,unit upc,unit size,count per case,pl Name,formula#,formula factor,Ml Shortnames,Rate,comment
 1001,Burger Beef,042272010264,725272730706,600g,50,Hamburger,1001,1,"line1",1,
 1002,Burger Turkey,987654321098,705632085943,250g,80,Hamburger,1001,1,"line1",1,
 1003,Burger Vegan,020357122682,697929110035,1000g,60,Hamburger,1001,1,"line1",1,Burger for vegan

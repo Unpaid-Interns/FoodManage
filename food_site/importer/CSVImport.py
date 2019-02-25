@@ -182,7 +182,8 @@ class CSVImport:
             for conflict_tuple in conflict_records_list:
                 data = conflict_tuple[0]
                 message = conflict_tuple[2]
-                new_conflict_records_list.append([data.get_serializable_string_array(), message])
+                shortnames_array = conflict_tuple[3]
+                new_conflict_records_list.append([data.get_serializable_string_array(), message, shortnames_array])
             serializable_dict[file_prefix] = new_conflict_records_list
         return serializable_dict
 
@@ -197,6 +198,7 @@ class CSVImport:
                 data_string_array = conflict_tuple[0]
                 # print(len(data_string_array))
                 message = conflict_tuple[1]
+                shortnames_array = conflict_tuple[2]
                 data = None
                 if len(data_string_array) + 1 == len(headerDict[validFilePrefixes[0] + ".csv"]):
                     # print("HELLO FROM GET SERIAZABLE")
@@ -248,7 +250,7 @@ class CSVImport:
                 if conflict_database_data is None:
                     # print("RETURNING EARLY 2")
                     return original_dict
-                new_conflict_records_list.append([data, conflict_database_data, message])
+                new_conflict_records_list.append([data, conflict_database_data, message, shortnames_array])
             # print(new_conflict_records_list)
             original_dict[file_prefix] = new_conflict_records_list
         return original_dict
@@ -283,6 +285,8 @@ def read_file(filename, file_prefix, data_dict):
             has_rows = False
             used_formulas_neg_numbers_list = [-1]
             for row in data_reader:
+                sku_mfg_lines_array = []
+                shortname_array = []
                 has_rows = True
                 if not header_check_complete:
                     header_valid, header_issue = header_check(row, header_correct, file_prefix)
@@ -295,7 +299,7 @@ def read_file(filename, file_prefix, data_dict):
                 # Call appropriate helper method
                 temp_data = "ERROR: Parser methods failed. You should not see this error, please alert an admin."
                 if file_prefix == validFilePrefixes[0]:
-                    temp_data, sku_mfg_lines_array = skus_parser_helper(row, num_records_parsed, data_dict)
+                    temp_data, sku_mfg_lines_array, shortname_array = skus_parser_helper(row, num_records_parsed, data_dict)
                 elif file_prefix == validFilePrefixes[1]:
                     temp_data = ingredients_parser_helper(row, num_records_parsed)
                 elif file_prefix == validFilePrefixes[2]:
@@ -312,6 +316,7 @@ def read_file(filename, file_prefix, data_dict):
                                                             num_records_parsed)
                 if matching_check == "":
                     database_record_check, conflicting_database_model = check_for_identical_record(temp_data,
+                                                                                                   shortname_array,
                                                                                                    file_prefix,
                                                                                                    num_records_parsed)
                     if database_record_check == "":
@@ -327,7 +332,8 @@ def read_file(filename, file_prefix, data_dict):
                         num_records_parsed += 1
                         num_record_ignored += 1
                     elif "CONFLICT:" in database_record_check:
-                        conflicting_records_tpl.append([temp_data, conflicting_database_model, database_record_check])
+                        conflicting_records_tpl.append([temp_data, conflicting_database_model, database_record_check,
+                                                        shortname_array])
                         num_records_parsed += 1
                         num_record_conflicted += 1
                     else:
@@ -418,54 +424,56 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
     #                  "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"]
     #                   7              8                9               10      11
 
+    shortname_array = []
+
     if len(row) != len(headerDict[validFilePrefixes[0] + ".csv"]):
         return ("ERROR: Problem with number of entries in SKU CSV file at row #" + str(num_records_parsed + 2) +
                 ", needs " + str(len(headerDict[validFilePrefixes[0] + ".csv"])) +
-                " entries but has " + str(len(row)) + " entries."), None
+                " entries but has " + str(len(row)) + " entries."), None, shortname_array
     if row[0] == "":
         row[0] = "-1"
     else:
         if not integer_check(row[0]):
             return ("ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
-                    + "and col #1."), None
+                    + "and col #1."), None, shortname_array
     for i in range(1, 9):
         if row[i] == "":
             if i == 8:
                 row[i] = "1"
             else:
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is required but is blank."), None
+                        + str(i + 1) + ". Entry in this row/column is required but is blank."), None, shortname_array
         if i in [2, 3, 8, 10]:
             if not float_check(row[i]):
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                         + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required to be a "
-                                                                   "decimal value but is not."), None
+                                                                   "decimal value but is not."), None, shortname_array
             if i == 2:
                 try:
                     models.validate_upc(row[i])
                 except ValidationError as error_message:
                     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                             + str(i + 1) + ". case_upc '" + str(row[i]) + "' in this row/col is invalid/does not conform"
-                            " to standards. " + error_message.message + "."), None
+                            " to standards. " + error_message.message + "."), None, shortname_array
             if i == 3:
                 try:
                     models.validate_upc(row[i])
                 except ValidationError as error_message:
                     return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                             + str(i + 1) + ". unit_upc'" + str(row[i]) + "' in this row/col is invalid/does not conform"
-                            " to standards. " + error_message.message + "."), None
+                            " to standards. " + error_message.message + "."), None, shortname_array
         if i in [5]:
             if not integer_check(row[i]):
                 return ("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required "
-                        "to be a integer value but is not."), None
+                        "to be a integer value but is not."), None, shortname_array
     pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
     if not pl_success:
-        return chosen_product_line_or_error_message, None
+        return chosen_product_line_or_error_message, None, shortname_array
 
     formula_success, chosen_formula_or_error_message = choose_formula_for_sku(int(row[7]), data_dict)
     if not formula_success:
-        return chosen_formula_or_error_message, None
+        return chosen_formula_or_error_message, None, shortname_array
 
     sku = models.SKU(sku_num=int(row[0]), name=row[1], case_upc=row[2], unit_upc=row[3],
                      unit_size=row[4], units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
@@ -474,14 +482,24 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
 
     mfg_line_array = []
     for ml_shortname in row[9].split(','):
+        if ml_shortname == "":
+            continue
+        shortname_array.append(ml_shortname)
+        for line in mfg_line_array:
+            if line.mfg_line.shortname == ml_shortname:
+                return ("ERROR: Problem with 'ML Shortnames' in SKU CSV file in row #" + str(num_records_parsed + 2)
+                    + " and col #" + str(i + 1) + ". Entry '" + ml_shortname + "' in the list of shortnames appears "
+                                                                               "multiple times in file."), None, \
+                       shortname_array
         ml_success, chosen_mfg_line = make_sku_mfg_line(ml_shortname, sku)
         if not ml_success:
             return ("ERROR: Problem with 'ML Shortnames' in SKU CSV file in row #" + str(num_records_parsed + 2)
                     + " and col #" + str(i + 1) + ". Entry '" + ml_shortname + "' in the list of shortnames does "
-                                                                               "not exist in the database."), None
+                                                                               "not exist in the database."), None, \
+                   shortname_array
         else:
             mfg_line_array.append(chosen_mfg_line)
-    return sku, mfg_line_array
+    return sku, mfg_line_array, shortname_array
 
 
 def choose_product_line_for_sku(product_line_string, data_dict):
@@ -528,7 +546,7 @@ def choose_formula_for_sku(formula_number, data_dict):
     if chosen_formula is not None:
         return True, chosen_formula
     else:
-        return False, ("Import failed for SKU CSV file. \nERROR: Formula number '" + str(formula_number)
+        return False, ("ERROR: Formula number '" + str(formula_number)
                        + "' in SKU CSV file is not a valid formula. It is not in the database "
                          "or in a formulas CSV file attempting to be imported.")
 
@@ -660,8 +678,12 @@ def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_dat
     if not ing_chosen_successfully:
         return error_message, None, None
 
-    formula_chosen_successfully, chosen_formula = get_formula_if_exists_for_formula(int(row[0]), data_dict,
+    formula_chosen_successfully, chosen_formula, formula_error_message = get_formula_if_exists_for_formula(int(row[0]),
+                                                                                    row[1],
+                                                                                    data_dict,
                                                                                     formula_local_data, True)
+    if formula_error_message != "":
+        return formula_error_message, None, None
     if not formula_chosen_successfully:
         chosen_formula = models.Formula(name=row[1], number=int(row[0]), comment=row[4])
         return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
@@ -671,36 +693,52 @@ def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_dat
                                     quantity=float(row[3])), None, used_neg_numbers_list
 
 
-def get_formula_if_exists_for_formula(formula_number, data_dict, formula_local_data, check_local):
+def get_formula_if_exists_for_formula(formula_number, formula_name, data_dict, formula_local_data, check_local):
     chosen_formula = None
     formula_number_in_database = False
     formula_number_in_local = False
 
-    # check if ingredient_number for i is in database
+    # check if formula_number for i is in database
     temp_formula_list = models.Formula.objects.filter(number=formula_number)
     if len(temp_formula_list) > 0:
+        if temp_formula_list[0].name != formula_name:
+            return False, None, ("ERROR: Formula number being imported with number '" + str(
+                formula_number) + "' with name '"
+                                 + formula_name + "' in violation with database formula with number '"
+                                 + str(temp_formula_list[0].number) + "' and name '"
+                                 + temp_formula_list[0].name + "'.")
         formula_number_in_database = True
         chosen_formula = temp_formula_list[0]
 
     if check_local:
-        # check if ingredient_number for i is in to-be-imported stuff
+        # check if formula_number for i is in to-be-imported stuff
         if "formulas_extra" in data_dict:
             for formula in data_dict["formulas_extra"]:
                 if formula.number == formula_number:
+                    if formula.name != formula_name:
+                        return False, None, ("ERROR: Formula number being imported with number '" + str(
+                            formula_number) + "' with name '"
+                                + formula_name + "' in violation with database formula with number '"
+                                + str(formula.number) + "' and name '" + formula.name + "'.")
                     formula_number_in_local = True
                     chosen_formula = formula
         if len(formula_local_data) > 0:
             for formula in formula_local_data:
                 if formula.number == formula_number:
+                    if formula.name != formula_name:
+                        return False, None, ("ERROR: Formula number being imported with number '" + str(
+                            formula_number) + "' with name '"
+                                + formula_name + "' in violation with database formula with number '"
+                                + str(formula.number) + "' and name '" + formula.name + "'.")
                     formula_number_in_local = True
                     chosen_formula = formula
 
     formula_number_valid = formula_number_in_database or formula_number_in_local
 
     if not formula_number_valid:
-        return False, None
+        return False, None, ""
 
-    return True, chosen_formula
+    return True, chosen_formula, ""
 
 
 def choose_ingredient_for_formula(ing_number, data_dict):
@@ -896,20 +934,18 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
                 return "ERROR: Duplicate name '" + new_record.name + "' in Product Lines CSV file at lines '" \
                        + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
         if file_prefix == validFilePrefixes[3]:
-            # if new_record.formula.name == record.name:
-            #     return "ERROR: Duplicate formula name '" + str(new_record.name) \
-            #            + "' in Formulas CSV file at lines '" + str(row_num) + "' and '" \
-            #            + str(num_records_imported + 2) + "'"
-            # if new_record == record.ingredient.number:
-            #     return "ERROR: Duplicate ingredient number '" \
-            #            + str(new_record.ingredient.number) \
-            #            + "' in Formulas CSV file at lines '" + str(row_num) + "' and '" \
-            #            + str(num_records_imported + 2) + "'"
-            pass
+            if (record.formula.number == new_record.formula.number and record.formula.name == new_record.formula.name
+                    and record.ingredient.number == new_record.ingredient.number
+                    and record.quantity != new_record.quantity):
+                return ("ERROR: Formula to be imported with number '" + str(new_record.formula.number) + "', name '"
+                        + new_record.formula.name + "', and ingredient number '" + str(new_record.ingredient.number)
+                        + "', and quantity '" + str(new_record.quantity) + "' at line '" + str(num_records_imported + 2)
+                        + "' conflicts with similar formula in file with same fields except with quantity '"
+                        + str(record.quantity) + "' at line '" + str(row_num) + "'.")
     return ""
 
 
-def check_for_identical_record(record, file_prefix, number_records_imported):
+def check_for_identical_record(record, shortname_array, file_prefix, number_records_imported):
     """
     Checks for identical and/or conflicting records in the database
     :param record: The record being parsed
@@ -929,7 +965,14 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
                     item.mfg_rate == record.mfg_rate and
                     item.comment == record.comment):
-                return "identical", None
+                sku_mfg_pass, sku_mfg_conflict_message = sku_mfg_line_check(record, shortname_array, item,
+                                                                            number_records_imported)
+                print(sku_mfg_pass)
+                print(sku_mfg_conflict_message)
+                if sku_mfg_pass:
+                    return "identical", None
+                else:
+                    return sku_mfg_conflict_message, item
             elif (item.name == record.name and record.sku_num == -1 and
                   item.case_upc == record.case_upc and item.unit_upc == record.unit_upc
                   and item.unit_size == record.unit_size and item.units_per_case ==
@@ -937,7 +980,12 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                   item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
                   item.mfg_rate == record.mfg_rate and
                   item.comment == record.comment):
-                return "identical", None
+                sku_mfg_pass, sku_mfg_conflict_message = sku_mfg_line_check(record, shortname_array, item,
+                                                                            number_records_imported)
+                if sku_mfg_pass:
+                    return "identical", None
+                else:
+                    return sku_mfg_conflict_message, item
         list2 = models.SKU.objects.filter(case_upc=record.case_upc)
         list3 = models.SKU.objects.filter(sku_num=record.sku_num)
         if len(list2) > 0:
@@ -1016,9 +1064,47 @@ def check_for_identical_record(record, file_prefix, number_records_imported):
                     and item.ingredient.number == record.ingredient.number
                     and item.quantity == record.quantity):
                 return "identical", None
-        # Do we need to check or non-identical match here?
+            if (item.formula.number == record.formula.number and item.formula.name == record.formula.name
+                    and item.ingredient.number == record.ingredient.number
+                    and item.quantity != record.quantity):
+                return ("ERROR: Formula to be imported with number '" + str(record.formula.number) + "', name '"
+                        + record.formula.name + "', and ingredient number '" + str(record.ingredient.number)
+                        + "', and quantity '" + str(record.quantity) + "' at line '" + str(number_records_imported + 2)
+                        + "' conflicts with similar formula in database with same fields except with quantity '"
+                        + str(item.quantity) + "'."), None
         models.IngredientQty.objects.filter(formula__number=record.formula.number).delete()
     return "", None
+
+
+def sku_mfg_line_check(import_record, local_shortname_array, database_record, number_records_imported):
+    sku_mfg_database_list = models.SkuMfgLine.objects.filter(sku__sku_num=import_record.sku_num)
+    shortname_database_array = []
+    for sku_mfg_line in sku_mfg_database_list:
+        shortname_database_array.append(sku_mfg_line.mfg_line.shortname)
+    for local_shortname in local_shortname_array:
+        if local_shortname not in shortname_database_array:
+            return False, ("CONFLICT: Conflicting SKU record found with name '" + import_record.name
+                           + "' and Case UPC '"
+                   + str(import_record.case_upc)
+                   + "', in conflict with database entry with name '"
+                   + database_record.name + "' and Case UPC '"
+                   + str(database_record.case_upc) +
+                   "' at line '" +
+                   str(number_records_imported + 2) + "' in the SKU CSV file. List of shortnames does not match. "
+                   "Shortname '" + local_shortname + "' in SKU being imported "
+                   "is not part of the SKU in the database.")
+    for shortname_db in shortname_database_array:
+        if shortname_db not in local_shortname_array:
+            return False, ("CONFLICT: Conflicting SKU record found with name '" + import_record.name + "' and Case UPC '"
+                   + str(import_record.case_upc)
+                   + "', in conflict with database entry with name '"
+                   + database_record.name + "' and Case UPC '"
+                   + str(database_record.case_upc) +
+                   "' at line '" +
+                   str(number_records_imported + 2) + "' in the SKU CSV file. List of shortnames does not match. "
+                   "Shortname '" + shortname_db + "' in the database "
+                   "is not part of the SKU being imported.")
+    return True, ""
 
 
 def sort_filename_array(filename_array):
@@ -1081,7 +1167,8 @@ def clean_data(data_dict):
 
 def fix_ingredient_qty(data_dict):
     for item in data_dict[validFilePrefixes[3]]:
-        formula_chosen_successfully, chosen_formula = get_formula_if_exists_for_formula(item.formula.number, data_dict,
+        formula_chosen_successfully, chosen_formula, error_message = get_formula_if_exists_for_formula(item.formula.number,
+                                                                                        item.formula.name, data_dict,
                                                                                         None, False)
         if formula_chosen_successfully:
             item.formula = chosen_formula
