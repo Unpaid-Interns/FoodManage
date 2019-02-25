@@ -127,7 +127,7 @@ def goal_add(request, pk):
 		caseqty = request.POST['case_qty']
 		ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
 		request.session['errormsg'] = ''
-	except ValidationError:
+	except (ValueError, ValidationError):
 		request.session['errormsg'] = 'Include Case Quantity'
 	return redirect('manufqty')
 
