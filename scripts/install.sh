@@ -86,6 +86,7 @@ pip install --upgrade django
 pip install --upgrade django-tables2
 pip install --upgrade django-bootstrap3
 pip install --upgrade psycopg2-binary
+pip install --upgrade requests
 
 # Configure django settings
 python -c 'import random; import os; result = "".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)]); os.environ["SECRET_KEY"] = result'
