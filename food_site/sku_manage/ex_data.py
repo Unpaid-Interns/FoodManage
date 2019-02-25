@@ -63,7 +63,7 @@ def load_data():
 	tu_soup_formula.save()
 	fi_soup_formula = models.Formula(name='Fish Soup Formula')
 	fi_soup_formula.save()
-	ptc_soup_formula = models.Formula(name='Potato, Tomato, Carrot Soup Formula')
+	ptc_soup_formula = models.Formula(name='Pot Tom Carrot Soup Formula')
 	ptc_soup_formula.save()
 	p_salad_formula = models.Formula(name='Potato Salad Formula')
 	p_salad_formula.save()

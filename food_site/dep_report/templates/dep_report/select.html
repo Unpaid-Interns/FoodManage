@@ -3,22 +3,10 @@
 	<h1>Data shown below:</h1>
 	{% include "data/filters.html" %}
 	<br>
-	{% if table.rows %}
-		<form class="form-inline" method="post">
-			{% csrf_token %}
-			<button type="submit" name="export_data">Download - {{ table.rows|length }} result(s)</button>
-		</form>
-	{% endif %}
 	<div class="table", style="overflow-x:auto;">
 		{% load render_table from django_tables2 %}
 		{% load bootstrap3 %}
-		{% if numtab %}
-		{% for tab in t %}
-		{% render_table tab %}
-		{% endfor %}
-		{% else %}
 		{% render_table table %}
-		{% endif %}
 	</div>
 	{% if queryset.all|length > 25 %}
 		<form class="form-inline" method="get">

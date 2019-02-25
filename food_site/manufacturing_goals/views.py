@@ -1,12 +1,16 @@
 from django.shortcuts import render, redirect
-from sku_manage.models import Ingredient, ProductLine, SKU, IngredientQty
+from django.db.models import Q
+from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, IngredientQty, SkuMfgLine
+from django_tables2 import RequestConfig, paginators
+from .tables import SKUTable, MfgQtyTable
 from .models import ManufacturingQty, ManufacturingGoal
 from .forms import GoalsForm, GoalsChoiceForm
 from django.views import generic
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 
-@login_required(login_url='index')
+@login_required
 def manufacturing(request):
 	if request.method == 'POST':
 		form = GoalsForm(request.POST)
@@ -58,23 +62,81 @@ def manufacturing(request):
 		form2 = GoalsChoiceForm(user=request.user)
 	return render(request, "manufacturing_goals/manufacturing.html", {'form': form, 'form2': form2})
 
-@login_required(login_url='index')
+@login_required
 def manufqty(request):
-	new_id = request.session['goal_id']
-	product_lines = ProductLine.objects.all()
-	goal = ManufacturingGoal.objects.get(pk=new_id)
-	GoalInlineFormSet = inlineformset_factory(ManufacturingGoal, ManufacturingQty, fields=('sku', 'caseqty',), can_delete=False)
-	sku_list = SKU.objects.all()
-	if request.method == "POST":
-		formset = GoalInlineFormSet(request.POST, request.FILES, instance=goal)
-		if formset.is_valid():
-			formset.save()
-			return redirect('manufacturing')
-	else:
-		formset = GoalInlineFormSet(instance=goal)
-	return render(request, 'manufacturing_goals/manufqty.html', {'formset':formset, 'sku_list': sku_list, 'product_lines': product_lines})
+	context = {
+		'paginated': True,
+		'keyword': '',
+		'mfg_lines': ManufacturingLine.objects.all(),
+		'all_ingredients': Ingredient.objects.all(),
+		'selected_ingredient': None,
+		'all_product_lines': ProductLine.objects.all(),
+		'selected_product_line': None,
+		'errormsg': request.session.get('errormsg'),
+	}	
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25,
+	}
+	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+	mfgqtys = ManufacturingQty.objects.filter(goal=goal)
+	sku_list = mfgqtys.values_list('sku__id', flat=True)
+	queryset = SKU.objects.exclude(id__in=sku_list)
+	if request.method == 'GET':
+		if 'keyword' in request.GET:
+			keyword = request.GET['keyword']
+			queryset = queryset.filter(Q(name__icontains=keyword) | 
+				Q(sku_num__iexact=keyword) |
+				Q(case_upc__iexact=keyword) |
+				Q(unit_upc__iexact=keyword) |
+				Q(unit_size__icontains=keyword) | 
+				Q(units_per_case__iexact=keyword) | 
+				Q(comment__icontains=keyword))
+			context['keyword'] = keyword
 
-@login_required(login_url='index')
+		if 'ingredientfilter' in request.GET:
+			ingr_num = request.GET['ingredientfilter']
+			if ingr_num != 'all':
+				queryset = queryset.filter(formula__ingredientqty__ingredient__number=ingr_num)
+				context['selected_ingredient'] = int(ingr_num)
+
+		if 'productlinefilter' in request.GET:
+			pl_name = request.GET['productlinefilter']
+			if pl_name != 'all':
+				queryset = queryset.filter(product_line__name=pl_name)
+				context['selected_product_line'] = pl_name
+
+		if 'remove_pagination' in request.GET:
+			paginate = False
+			context['paginated'] = False
+
+		if 'done' in request.GET:
+			return redirect('manufacturing')
+
+	input_table = SKUTable(queryset)
+	mfgqty_table = MfgQtyTable(mfgqtys)
+	context['input_table'] = input_table
+	context['selected_table'] = mfgqty_table
+	RequestConfig(request, paginate=paginate).configure(input_table)
+	return render(request, 'manufacturing_goals/data.html', context)
+
+def goal_add(request, pk):
+	try:
+		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+		sku = SKU.objects.get(pk=pk)
+		caseqty = request.POST['case_qty']
+		ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
+		request.session['errormsg'] = ''
+	except ValidationError:
+		request.session['errormsg'] = 'Include Case Quantity'
+	return redirect('manufqty')
+
+def goal_remove(request, pk):
+	ManufacturingQty.objects.get(pk=pk).delete()
+	request.session['errormsg'] = ''
+	return redirect('manufqty')
+
+@login_required
 def manufcalc(request):
 	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
@@ -104,13 +166,13 @@ def manufcalc(request):
 			return redirect('calcresults')
 	return render(request, 'manufacturing_goals/manufcalc.html', {'form': form})
 
-@login_required(login_url='index')
+@login_required
 def calcresults(request):
 	goal_name = request.session['goal_calc_name']
 	goal_list = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/calcresults.html', {'goal_name': goal_name, 'goal_list': goal_list})
 
-@login_required(login_url='index')
+@login_required
 def manufcsv(request):
 	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
@@ -130,12 +192,13 @@ def manufcsv(request):
 			return redirect('manufexport')
 	return render(request, 'manufacturing_goals/manufcsv.html', {'form': form})
 
-@login_required(login_url='index')
+@login_required
 def manufexport(request):
 	goal_name = request.session['goal_export_name']
 	goal_info = request.session['goal_export_info']
 	return render(request, 'manufacturing_goals/manufexport.html', {'goal_name': goal_name, 'goal_info': goal_info})
 
+@login_required
 def manufdetails(request):
 	goal_name = request.session['goal_name']
 	goal_info = request.session['goal_export_info']

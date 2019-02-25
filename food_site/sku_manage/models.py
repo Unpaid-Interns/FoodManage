@@ -108,8 +108,7 @@ class SKU(models.Model):
     comment = models.TextField(blank=True)
 
     def __str__(self):
-        return "{name}: {unit_size} * {units_per_case}".format(name=self.name, unit_size=self.unit_size,
-                                                               units_per_case=self.units_per_case)
+        return "{name}: {unit_size} * {units_per_case} (SKU#{sku_num})".format(name=self.name, unit_size=self.unit_size, units_per_case=self.units_per_case, sku_num=self.sku_num)
 
     def get_serializable_string_array(self):
         return [str(self.sku_num), self.name, self.case_upc, self.unit_upc, self.unit_size, str(self.units_per_case),
