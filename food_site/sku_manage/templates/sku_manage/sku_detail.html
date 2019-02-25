@@ -24,7 +24,7 @@
 	<p>Formula - {{ sku.formula.ingredientqty_set.all|length }} Ingredients:</p>
 	<ul>
 		{% for choice in sku.formula.ingredientqty_set.all %}
-	    	<li> <a class="detail_list" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
+	    	<li> <a class="detail_list" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} {{ choice.quantity_units }}</li>
 		{% endfor %}
 	</ul>
 {% endblock content %}
