@@ -299,8 +299,6 @@ def clear(request):
 	SKU.objects.all().delete()
 	ProductLine.objects.all().delete()
 	Formula.objects.all().delete()
-	IngredientQty.objects.all().delete()
-	SkuMfgLine.objects.all().delete()
 	ManufacturingLine.objects.all().delete()
 	Ingredients.objects.all().delete()
 	return redirect('/')
