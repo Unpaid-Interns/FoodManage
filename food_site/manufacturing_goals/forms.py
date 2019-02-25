@@ -18,3 +18,4 @@ class GoalsChoiceForm(forms.Form):
 
 class ManufacturingSchedForm(forms.Form):
 	data = forms.CharField(label='Data', required=True)
+	overrides = forms.CharField(label='Overrides', required=True)

@@ -232,7 +232,10 @@ def timeline(request):
 			data_item['type'] = 'range'
 			if s.start:
 				data_item['start'] = s.start.strftime("%Y-%m-%dT%H:%M:%S%z")
-				data_item['end'] = s.end().strftime("%Y-%m-%dT%H:%M:%S%z")
+				if s.endoverride:
+					data_item['end'] = s.endoverride.strftime("%Y-%m-%dT%H:%M:%S%z")
+				else:
+					data_item['end'] = s.end().strftime("%Y-%m-%dT%H:%M:%S%z")
 				tldata_list.append(data_item)
 			else:
 				data_list.append(data_item)
@@ -263,7 +266,11 @@ def timeline(request):
 		form = ManufacturingSchedForm(request.POST)
 		if form.is_valid():
 			data = form.cleaned_data['data']
+			overrides = form.cleaned_data['overrides']
 			d = json.loads(data)
+			#print(d)
+			ovr = json.loads(overrides)
+			#print(ovr)
 			ids_in_tl = list()
 			for item in d:
 				# actually store the information
@@ -287,5 +294,19 @@ def timeline(request):
 					schedItem2.mfgline = None
 					schedItem2.start = None
 					schedItem2.save()
+			for ovr_item in ovr:
+				# if the duration was manually overridden, reflect that here
+				#print(
+				schedItem3 = ScheduleItem.objects.get(pk=ovr_item)
+				for item in d:
+					if item['id'] == ovr_item:
+						if len(item['end'].split('.'))>1:
+							schedItem3.endoverride = datetime.strptime(item['end'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+						elif len(item['end'].split(':'))>=4:
+							schedItem3.endoverride = datetime.strptime(item['end'].split(':')[0]+':'+item['end'].split(':')[1]+':'+item['end'].split(':')[2]+item['end'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+						else:
+							schedItem3.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
+				#print(schedItem3.endoverride)
+						schedItem3.save()
 			return redirect('manufacturing')
 	return render(request, 'manufacturing_goals/manufscheduler.html', {'form': form, 'data_list': data_list, 'tldata_list': tldata_list, 'mfgl_list': mfgl_list, 'mfdurations': mfdurations})

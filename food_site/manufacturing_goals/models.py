@@ -27,6 +27,7 @@ class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
 	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT, blank=True, null=True)
 	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
+	endoverride = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 
 	def clean(self):
 		if SkuMfgLine.objects.filter(sku=self.mfgqty.sku, mfg_line=self.mfgline).count() == 0:

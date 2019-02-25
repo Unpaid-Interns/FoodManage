@@ -9,10 +9,19 @@
 			padding-right: 8px;
 			color: blue;
 		}
+		.column {
+			float: left;
+			width: 50%;
+		}
+		.row:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
 	</style>
 	<div id="visualization" style="padding:10px;"></div>
-	<div class='items-panel'>
-		<div class='side'>
+	<div class="items-panel row">
+		<div class="side column">
 			<!-- This should pull from the db -->
 			<h3>Unscheduled Manufacturing Activities:</h3>
 			<ul class="items" style="list-style: none;">
@@ -29,11 +38,23 @@
 				{% endfor %}
 			</ul>
 		</div>
+		<div class="column">
+			<h3>Scheduled Manufacturing Activities:</h3>
+			<ul>
+				{% for d in data_list %}
+				<li class="item" id="s-{{ d.id }}" style="display:none;">{{ d.content }} <button onclick="increaseDuration({{ d.id }})">+1 hour</button><button onclick="decreaseDuration({{ d.id }})">-1 hour</button></li>
+				{% endfor %}
+				{% for tld in tldata_list %}
+				<li class="item" id="s-{{ tld.id }}">{{ tld.content }} <button onclick="increaseDuration({{ tld.id }})">+1 hour</button><button onclick="decreaseDuration({{ tld.id }})">-1 hour</button></li>
+				{% endfor %}
+			</ul>
+		</div>
 	</div>
 	<!--<button onclick="saveTLData()">Save Timeline</button>-->
 	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
 		{% csrf_token %}
 		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
+		<input value="{{ overrides }}" type="text" name="overrides" id="overrides" required="required" placeholder="[]" style="display:none;">
 		<button type="submit" onclick="saveTLData()">Save Timeline</button>
 	</form>
 	<button onclick="showHelp()">Help</button>
@@ -44,6 +65,7 @@
 			<li>You can drag a selected item in the schedule to a different location to change it's placement in time.</li>
 			<li>You can drag a selected item across manufacturing lines to change its associated manufacturing line.</li>
 			<li>You can select an item, then click the "x" next to it to remove the item from the schedule. This returns it to the list of unscheduled manufacturing activities.</li>
+			<li>Click the items under "Scheduled Manufacturing Activities" to increase the selected activity's duration in the manufacturing schedule, manually overriding the calculated duration.</li>
 		</ul>
 	</div>
 	<script type="text/javascript">
@@ -97,9 +119,32 @@
 			},
 			onRemove: function(item, callback) {
 				document.getElementById(item.id).style.display = "block";
+				document.getElementById('s-'+item.id).style.display = "none";
 				callback(item);
 			}
 		};
+		var overridden = [];
+		/*items.on('update', function(event, properties){
+			console.log(properties);
+			tdeltaOld = properties.oldData.start - properties.oldData.end;
+			tdeltaNew = properties.data.start - properties.data.end;
+			if(tdeltaOld != tdeltaNew){
+				console.log("Overriden, seeing if changed before. ID: ");
+				console.log(properties.id);
+				if(!(overridden.includes(properties.data.id))){
+					overridden.push(properties.data.id);
+					if(items.get(properties.data.id) != null){
+						//items.get(properties.data.id).style = "color: orange;";
+					}
+				}
+			}
+			an attempted solution:
+			onUpdate: function(item, callback) {
+				console.log(item);
+				callback(item);
+			}
+		});*/
+
 		var timeline = new vis.Timeline(container, items, groups, options);
 		var now = new Date();
 		var visibleStart = new Date(now.getFullYear(),now.getMonth(),now.getDate(), 0, 0, 0, 0);
@@ -127,6 +172,7 @@
 			items.add([{id: id, content: document.getElementById(id).innerHTML, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + dur, visibleStart.getMinutes(), 0, 0), type: 'range', group: 1}]);
 			//nextItem++;
 			document.getElementById(id).style.display = "none";
+			document.getElementById('s-'+id).style.display = "block";
 		}
 
 		function saveTLData() {
@@ -137,6 +183,7 @@
 				}
 			});
 			document.getElementById("data").value = JSON.stringify(data, null, 2);
+			document.getElementById("overrides").value = JSON.stringify(overridden, null, 2);
 			//console.log(JSON.stringify(data, null, 2));
 		}
 		// also need to load data from db
@@ -148,6 +195,51 @@
 			} else {
 				document.getElementById("help").style.display = "none";
 				shown = false;
+			}
+		}
+
+		function increaseDuration(id){
+			oldItem = items.get(id);
+			//console.log(overrides);
+			var deltat = 1;
+			var endtime = new Date();
+			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
+				endtime = new Date(oldItem.end);
+			} else {
+				endtime = oldItem.end;
+			}
+			var starttime = new Date();
+			if(typeof oldItem.start === 'string' || oldItem.start instanceof String){
+				starttime = new Date(oldItem.start);
+			} else {
+				starttime = oldItem.start;
+			}
+			console.log(endtime);
+			if((endtime.getHours()+1)>18){ deltat=17; }
+			items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() + deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+			if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
+		}
+		function decreaseDuration(id){
+			oldItem = items.get(id);
+			//console.log(overrides);
+			var deltat = 1;
+			var endtime = new Date();
+			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
+				endtime = new Date(oldItem.end);
+			} else {
+				endtime = oldItem.end;
+			}
+			var starttime = new Date();
+			if(typeof oldItem.start === 'string' || oldItem.start instanceof String){
+				starttime = new Date(oldItem.start);
+			} else {
+				starttime = oldItem.start;
+			}
+			console.log(endtime);
+			if(!(endtime.getHours()==starttime.getHours()+1)){
+				if((endtime.getHours()-1)<10){ deltat=17; }
+				items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() - deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+				if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
 			}
 		}
 	</script>
