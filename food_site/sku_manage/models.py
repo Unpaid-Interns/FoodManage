@@ -3,6 +3,9 @@ import re
 from django.db import models
 from django.core.exceptions import ValidationError
 
+weights = ('Ounce', 'oz.', 'Pound', 'lb.', 'Ton', 'ton.', 'Gram', 'g.', 'Kilogram', 'kg.')
+volumes = ('Fluid Ounce', 'fl.oz.', 'Pint', 'pt.', 'Quart', 'qt.', 'Gallon', 'gal.', 'Milliliter', 'mL', 'Liter', 'L')
+counts = ('Count', 'count',)
 
 def validate_upc(value):
     if len(value) != 12:
@@ -59,7 +62,7 @@ class Ingredient(models.Model):
     number = models.PositiveIntegerField(unique=True, default=gen_ingr_num, verbose_name='Ingredient#')
     vendor_info = models.TextField(blank=True, verbose_name='Vendor Information')
     package_size = models.FloatField(validators=[validate_gt_zero])
-    package_size_units = models.CharField(max_length=8,
+    package_size_units = models.CharField(max_length=16,
                                           choices=[('Ounce', 'oz.'), ('Pound', 'lb.'), ('Ton', 'ton.'), ('Gram', 'g.'),
                                                    ('Kilogram', 'kg.'), ('Fluid Ounce', 'fl.oz.'), ('Pint', 'pt.'),
                                                    ('Quart', 'qt.'), ('Gallon', 'gal.'), ('Milliliter', 'mL'),
@@ -129,6 +132,22 @@ class IngredientQty(models.Model):
     formula = models.ForeignKey(Formula, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
     quantity = models.FloatField(validators=[validate_gt_zero])
+    quantity_units = models.CharField(max_length=16,
+                                      choices=[('Ounce', 'oz.'), ('Pound', 'lb.'), ('Ton', 'ton.'), ('Gram', 'g.'),
+                                                 ('Kilogram', 'kg.'), ('Fluid Ounce', 'fl.oz.'), ('Pint', 'pt.'),
+                                                 ('Quart', 'qt.'), ('Gallon', 'gal.'), ('Milliliter', 'mL'),
+                                                 ('Liter', 'L'), ('Count', 'count')])
+
+    class Meta:
+        unique_together = ("formula", "ingredient")
+
+    def clean(self):
+        if self.quantity_units in weights and self.ingredient.package_size_units not in weights:
+            raise ValidationError("Quantity measured in weight but ingredient package size is not")
+        if self.quantity_units in volumes and self.ingredient.package_size_units not in volumes:
+            raise ValidationError("Quantity measured in volume but ingredient package size is not")
+        if self.quantity_units in counts and self.ingredient.package_size_units not in counts:
+            raise ValidationError("Quantity measured in raw count but ingredient package size is not")
 
     def get_serializable_string_array(self):
         return [str(self.formula.number), str(self.ingredient.number), str(self.quantity)]
@@ -137,3 +156,6 @@ class IngredientQty(models.Model):
 class SkuMfgLine(models.Model):
     sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
     mfg_line = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = ("sku", "mfg_line")

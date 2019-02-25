@@ -13,7 +13,7 @@
 	<p>{{ ingredient.ingredientqty_set.all|length }} Formulas:</p>
 	<ul>
 		{% for choice in ingredient.ingredientqty_set.all %}
-			<li><a class="detail_list" href="{% url 'formula_detail' choice.formula.pk %}"> {{ choice.formula }}</a> - {{ choice.quantity }} packages</li>
+			<li><a class="detail_list" href="{% url 'formula_detail' choice.formula.pk %}"> {{ choice.formula }}</a> - {{ choice.quantity }} {{ choice.quantity_units }}</li>
 		{% endfor %}
 	</ul>
 	<p>SKUs:</p>
