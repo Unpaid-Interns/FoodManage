@@ -24,4 +24,5 @@ urlpatterns = [
     path('reporting/', include('dep_report.urls')),
     path('', include('sku_manage.urls')),
     path('', include('manufacturing_goals.urls')),
+    path('admin/manufacturinglinemap/', include('mfg_map.urls')),
 ]

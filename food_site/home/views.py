@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 # Create your views here.
 def index(request):
-	return render(request, 'home/index.html', context=None)
+	return render(request, 'home/index.html', context={'invalidlogin': False})
 
 def authin(request):
 	username = request.POST['username']
@@ -15,22 +15,19 @@ def authin(request):
 	user = authenticate(request, username=username, password=password)
 	if user is not None:
 		login(request, user)
-		response = redirect('/')
-		return response
+		return redirect('/')
 	else:
-		response = redirect('/invalidlogin')
-		return response
+		return redirect('/invalidlogin')
 
 def invalidlogin(request):
-	return render(request, 'home/invalidlogin.html', context=None)
+	return render(request, 'home/index.html', context={'invalidlogin': True})
 
 def help(request):
 	return render(request, 'home/help.html', context=None)
 
 def authout(request):
         logout(request)
-        response = redirect('/')
-        return response
+        return redirect('/')
 
 token = None
 
@@ -38,16 +35,16 @@ def netlog(request):
 	request.method = "get"
 	request.GET._mutable = True
 	request.GET['response_type'] = 'token'
-	request.GET['redirect_uri'] = 'http://152.3.53.33:8000/netret/'
+	request.GET['redirect_uri'] = 'https://hypomeals.com/netret/'
 	request.GET['scope'] = 'basic'
 	request.GET['client_id'] = 'unpaid-interns-hypo-meals'	
-	response = redirect('https://oauth.oit.duke.edu/oauth/authorize.php?client_id=unpaid-interns-hypo-meals&scope=basic&redirect_uri=http://152.3.53.33:8000/authmid/&response_type=token&state=7')
+	response = redirect('https://oauth.oit.duke.edu/oauth/authorize.php?client_id=unpaid-interns-hypo-meals&scope=basic&redirect_uri=https://hypomeals.com/authmid/&response_type=token&state=7')
 	token = request.GET.get('access_token', 'No access token found')
 	return response
 
 def netret(request):
 	token = request.POST['token']
-	purl = 'https://api.colab.duke.edu/identity/v1/?redirect_uri=http://152.3.53.33:8000/'
+	purl = 'https://api.colab.duke.edu/identity/v1/?redirect_uri=https://hypomeals.com/'
 	headers = {'x-api-key': 'unpaid-interns-hypo-meals', 'Authorization': 'Bearer '+token}
 	r = requests.get(purl, headers=headers)
 	tr = r.json()

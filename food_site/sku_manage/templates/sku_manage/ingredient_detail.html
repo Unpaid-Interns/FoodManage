@@ -1,4 +1,4 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<h1>{{ ingredient }}</h1>
 	<p>General Information:</p>
@@ -20,7 +20,7 @@
 	<ul>
 		{% for ingq in ingredient.ingredientqty_set.all %}
 			{% for sku in ingq.formula.sku_set.all %}
-				<li><a class="detail_list" href="{% url 'sku_detail' sku.pk %}"> {{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
+				<li><a class="detail_list" href="{% url 'sku_detail' sku.pk %}"> {{ sku }}</a></li>
 			{% endfor %}
 		{% endfor %}
 	</ul>

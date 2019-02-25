@@ -8,6 +8,7 @@ from django_tables2 import RequestConfig, paginators
 from exporter import CSVExport
 from .models import Ingredient, ProductLine, SKU, Formula, ManufacturingLine
 from .tables import IngredientTable, ProductLineTable, SKUTable, FormulaTable, ManufacturingLineTable
+from . import ex_data
 
 @login_required
 def IngredientView(request):
@@ -117,6 +118,8 @@ def SKUView(request):
 		'selected_ingredient': None,
 		'all_product_lines': ProductLine.objects.all(),
 		'selected_product_line': None,
+		'numtab': False,
+		't': None,
 	}	
 	paginate = {
 		'paginator_class': paginators.LazyPaginator,
@@ -150,6 +153,22 @@ def SKUView(request):
 		if 'remove_pagination' in request.GET:
 			paginate = False
 			context['paginated'] = False
+		if 'group' in request.GET:
+			pline = list()
+			tlist = list()
+			for obj in queryset:
+				if obj.product_line not in pline:
+					pline.append(obj.product_line)
+			context['numtab'] = True
+			number = 0
+			for n in pline:
+				number = number+1
+				temp = list()
+				for obj in queryset:
+					if obj.product_line is n:
+						temp.append(obj)
+				tlist.append(SKUTable(temp))
+			context['t'] = tlist			
 
 	if request.method == 'POST' and 'export_data' in request.POST:
 		if 'sort' in request.GET:
@@ -271,6 +290,11 @@ class ManufacturingLineDetailView(generic.DetailView):
 @login_required
 def search(request):
 	return render(request, 'sku_manage/search.html', context=None)
+
+@login_required
+def populate(request):
+	ex_data.load_data()
+	return redirect('search')
 
 @login_required
 def authout(request):

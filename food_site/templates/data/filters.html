@@ -33,5 +33,19 @@
 			{% endfor %}
 		</select>
 	{% endif %}
+	{% if all_mfg_lines|length > 0 %}
+		<select name="manufacturinglinefilter" onchange='this.form.submit()'>
+			<option value="all">All Manufacturing Lines</option>
+			{% for mfg_line in all_mfg_lines %}
+				<option value="{{ mfg_line.shortname }}" 
+					{% if selected_mfg_line == mfg_line.shortname %}selected="selected"{% endif %}>
+					{{ mfg_line }}
+				</option>
+			{% endfor %}
+		</select>
+	{% endif %}
+	{% if all_product_lines|length > 0 %}
+		<input type="checkbox" name="group" value="group">	
+	{% endif %}
 	<button type="submit"><i class="fa fa-search"></i></button>
 </form>

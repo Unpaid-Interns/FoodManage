@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-	<h1>Filter Ingredients for Report:</h1>
+	<h1>Filter SKUs for Mapping:</h1>
 	{% include "data/filters.html" %}
 	<br>
 	<div class="table" style="overflow-x:auto;">
@@ -19,9 +19,19 @@
 	</form>
 	<br>
 	{% if selected_table.rows %}
-		<form class="form-inline" action="{% url 'ingr_dep_gen' %}" method="post">
+		<form class="form-inline" action="{% url 'edit_mapping' %}" method="post">
 			{% csrf_token %}
-			<button type="submit" name="gen_report">Generate Report - {{ selected_table.rows|length }} Result(s)</button>
+			<select name="mfg-line-op">
+				<option value="add">Add</option>
+				<option value="rem">Remove</option>
+			</select>
+			<select name="mfg-line-select">
+				<option value="none">-----</option>
+				{% for line in mfg_lines %}
+					<option value="{{ line.pk }}">{{ line }}</option>
+				{% endfor %}
+			</select>
+			<button type="submit" name="gen_report">Map SKUs</button>
 		</form>
 		<div class="table" style="overflow-x:auto;">
 			{% render_table selected_table %}

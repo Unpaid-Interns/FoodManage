@@ -1,4 +1,4 @@
-{% extends "sku_manage/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 	<h1>{{ sku }}</h1>
 	<p>General Information:</p>
@@ -18,7 +18,7 @@
 	<p>{{ sku.skumfgline_set.all|length }} Manufacturing Lines:</p>
 	<ul>
 		{% for choice in sku.skumfgline_set.all %}
-	    	<li> {{ choice.mfg_line.name }} ({{ choice.mfg_line.shortname }})</li>
+	    	<li> <a class="detail_list" href="{% url 'mfg_line_detail' choice.mfg_line.pk %}">{{ choice.mfg_line }}</a></li>
 		{% endfor %}
 	</ul>
 	<p>Formula - {{ sku.formula.ingredientqty_set.all|length }} Ingredients:</p>
