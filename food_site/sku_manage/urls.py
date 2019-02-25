@@ -17,4 +17,5 @@ urlpatterns = [
 	path('search/manufacturingline/<int:pk>/', views.ManufacturingLineDetailView.as_view(), name='mfg_line_detail'),
 	path('authout/', views.authout, name='authout'),
 	path('populate/', views.populate, name='populate')
+	path('clear/', views.clear, name='clear')
 ]

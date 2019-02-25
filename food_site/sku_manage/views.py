@@ -294,12 +294,22 @@ def search(request):
 @login_required
 def populate(request):
 	ex_data.load_data()
-	return redirect('search')
+	return redirect('/')
+
+@login_required
+def clear(request):
+	SKU.objects.all().delete()
+	ProductLine.objects.all().delete()
+	Formula.objects.all().delete()
+	IngredientQty.objects.all().delete()
+	SkuMfgLine.objects.all().delete()
+	ManufacturingLine.objects.all().delete()
+	Ingredients.objects.all().delete()
+	return redirect('/')
 
 @login_required
 def authout(request):
         logout(request)
-        response = redirect('/')
-        return response
+        return redirect('/')
 
 	
