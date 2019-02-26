@@ -30,25 +30,60 @@
 				<!-- literally cannot get drag&drop working. I think it's busted on visjs' side -->
 				<!--<li class="item" id="activity-2" onclick="addToTimeline('item 2')">item 2</li>
 				<li class="item" id="activity-3" onclick="addToTimeline('item 3')">item 3</li>-->
-				{% for d in data_list %}
-				<li class="item" id="{{ d.id }}" onclick="addToTimeline({{ d.id }})">{{ d.content }}</li>
+				{% for item in unscheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
+				<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})">{{ item }}</li>
+				{% endif %}
 				{% endfor %}
-				{% for tld in tldata_list %}
-				<li class="item" id="{{ tld.id }}" onclick="addToTimeline({{ tld.id }})" style="display:none;">{{ tld.content }}</li>
+				{% for item in scheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
+				<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})" style="display:none;">{{ item }}</li>
+				{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
 		<div class="column">
 			<h3>Scheduled Manufacturing Activities:</h3>
 			<ul>
-				{% for d in data_list %}
-				<li class="item" id="s-{{ d.id }}" style="display:none;">{{ d.content }} <button onclick="increaseDuration({{ d.id }})">+1 hour</button><button onclick="decreaseDuration({{ d.id }})">-1 hour</button></li>
+				{% for item in unscheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
+				<li class="item" id="s-{{ item.id }}" style="display:none;">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
+				{% endif %}
 				{% endfor %}
-				{% for tld in tldata_list %}
-				<li class="item" id="s-{{ tld.id }}">{{ tld.content }} <button onclick="increaseDuration({{ tld.id }})">+1 hour</button><button onclick="decreaseDuration({{ tld.id }})">-1 hour</button></li>
+				{% for item in scheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
+				<li class="item" id="s-{{ item.id }}">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
+				{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
+	</div>
+	<div class="warnings">
+		<h2>Warnings</h2>
+		<h3>Not Included in Schedule:</h3>
+		{% for item in unscheduled_items %}
+			{% if item.mfgqty.goal.enabled %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Orphaned from Disabled Goals:</h3>
+		{% for item in scheduled_items %}
+			{% if not item.mfgqty.goal.enabled %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Finishing after Goal Deadline:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.mfgqty.goal.deadline < item.end %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Manually Adjusted Duration:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.endoverride %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
 	</div>
 	<!--<button onclick="saveTLData()">Save Timeline</button>-->
 	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
@@ -70,15 +105,15 @@
 	</div>
 	<script type="text/javascript">
 		var container = document.getElementById('visualization');
-		// eventually want this to be pulled from the database of manufacturing lines
+		// Pulled from the database of manufacturing lines
 		var groups = new vis.DataSet();
-		{% for mld in mfgl_list %}
-		groups.add([{id: {{ mld.id }}, content: '{{ mld.content }}'}]);
+		{% for mfg_line in mfg_lines %}
+			groups.add([{id: {{ mfg_line.id }}, content: '{{ mfg_line }}'}]);
 		{% endfor %}
-		// and this from the manufacturing goals/activities?
+		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
-		{% for tld in tldata_list %}
-		items.add([{content: '{{ tld.content }}', id: {{ tld.id }}, group: {{ tld.group }}, type: '{{ tld.type }}', start: '{{ tld.start }}', end: '{{ tld.end }}'}]);
+		{% for item in scheduled_items %}
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: royalblue;'{% elif item.end > item.mfgqty.goal.deadline %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
@@ -104,7 +139,7 @@
 				overrideItems: false
 			},
 			hiddenDates: [
-				{start: '1970-01-01 18:00:00', end: '1970-01-02 10:00:00', repeat: 'daily'}
+				{start: '1970-01-01 18:00:00', end: '1970-01-02 8:00:00', repeat: 'daily'}
 			],
 			timeAxis: {
 				scale: 'hour',
@@ -164,12 +199,14 @@
 			// presumably group will also be determined by db
 			//console.log(visibleStart);
 			var dur = 1;
+			var mfline = 1;
 			{% for md in mfdurations %}
 			if({{ md.id }} == id){
 			dur = {{ md.duration }};	
-			}
+			mfline = {{ md.mfline }};
+			}	
 			{% endfor %}
-			items.add([{id: id, content: document.getElementById(id).innerHTML, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + dur, visibleStart.getMinutes(), 0, 0), type: 'range', group: 1}]);
+			items.add([{id: id, content: document.getElementById(id).innerHTML, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + dur, visibleStart.getMinutes(), 0, 0), type: 'range', group: mfline}]);
 			//nextItem++;
 			document.getElementById(id).style.display = "none";
 			document.getElementById('s-'+id).style.display = "block";

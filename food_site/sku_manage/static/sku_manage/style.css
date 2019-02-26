@@ -31,6 +31,10 @@ body {
   border-radius: 5px;
 }
 
+.warnings p {
+  color: red;
+}
+
 .content {
   padding: 0 18px;
   display: none;
