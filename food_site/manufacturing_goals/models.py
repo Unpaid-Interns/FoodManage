@@ -14,6 +14,7 @@ class ManufacturingGoal(models.Model):
 	name = models.CharField(max_length=500)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	deadline = models.DateField()
+	enabled = models.BooleanField(default=False)
 	
 	def __str__(self):
 		return self.name
