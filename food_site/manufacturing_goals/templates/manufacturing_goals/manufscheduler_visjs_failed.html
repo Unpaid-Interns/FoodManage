@@ -1,0 +1,93 @@
+{% extends "sku_manage/base.html" %}
+{% load static %}
+{% block content %}
+	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
+	<script type="text/javascript" src="{% static 'manufacturing_goals/vis.min.js' %}"></script>
+	<div id="visualization" style="padding:10px;"></div>
+	<div class='items-panel'>
+		<div class='side'>
+			<!-- This should pull from the db -->
+			<h3>Items:</h3>
+			<ul class="items">
+				<!-- there should be a way to change the coloration here -->
+				<!-- as well as a second change if deleted on timeline -->
+				<li draggable="true" class="item">item 2</li>
+				<li draggable="true" class="item">item 3</li>
+			</ul>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var container = document.getElementById('visualization');
+		// eventually want this to be pulled from the database of manufacturing lines
+		var groups = new vis.DataSet([
+			{id: 1, content: 'group 1'}
+		]);
+		// and this from the manufacturing goals/activities?
+		var items = new vis.DataSet([
+			{id: 1, content: 'item 1', start: '2019-02-22', end: '2019-02-23', group: 1}
+		]);
+		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
+		var today = new Date();
+		var dd = today.getDate();
+		var d2 = today.getDate() +1;
+		var mm = today.getMonth() + 1;
+		var yyyy = today.getFullYear();
+		if (dd < 10){dd='0'+dd;}
+		if (d2 < 10){d2='0'+d2;}
+		if (mm < 10){mm='0'+mm;}
+		today = mm+'/'+dd+'/'+yyyy;
+		tomorrow = mm+'/'+d2+'/'+yyyy;
+		var options = {
+			stack: true,
+			selectable: true,
+			editable: {
+				add: false,
+				remove: true,
+				updateGroup: true,
+				updateTime: true,
+				overrideItems: false
+			},
+			timeAxis: {
+				scale: 'hour',
+				step: 1
+			},
+			type: 'range',
+			start: today,
+			end: tomorrow,
+			onDropObjectOnItem: function(objectData, item, callback) {
+				if (!item){ return; }
+				alert('dropped object: "' + objectData.content + '" on item: "' + item.content + '"');
+			}
+		};
+		var timeline = new vis.Timeline(container, items, groups, options);
+		//var currid = 2;
+		// drag and drop scripts, perhaps id will have a bit more of a sane handling?
+		function handleDragStart(event) {
+			var dragSrcEl = event.target;
+			event.dataTransfer.effectAllowed = 'move';
+			var itemType = 'range';
+			var item = {
+				id: new Date(),
+				type: itemType,
+				content: event.target.innerHTML
+			};
+			//currid++;
+			event.target.id = new Date(item.id).toISOString();
+			event.dataTransfer.setData("text", JSON.stringify(item));
+		}
+		//function handleObjectItemDragStart(event) {
+		//	var dragSrcEl = event.target;
+		//	event.dataTransfer.effectAllowed = 'move';
+		//	var objectItem = {
+		//		content: 'objectItemData',
+		//		target: 'item'
+		//	};
+		//	event.dataTransfer.setData("text", JSON.stringify(objectItem));
+		//}
+		var items = document.querySelectorAll('.items .item');
+		for(var i = items.length - 1; i >=0; i--) {
+			var item = items[i];
+			item.addEventListener('dragstart', handleDragStart.bind(this), false);
+		}
+	</script>
+{% endblock content %}
