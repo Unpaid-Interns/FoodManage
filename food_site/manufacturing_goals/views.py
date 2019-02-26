@@ -276,7 +276,7 @@ def timeline(request):
 							end_override_item.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
 						end_override_item.save()
 
-			return redirect('manufacturing')
+			return redirect('timeline')
 	context['form'] = form, 
 	context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
 	context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)

@@ -59,36 +59,28 @@
 		</div>
 	</div>
 	<div class="warnings">
-		<h2>Disabled Goals:</h2>
-		{% for item in scheduled_items %}
-			{% if item.mfgqty.goal.enabled and item.start %}
-				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
-			{% endif %}
-		{% endfor %}
+		<h2>Warnings</h2>
+		<h3>Not Included in Schedule:</h3>
 		{% for item in unscheduled_items %}
-			{% if item.mfgqty.goal.enabled and item.start %}
+			{% if item.mfgqty.goal.enabled %}
 				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
 			{% endif %}
 		{% endfor %}
-		<h2>Finishing after Deadline:</h2>
+		<h3>Orphaned from Disabled Goals:</h3>
 		{% for item in scheduled_items %}
-			{% if item.start and item.mfgqty.goal.deadline < item.end %}
+			{% if not item.mfgqty.goal.enabled %}
 				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
 			{% endif %}
 		{% endfor %}
-		{% for item in unscheduled_items %}
-			{% if item.start and item.mfgqty.goal.deadline < item.end %}
-				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
-			{% endif %}
-		{% endfor %}
-		<h2>Adjusted Length:</h2>
+		<h3>Finishing after Goal Deadline:</h3>
 		{% for item in scheduled_items %}
-			{% if item.endoverride %}
+			{% if item.mfgqty.goal.enabled and item.mfgqty.goal.deadline < item.end %}
 				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
 			{% endif %}
 		{% endfor %}
-		{% for item in unscheduled_items %}
-			{% if item.endoverride %}
+		<h3>Manually Adjusted Duration:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.endoverride %}
 				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
 			{% endif %}
 		{% endfor %}
