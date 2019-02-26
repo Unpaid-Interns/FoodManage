@@ -49,6 +49,8 @@ class ScheduleItem(models.Model):
 		return self.start.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 	def end_time(self):
+		if self.endoverride is not None:
+			return self.endoverride.strftime("%Y-%m-%dT%H:%M:%S%z")
 		return self.end().strftime("%Y-%m-%dT%H:%M:%S%z")
 
 	def __str__(self):

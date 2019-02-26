@@ -42,10 +42,10 @@
 			<h3>Scheduled Manufacturing Activities:</h3>
 			<ul>
 				{% for item in unscheduled_items %}
-				<li class="item" id="s-{{ item.id }}" style="display:none;">{{ item }}</li>
+				<li class="item" id="s-{{ item.id }}" style="display:none;">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
 				{% endfor %}
 				{% for item in scheduled_items %}
-				<li class="item" id="s-{{ item.id }}">{{ item }}</li>
+				<li class="item" id="s-{{ item.id }}">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
 				{% endfor %}
 			</ul>
 		</div>
@@ -78,7 +78,7 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
@@ -197,6 +197,51 @@
 			} else {
 				document.getElementById("help").style.display = "none";
 				shown = false;
+			}
+		}
+
+		function increaseDuration(id){
+			oldItem = items.get(id);
+			//console.log(overrides);
+			var deltat = 1;
+			var endtime = new Date();
+			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
+				endtime = new Date(oldItem.end);
+			} else {
+				endtime = oldItem.end;
+			}
+			var starttime = new Date();
+			if(typeof oldItem.start === 'string' || oldItem.start instanceof String){
+				starttime = new Date(oldItem.start);
+			} else {
+				starttime = oldItem.start;
+			}
+			console.log(endtime);
+			if((endtime.getHours()+1)>18){ deltat=17; }
+			items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() + deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+			if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
+		}
+		function decreaseDuration(id){
+			oldItem = items.get(id);
+			//console.log(overrides);
+			var deltat = 1;
+			var endtime = new Date();
+			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
+				endtime = new Date(oldItem.end);
+			} else {
+				endtime = oldItem.end;
+			}
+			var starttime = new Date();
+			if(typeof oldItem.start === 'string' || oldItem.start instanceof String){
+				starttime = new Date(oldItem.start);
+			} else {
+				starttime = oldItem.start;
+			}
+			console.log(endtime);
+			if(!(endtime.getHours()==starttime.getHours()+1)){
+				if((endtime.getHours()-1)<10){ deltat=17; }
+				items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() - deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+				if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
 			}
 		}
 	</script>

@@ -262,6 +262,20 @@ def timeline(request):
 					removed_item = ScheduleItem.objects.get(pk=pk['pk'])
 					removed_item.start = None
 					removed_item.save()
+			for ovr_item in ovr:
+				# if the duration was manually overridden, reflect that here
+				#print(
+				end_override_item = ScheduleItem.objects.get(pk=ovr_item)
+				for item in json_data:
+					if item['id'] == ovr_item:
+						if len(item['end'].split('.'))>1:
+							end_override_item.endoverride = datetime.strptime(item['end'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+						elif len(item['end'].split(':'))>=4:
+							end_override_item.endoverride = datetime.strptime(item['end'].split(':')[0]+':'+item['end'].split(':')[1]+':'+item['end'].split(':')[2]+item['end'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+						else:
+							end_override_item.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
+						end_override_item.save()
+
 			return redirect('manufacturing')
 	context['form'] = form, 
 	context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
