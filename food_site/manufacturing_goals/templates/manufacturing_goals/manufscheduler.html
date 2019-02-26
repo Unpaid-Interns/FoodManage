@@ -58,6 +58,41 @@
 			</ul>
 		</div>
 	</div>
+	<div class="warnings">
+		<h2>Disabled Goals:</h2>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.start %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		{% for item in unscheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.start %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h2>Finishing after Deadline:</h2>
+		{% for item in scheduled_items %}
+			{% if item.start and item.mfgqty.goal.deadline < item.end %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		{% for item in unscheduled_items %}
+			{% if item.start and item.mfgqty.goal.deadline < item.end %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h2>Adjusted Length:</h2>
+		{% for item in scheduled_items %}
+			{% if item.endoverride %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		{% for item in unscheduled_items %}
+			{% if item.endoverride %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+	</div>
 	<!--<button onclick="saveTLData()">Save Timeline</button>-->
 	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
 		{% csrf_token %}
