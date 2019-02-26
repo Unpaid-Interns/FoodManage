@@ -31,10 +31,14 @@
 				<!--<li class="item" id="activity-2" onclick="addToTimeline('item 2')">item 2</li>
 				<li class="item" id="activity-3" onclick="addToTimeline('item 3')">item 3</li>-->
 				{% for item in unscheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
 				<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})">{{ item }}</li>
+				{% endif %}
 				{% endfor %}
 				{% for item in scheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
 				<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})" style="display:none;">{{ item }}</li>
+				{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
@@ -42,10 +46,14 @@
 			<h3>Scheduled Manufacturing Activities:</h3>
 			<ul>
 				{% for item in unscheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
 				<li class="item" id="s-{{ item.id }}" style="display:none;">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
+				{% endif %}
 				{% endfor %}
 				{% for item in scheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
 				<li class="item" id="s-{{ item.id }}">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
+				{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
@@ -78,7 +86,7 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: royalblue;'{% elif item.end > item.mfgqty.goal.deadline %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable

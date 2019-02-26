@@ -37,7 +37,7 @@ class ScheduleItem(models.Model):
 	def duration(self):
 		return timedelta(hours=(self.mfgqty.sku.mfg_rate*self.mfgqty.caseqty))
 
-	def end(self):
+	def end_calc(self):
 		endtime = self.start + self.duration()
 		index = self.start.replace(hour=18, tzinfo=timezone.get_current_timezone())
 		while index < endtime:
@@ -45,12 +45,15 @@ class ScheduleItem(models.Model):
 			index += timedelta(days=1)
 		return endtime
 
+	def end(self):
+		if self.endoverride is not None:
+			return self.endoverride
+		return self.end_calc()
+
 	def start_time(self):
 		return self.start.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 	def end_time(self):
-		if self.endoverride is not None:
-			return self.endoverride.strftime("%Y-%m-%dT%H:%M:%S%z")
 		return self.end().strftime("%Y-%m-%dT%H:%M:%S%z")
 
 	def __str__(self):
