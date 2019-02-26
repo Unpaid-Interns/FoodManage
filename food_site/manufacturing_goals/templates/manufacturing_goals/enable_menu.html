@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Enable and Disable Manufacturing Goals:</h1>
+	<div class="table" style="overflow-x:auto;">
+		{% load render_table from django_tables2 %}
+		{% load bootstrap3 %}
+		{% render_table table %}
+	</div>
+{% endblock content %}

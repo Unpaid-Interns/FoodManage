@@ -31,6 +31,10 @@ body {
   border-radius: 5px;
 }
 
+.warnings p {
+  color: red;
+}
+
 .content {
   padding: 0 18px;
   display: none;
@@ -229,6 +233,14 @@ body {
 }
 
 .form-inline .narrow {
+  width: auto;
+}
+
+.form-inline .checkbox {
+  margin: 0 5px 0 30px;
+}
+
+.form-inline .checkbox input {
   width: auto;
 }
 

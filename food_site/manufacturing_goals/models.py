@@ -14,6 +14,7 @@ class ManufacturingGoal(models.Model):
 	name = models.CharField(max_length=500)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	deadline = models.DateField()
+	enabled = models.BooleanField(default=False)
 	
 	def __str__(self):
 		return self.name
@@ -26,7 +27,8 @@ class ManufacturingQty(models.Model):
 class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
 	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
-	start = models.DateTimeField(validators=[validate_workday])
+	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
+	endoverride = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 
 	def clean(self):
 		if SkuMfgLine.objects.filter(sku=self.mfgqty.sku, mfg_line=self.mfgline).count() == 0:
@@ -35,12 +37,26 @@ class ScheduleItem(models.Model):
 	def duration(self):
 		return timedelta(hours=(self.mfgqty.sku.mfg_rate*self.mfgqty.caseqty))
 
-	def end(self):
+	def end_calc(self):
 		endtime = self.start + self.duration()
 		index = self.start.replace(hour=18, tzinfo=timezone.get_current_timezone())
 		while index < endtime:
 			endtime += timedelta(hours=14)
 			index += timedelta(days=1)
 		return endtime
+
+	def end(self):
+		if self.endoverride is not None:
+			return self.endoverride
+		return self.end_calc()
+
+	def start_time(self):
+		return self.start.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+	def end_time(self):
+		return self.end().strftime("%Y-%m-%dT%H:%M:%S%z")
+
+	def __str__(self):
+		return str(self.mfgqty.goal.name) + ': ' + self.mfgqty.sku.name + ', due by ' + '{:%Y-%m-%d}'.format(self.mfgqty.goal.deadline)
 
 
