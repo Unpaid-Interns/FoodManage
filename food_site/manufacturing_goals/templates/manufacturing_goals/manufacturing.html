@@ -16,6 +16,7 @@
 		<button type="submit" id="submit" name="submit">Go</button>
 	</form>
 	{% if request.user.is_staff %}
+	<a style="padding:8px;" href="{% url 'enable_menu' %}">Enable/Disable Goals</a>
 	<a style="padding:8px;" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
 	{% endif %}
 {% endblock content %}
