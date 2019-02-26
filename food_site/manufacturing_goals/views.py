@@ -231,6 +231,10 @@ def timeline(request):
 			data_item['id'] = s.pk
 			if s.mfgline:
 				data_item['group'] = s.mfgline.pk
+			else:
+				for ml in ManufacturingLine.objects.all():
+					data_item['group'] = ml.pk
+					break
 			data_item['type'] = 'range'
 			if s.start:
 				data_item['start'] = s.start.strftime("%Y-%m-%dT%H:%M:%S%z")
