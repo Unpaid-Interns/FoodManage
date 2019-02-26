@@ -112,10 +112,6 @@ def manufqty(request):
 			context['paginated'] = False
 
 		if 'done' in request.GET:
-			# print(mfgqtys)
-			for m in mfgqtys:
-				sch_item = ScheduleItem(mfgqty=m)
-				sch_item.save()
 			return redirect('manufacturing')
 
 	input_table = SKUTable(queryset)
@@ -214,33 +210,21 @@ def manufdetails(request):
 
 @login_required(login_url='index')
 def timeline(request):
+	context = dict()
+	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
+	for mfg_qty in mfg_qtys:
+		sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
+		mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
+		if len(mfg_lines) > 0 and len(sched_items) == 0:
+			ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
 	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
 	form = ManufacturingSchedForm()
 	scheditems = ScheduleItem.objects.all()
-	tldata_list = list()
-	data_list = list()
-	mfgl_list = list()
 	mfdurations = list()
 	if not scheditems:
 		pass
 	else:
 		for s in scheditems:
-			# populate js with data from existing schedule items
-			data_item = dict()
-			data_item['content'] = '' + s.mfgqty.goal.name + ': ' + s.mfgqty.sku.name + ', due by ' + '{:%Y-%m-%d}'.format(s.mfgqty.goal.deadline)
-			data_item['id'] = s.pk
-			if s.mfgline:
-				data_item['group'] = s.mfgline.pk
-			data_item['type'] = 'range'
-			if s.start:
-				data_item['start'] = s.start.strftime("%Y-%m-%dT%H:%M:%S%z")
-				if s.endoverride:
-					data_item['end'] = s.endoverride.strftime("%Y-%m-%dT%H:%M:%S%z")
-				else:
-					data_item['end'] = s.end().strftime("%Y-%m-%dT%H:%M:%S%z")
-				tldata_list.append(data_item)
-			else:
-				data_list.append(data_item)
 			duration = dict()
 			duration['id'] = s.pk
 			# raw, how many hours it takes via calculated time
@@ -251,32 +235,20 @@ def timeline(request):
 			# and the remainder is the additional hours needed to add on
 			hrs = hrs + (ttl_hrs % 8)
 			duration['duration'] = hrs
+			duration['mfline'] = s.mfgline.pk
 			mfdurations.append(duration)
-		for mfgl in ManufacturingLine.objects.all():
-			mfg_lines = dict()
-			mfg_lines['content'] = '' + mfgl.name + ' (' + mfgl.shortname + ')'
-			mfg_lines['id'] = mfgl.pk
-			mfgl_list.append(mfg_lines)
-	#print("Data List (not in timeline)")	
-	#print(data_list)
-	#print("TL Data List (in timeline)")
-	#print(tldata_list)
-	#print("Manuf. Lines (groups in timeline)")
-	#print(mfgl_list)
 	
 	if request.method == "POST":
 		form = ManufacturingSchedForm(request.POST)
 		if form.is_valid():
 			data = form.cleaned_data['data']
 			overrides = form.cleaned_data['overrides']
-			d = json.loads(data)
-			#print(d)
+			json_data = json.loads(data)
 			ovr = json.loads(overrides)
 			#print(ovr)
 			ids_in_tl = list()
-			for item in d:
+			for item in json_data:
 				# actually store the information
-				#print(item)
 				schedItem = ScheduleItem.objects.get(pk=item['id'])
 				schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
 				if len(item['start'].split('.'))>1:
@@ -287,31 +259,19 @@ def timeline(request):
 					schedItem.start = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
 				ids_in_tl.append(item['id'])
 				schedItem.save()
-			for i in tldata_list:
+			for pk in ScheduleItem.objects.filter(start__isnull=False).values('pk'):
 				# if it WAS in the TL, and now its not, remove info
-				if i['id'] in ids_in_tl:
-					pass
-				else:
-					schedItem2 = ScheduleItem.objects.get(pk=i['id'])
-					schedItem2.mfgline = None
-					schedItem2.start = None
-					schedItem2.save()
-			for ovr_item in ovr:
-				# if the duration was manually overridden, reflect that here
-				#print(
-				schedItem3 = ScheduleItem.objects.get(pk=ovr_item)
-				for item in d:
-					if item['id'] == ovr_item:
-						if len(item['end'].split('.'))>1:
-							schedItem3.endoverride = datetime.strptime(item['end'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
-						elif len(item['end'].split(':'))>=4:
-							schedItem3.endoverride = datetime.strptime(item['end'].split(':')[0]+':'+item['end'].split(':')[1]+':'+item['end'].split(':')[2]+item['end'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
-						else:
-							schedItem3.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
-				#print(schedItem3.endoverride)
-						schedItem3.save()
+				if pk['pk'] not in ids_in_tl:
+					removed_item = ScheduleItem.objects.get(pk=pk['pk'])
+					removed_item.start = None
+					removed_item.save()
 			return redirect('manufacturing')
-	return render(request, 'manufacturing_goals/manufscheduler.html', {'form': form, 'data_list': data_list, 'tldata_list': tldata_list, 'mfgl_list': mfgl_list, 'mfdurations': mfdurations})
+	context['form'] = form, 
+	context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
+	context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
+	context['mfg_lines'] = ManufacturingLine.objects.all()
+	context['mfdurations'] = mfdurations
+	return render(request, 'manufacturing_goals/manufscheduler.html', context)
 
 @login_required
 def enable_menu(request):

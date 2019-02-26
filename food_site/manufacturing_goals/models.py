@@ -26,7 +26,7 @@ class ManufacturingQty(models.Model):
 
 class ScheduleItem(models.Model):
 	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
-	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT, blank=True, null=True)
+	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
 	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 	endoverride = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 
@@ -44,5 +44,14 @@ class ScheduleItem(models.Model):
 			endtime += timedelta(hours=14)
 			index += timedelta(days=1)
 		return endtime
+
+	def start_time(self):
+		return self.start.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+	def end_time(self):
+		return self.end().strftime("%Y-%m-%dT%H:%M:%S%z")
+
+	def __str__(self):
+		return str(self.mfgqty.goal.name) + ': ' + self.mfgqty.sku.name + ', due by ' + '{:%Y-%m-%d}'.format(self.mfgqty.goal.deadline)
 
 
