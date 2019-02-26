@@ -125,6 +125,7 @@ def manufqty(request):
 	RequestConfig(request, paginate=paginate).configure(input_table)
 	return render(request, 'manufacturing_goals/data.html', context)
 
+@login_required
 def goal_add(request, pk):
 	try:
 		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
@@ -136,6 +137,7 @@ def goal_add(request, pk):
 		request.session['errormsg'] = 'Include Case Quantity'
 	return redirect('manufqty')
 
+@login_required
 def goal_remove(request, pk):
 	ManufacturingQty.objects.get(pk=pk).delete()
 	request.session['errormsg'] = ''
