@@ -150,7 +150,7 @@ class IngredientQty(models.Model):
             raise ValidationError("Quantity measured in raw count but ingredient package size is not")
 
     def get_serializable_string_array(self):
-        return [str(self.formula.number), str(self.ingredient.number), str(self.quantity)]
+        return [str(self.formula.number), str(self.ingredient.number), str(self.quantity), str(self.quantity_units)]
 
 
 class SkuMfgLine(models.Model):
