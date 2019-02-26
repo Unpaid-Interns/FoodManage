@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Are You Sure?</h1>
+	{% if goal.enabled %}
+		<h2>You are about to Disable {{ goal }}</h2>
+	{% else %}
+		<h2>You are about to Enable {{ goal }}</h2>
+	{% endif %}
+	<form class="form-inline" method="post">
+		{% csrf_token %}
+		<button type="submit" name="yes">Proceed</button>
+		<button type="submit" name="no">Cancel</button>
+	</form>
+{% endblock content %}

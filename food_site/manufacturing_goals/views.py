@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.db.models import Q
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, IngredientQty, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
-from .tables import SKUTable, MfgQtyTable
+from .tables import SKUTable, MfgQtyTable, EnableTable
 from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
 from django.views import generic
@@ -231,10 +231,6 @@ def timeline(request):
 			data_item['id'] = s.pk
 			if s.mfgline:
 				data_item['group'] = s.mfgline.pk
-			else:
-				for ml in ManufacturingLine.objects.all():
-					data_item['group'] = ml.pk
-					break
 			data_item['type'] = 'range'
 			if s.start:
 				data_item['start'] = s.start.strftime("%Y-%m-%dT%H:%M:%S%z")
@@ -316,3 +312,25 @@ def timeline(request):
 						schedItem3.save()
 			return redirect('manufacturing')
 	return render(request, 'manufacturing_goals/manufscheduler.html', {'form': form, 'data_list': data_list, 'tldata_list': tldata_list, 'mfgl_list': mfgl_list, 'mfdurations': mfdurations})
+
+@login_required
+def enable_menu(request):
+	context = dict()	
+	queryset = ManufacturingGoal.objects.all()
+	table = EnableTable(queryset)
+	context['table'] = table
+	return render(request, 'manufacturing_goals/enable_menu.html', context)
+
+def enable_goal(request, pk):
+	goal = ManufacturingGoal.objects.get(pk=pk)
+	context = {'goal' : goal}
+	if request.method == 'POST':
+		if 'yes' in request.POST:
+			goal.enabled = not goal.enabled;
+			goal.full_clean()
+			goal.save()
+			return redirect('enable_menu')
+		if 'no' in request.POST:
+			return redirect('enable_menu')
+	return render(request, 'manufacturing_goals/enable_goal.html', context)
+
