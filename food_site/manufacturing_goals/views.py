@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 import json
 from django.core.exceptions import ValidationError
 from datetime import datetime
+from . import unitconvert
 
 @login_required
 def manufacturing(request):
@@ -45,13 +46,9 @@ def manufacturing(request):
 				mq_dict["units_per_case"] = sku.units_per_case
 				formula = sku.formula
 				for iq in formula.ingredientqty_set.all():
-					ingredient = iq.ingredient
-					i_qty = iq.quantity
-					formula_scale = sku.formula_scale
-					ipkg_size = ingredient.package_size
-					ingtotalunits = (i_qty * mq.caseqty * formula_scale)
-					ingtotalpkgs = (ingtotalunits/ipkg_size)
-					iqtotalslist.append({ingredient.name: ['{:g}'.format(ingtotalunits)+' '+ingredient.package_size_units, '{:g}'.format(ingtotalpkgs)+' packages']})
+					ingtotalunits = (unitconvert.convert(iq.quantity, iq.quantity_units, iq.ingredient.package_size_units) * mq.caseqty * sku.formula_scale)
+					ingtotalpkgs = (ingtotalunits/iq.ingredient.package_size)
+					iqtotalslist.append({iq.ingredient.name: ['{:g}'.format(ingtotalunits)+' '+iq.ingredient.package_size_units, '{:g}'.format(ingtotalpkgs)+' packages']})
 				mq_dict["ingredienttotals"] = iqtotalslist
 				goalcalc_list.append(mq_dict)
 			request.session['goal_name'] = goal.name
