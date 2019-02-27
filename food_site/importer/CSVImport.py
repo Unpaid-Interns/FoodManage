@@ -225,7 +225,8 @@ class CSVImport:
                     _, chosen_ingredient = get_formula_if_exists_for_formula(int(data_string_array[0]), self.data_dict,
                                                                              None, False)
                     data = models.IngredientQty(formula=chosen_ingredient, ingredient=chosen_ingredient,
-                                                quantity=float(data_string_array[2]))
+                                                quantity=float(data_string_array[2]),
+                                                quantity_units=data_string_array[3])
                 if data is None:
                     # print("RETURNING EARLY 1")
                     return original_dict
@@ -654,7 +655,7 @@ def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_dat
         return ("ERROR: Problem with number of entries in Formulas CSV file at row #"
                 + str(num_records_parsed + 2) + ", needs " + str(len(headerDict[validFilePrefixes[3] + ".csv"]))
                 + " entries but has " + str(len(row)) + " entries."), None, None
-    for i in [0, 1, 2]:
+    for i in [0, 1, 2, 3]:
         if i == 0:
             if row[i] == "":
                 row[0] = str(used_neg_numbers_list[len(used_neg_numbers_list) - 1] - 1)
@@ -668,10 +669,23 @@ def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_dat
                 return "ERROR: Problem in Formulas CSV file in row #" + str(num_records_parsed + 2) + " and col #" \
                        + str(i + 1) + ". Entry in this column must be an integer value but is not.", None, None
         if i in [3]:
-            if not float_check(row[i]):
-                return "ERROR: Problem in Formulas CSV file with 'Quantity' in row #" + str(num_records_parsed + 2) \
-                       + " and col #" \
-                       + str(i + 1) + ". Entry in this column must be an decimal value but is not.", None, None
+            number_string, unit_string, matches_regex, size_success = get_number_and_unit(row[i])
+            if not matches_regex:
+                return ("ERROR: Problem with 'Size' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
+                        + " and col #" + str(i + 1) + ". Entry in this row/column does not conform to required "
+                                                      "package size standard."), None, None
+            if not size_success:
+                error_string = "ERROR: Problem with 'Size' in Ingredient CSV file in row #" \
+                               + str(num_records_parsed + 2) + " and col #" + str(i + 1) + ". "
+                if number_string is None and unit_string is None:
+                    error_addition = "number and unit"
+                elif number_string is None:
+                    error_addition = "number"
+                elif unit_string is None:
+                    error_addition = "unit"
+                error_string = error_string + "Entry in this row/column has an invalid " + error_addition + " in the " \
+                               + "number/unit pair."
+                return error_string, None, None
 
     ing_chosen_successfully, error_message, chosen_ing = \
         choose_ingredient_for_formula(int(row[2]), data_dict)
@@ -687,10 +701,11 @@ def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_dat
     if not formula_chosen_successfully:
         chosen_formula = models.Formula(name=row[1], number=int(row[0]), comment=row[4])
         return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
-                                    quantity=float(row[3])), chosen_formula, used_neg_numbers_list
+                                    quantity=float(number_string), quantity_units=unit_string), chosen_formula, \
+                                    used_neg_numbers_list
     else:
         return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
-                                    quantity=float(row[3])), None, used_neg_numbers_list
+                                    quantity=float(number_string), quantity_units=unit_string), None, used_neg_numbers_list
 
 
 def get_formula_if_exists_for_formula(formula_number, formula_name, data_dict, formula_local_data, check_local):
@@ -935,13 +950,18 @@ def check_for_match_name_or_id(new_record, record_list, file_prefix, num_records
                        + str(row_num) + "' and '" + str(num_records_imported + 2) + "'"
         if file_prefix == validFilePrefixes[3]:
             if (record.formula.number == new_record.formula.number and record.formula.name == new_record.formula.name
-                    and record.ingredient.number == new_record.ingredient.number
-                    and record.quantity != new_record.quantity):
-                return ("ERROR: Formula to be imported with number '" + str(new_record.formula.number) + "', name '"
-                        + new_record.formula.name + "', and ingredient number '" + str(new_record.ingredient.number)
-                        + "', and quantity '" + str(new_record.quantity) + "' at line '" + str(num_records_imported + 2)
-                        + "' conflicts with similar formula in file with same fields except with quantity '"
-                        + str(record.quantity) + "' at line '" + str(row_num) + "'.")
+                    and record.ingredient.number == new_record.ingredient.number):
+                if record.quantity == new_record.quantity and record.quantity_units == new_record.quantity_units:
+                    return ("ERROR: Duplicate formula entry with number '" + str(new_record.formula.number)
+                            + "', name '" + new_record.formula.name + "' at lines '" + str(num_records_imported + 2)
+                            + "' and '" + str(row_num) + '.')
+                else:
+                    return ("ERROR: Formula to be imported with number '" + str(new_record.formula.number) + "', name '"
+                            + new_record.formula.name + "', and ingredient number '" + str(new_record.ingredient.number)
+                            + "', and quantity '" + str(new_record.quantity) + new_record.quantity_units
+                            + "' at line '" + str(num_records_imported + 2)
+                            + "' conflicts with similar formula in file with same fields except with quantity '"
+                            + str(record.quantity) + record.quantity_units + "' at line '" + str(row_num) + "'.")
     return ""
 
 
@@ -1058,20 +1078,21 @@ def check_for_identical_record(record, shortname_array, file_prefix, number_reco
         for item in models_list:
             if (item.formula.number == record.formula.number and item.formula.name == record.formula.name
                     and item.ingredient.number == record.ingredient.number
-                    and item.quantity == record.quantity):
+                    and item.quantity == record.quantity and item.quantity_units == record.quantity_units):
                 return "identical", None
             if (record.formula.number < 0 and item.formula.name == record.formula.name
                     and item.ingredient.number == record.ingredient.number
-                    and item.quantity == record.quantity):
+                    and item.quantity == record.quantity and item.quantity_units == record.quantity_units):
                 return "identical", None
             if (item.formula.number == record.formula.number and item.formula.name == record.formula.name
-                    and item.ingredient.number == record.ingredient.number
-                    and item.quantity != record.quantity):
+                    and item.ingredient.number == record.ingredient.number) and \
+                (item.quantity != record.quantity or item.quantity_units != record.quantity_units):
                 return ("ERROR: Formula to be imported with number '" + str(record.formula.number) + "', name '"
                         + record.formula.name + "', and ingredient number '" + str(record.ingredient.number)
-                        + "', and quantity '" + str(record.quantity) + "' at line '" + str(number_records_imported + 2)
+                        + "', and quantity '" + str(record.quantity) + record.quantity_units
+                        + "' at line '" + str(number_records_imported + 2)
                         + "' conflicts with similar formula in database with same fields except with quantity '"
-                        + str(item.quantity) + "'."), None
+                        + str(item.quantity) + item.quantity_units + "'."), None
         models.IngredientQty.objects.filter(formula__number=record.formula.number).delete()
     return "", None
 
