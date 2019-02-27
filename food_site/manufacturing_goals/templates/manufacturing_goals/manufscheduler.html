@@ -36,9 +36,7 @@
 				{% endif %}
 				{% endfor %}
 				{% for item in scheduled_items %}
-				{% if item.mfgqty.goal.enabled %}
 				<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})" style="display:none;">{{ item }}</li>
-				{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
@@ -51,9 +49,7 @@
 				{% endif %}
 				{% endfor %}
 				{% for item in scheduled_items %}
-				{% if item.mfgqty.goal.enabled %}
 				<li class="item" id="s-{{ item.id }}">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
-				{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
