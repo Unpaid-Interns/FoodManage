@@ -43,13 +43,13 @@ def message_displayer(request):
         messages.add_message(request, messages.INFO, message_to_display, extra_tags="result")
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         for file_prefix in conflict_dict:
-            print(file_prefix + " in message_displayer")
+            #print(file_prefix + " in message_displayer")
             conflict_records_list = conflict_dict[file_prefix]
             for conflict_tuple in conflict_records_list:
                 # data = conflict_tuple[0]
                 # conflict_database_model = conflict_tuple[1]
                 database_record_check_message = conflict_tuple[2]
-                print(conflict_tuple[2] + " in message_displayer")
+                #print(conflict_tuple[2] + " in message_displayer")
                 messages.add_message(request, messages.INFO, database_record_check_message, extra_tags="conflict")
     return render(request, 'importer/messages.html')
 
