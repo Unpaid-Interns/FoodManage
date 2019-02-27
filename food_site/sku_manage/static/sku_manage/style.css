@@ -31,6 +31,10 @@ body {
   border-radius: 5px;
 }
 
+.button button {
+
+}
+
 .warnings p {
   color: red;
 }
@@ -55,6 +59,10 @@ body {
 /* Main View Menu Styling */
 .menu-buttons {
   text-align: center;
+}
+
+.left-align {
+  text-align: left;
 }
 
 .menu-buttons a {
@@ -262,6 +270,23 @@ body {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
+}
+
+.thin {
+  height: auto;
+  width: auto;
+  padding: auto;
+}
+
+.thin button {
+  height: 18px;
+  width: 18px;
+  padding: 0;
+}
+
+.thin input {
+  height: 18px;
+  padding: 0;
 }
 
 .form-inline button:hover {
