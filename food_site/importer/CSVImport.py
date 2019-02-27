@@ -345,8 +345,8 @@ def read_file(filename, file_prefix, data_dict):
                 return None, None, None, None, None, None, None, False, "ERROR: File is empty. Aborting import."
     except FileNotFoundError:
         return None, None, None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
-    # except:
-    #     return None, None, None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
+    except:
+        return None, None, None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
     return parsed_data, sku_mfg_lines_data, formulas_data, conflicting_records_tpl, \
            num_records_parsed - num_record_ignored - num_record_conflicted, \
            num_record_ignored, num_record_conflicted, True, ""
