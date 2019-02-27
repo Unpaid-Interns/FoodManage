@@ -31,6 +31,10 @@ body {
   border-radius: 5px;
 }
 
+.button button {
+
+}
+
 .warnings p {
   color: red;
 }
@@ -55,6 +59,10 @@ body {
 /* Main View Menu Styling */
 .menu-buttons {
   text-align: center;
+}
+
+.left-align {
+  text-align: left;
 }
 
 .menu-buttons a {
