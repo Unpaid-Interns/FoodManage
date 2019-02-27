@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from django.http import HttpResponse
+from django.db import IntegrityError
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
 from .tables import SKUTable, SelectedTable
@@ -72,14 +73,19 @@ def map_remove(request, pk):
 	return redirect('map_view')
 
 def edit_mapping(request):
-	skus = SKU.objects.filter(id__in=request.session.get('skus'))
-	op_type = request.POST['mfg-line-op']
-	line_pk = int(request.POST['mfg-line-select'])
-	if op_type == 'add':
-		mfg_line = ManufacturingLine.objects.filter(id=line_pk)[0]
-		for sku in skus:
-			SkuMfgLine(sku=sku, mfg_line=mfg_line).save()
-	else:
-		SkuMfgLine.objects.filter(sku__in=skus, mfg_line__pk=line_pk).delete()
+	print(request.POST)
+	if request.POST['mfg-line-select'] != 'none':
+		skus = SKU.objects.filter(id__in=request.session.get('skus'))
+		op_type = request.POST['mfg-line-op']
+		line_pk = int(request.POST['mfg-line-select'])
+		if op_type == 'add':
+			mfg_line = ManufacturingLine.objects.filter(id=line_pk)[0]
+			for sku in skus:
+				try:
+					SkuMfgLine(sku=sku, mfg_line=mfg_line).save()
+				except IntegrityError:
+					pass
+		else:
+			SkuMfgLine.objects.filter(sku__in=skus, mfg_line__pk=line_pk).delete()
 	return redirect('map_view')
 
