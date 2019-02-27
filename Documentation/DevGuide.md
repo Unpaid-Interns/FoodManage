@@ -19,6 +19,7 @@ The development environment was built within a Linux machine running Ubuntu 16.0
 * django-tables2 (with pip)
 * django-bootstrap3 (with pip)
 * psycopg2-binary (with pip)
+* requests (with pip)
 
 Python 3 is usually installed with Ubuntu 16.04 and can be used to run commands in terminal by typing `python3`. Pip is installable via the command `sudo apt-get install pip3`. The remaining Python packages can be installed using `pip3 install <PACKAGE_NAME>`. The use of a virtual environment is not neccessary but is recommended.
 ### Development Build Deployment
