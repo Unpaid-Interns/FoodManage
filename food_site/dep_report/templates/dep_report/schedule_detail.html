@@ -22,20 +22,39 @@
                 <li>Start: {{ item.start }}</li>
                 <li>End: {{ item.end }}</li>
                 <li>{{ item.duration|hours }} manufacturing hours</li>
+                <li>Formula: {{ item.mfgqty.sku.formula }} (Formula#={{ item.mfgqty.sku.formula.number }})</li>
+                <li>Formula Scale Factor: {{ item.mfgqty.sku.formula_scale }}</li>
                 <li>Ingredients</li>
                 <ul>
                     {% for choice in item.mfgqty.sku.formula.ingredientqty_set.all %}
-                        <li>{{ choice.ingredient }}: **units** {{ choice.quantity|mult:item.mfgqty.caseqty }} packages</li>
+                        <li>{{ choice.ingredient }}: {{ choice.quantity|mult:item.mfgqty.sku.formula_scale|mult:item.mfgqty.caseqty }} {{ choice.quantity_units }}</li>
                     {% endfor %}
                 </ul>
+                <li>Case UPC: {{ item.mfgqty.sku.case_upc }}</li>
+                <li>Unit UPC: {{ item.mfgqty.sku.unit_upc }}</li>
+                <li>Manufacturing Rate: {{ item.mfgqty.sku.mfg_rate }}</li>
             </ul>
+            <br>
         {% endfor %}
     </ol>
-    <h2>Ingredients Summary</h2>
+    <h2>Ingredient Details</h2>
     <ul>
         {% for ingredient, quantity in ingredients.items %}
-            <li>{{ ingredient.name }} (INGR#{{ ingredient.number }}): **units** {{ quantity }} packages</li>
+            <li>{{ ingredient.name }} (INGR#={{ ingredient.number }})</li>
+            <ul>
+                <li>Package Size: {{ ingredient.package_size }} {{ ingredient.package_size_units }}</li>
+                <li>Package Cost: ${{ ingredient.cost }} (USD)</li>
+                <li>Vendor Information: {{ ingredient.vendor_info }}</li>
+            </ul>
+            <br>
         {% endfor %}
     </ul>
+    <h2>Ingredients Summary</h2>
+    <table class="table">
+        <tr><th>Ingredient Name</th><th>Ingredient#</th><th>Quantity</th><th>Number of Packages</th></tr>
+        {% for ingredient, quantity in ingredients.items %}
+            <tr><td>{{ ingredient.name }}</td><td>{{ ingredient.number }}</td><td>{{ quantity.0 }} {{ ingredient.package_size_units }}</td><td>{{ quantity.1 }}</td></tr>
+        {% endfor %}
+    </table>
 {% endblock content %}
 
