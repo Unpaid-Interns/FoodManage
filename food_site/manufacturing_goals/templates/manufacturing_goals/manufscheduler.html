@@ -115,7 +115,7 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: royalblue;'{% elif item.end > item.mfgqty.goal.deadline %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: royalblue;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
