@@ -58,6 +58,13 @@
 			</ul>
 		</div>
 	</div>
+	<!--<button onclick="saveTLData()">Save Timeline</button>-->
+	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
+		{% csrf_token %}
+		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
+		<input value="{{ overrides }}" type="text" name="overrides" id="overrides" required="required" placeholder="[]" style="display:none;">
+		<button type="submit" onclick="saveTLData()">Save Timeline</button>
+	</form>
 	<div class="warnings">
 		<h2>Warnings</h2>
 		<h3>Not Included in Schedule:</h3>
@@ -74,7 +81,7 @@
 		{% endfor %}
 		<h3>Finishing after Goal Deadline:</h3>
 		{% for item in scheduled_items %}
-			{% if item.mfgqty.goal.enabled and item.mfgqty.goal.deadline < item.end %}
+			{% if item.mfgqty.goal.enabled and item.too_late %}
 				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
 			{% endif %}
 		{% endfor %}
@@ -85,14 +92,9 @@
 			{% endif %}
 		{% endfor %}
 	</div>
-	<!--<button onclick="saveTLData()">Save Timeline</button>-->
-	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
-		{% csrf_token %}
-		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
-		<input value="{{ overrides }}" type="text" name="overrides" id="overrides" required="required" placeholder="[]" style="display:none;">
-		<button type="submit" onclick="saveTLData()">Save Timeline</button>
-	</form>
-	<button onclick="showHelp()">Help</button>
+	<div class="menu-buttons">
+		<button class="bt" onclick="showHelp()">Help</button>
+	</div>
 	<div id="help" style="display:none;">
 		<ul>
 			<li>Click the items under "Unscheduled Manufacturing Activities" to add the selected activity to the manufacturing schedule.</li>
