@@ -272,6 +272,23 @@ body {
   border-radius: 5px;
 }
 
+.thin {
+  height: auto;
+  width: auto;
+  padding: auto;
+}
+
+.thin button {
+  height: 18px;
+  width: 18px;
+  padding: 0;
+}
+
+.thin input {
+  height: 18px;
+  padding: 0;
+}
+
 .form-inline button:hover {
   background-color: royalblue;
 }
