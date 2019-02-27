@@ -20,7 +20,7 @@ headerDict = {
 validFilePrefixes = ["skus", "ingredients", "product_lines", "formulas"]
 
 validUnits = ['ounce', 'oz', 'pound', 'lb', 'ton', 'gram', 'g',
-              'kilogram', 'kg', 'fluidounce', 'floz.', 'pint', 'pt',
+              'kilogram', 'kg', 'fluidounce', 'floz', 'pint', 'pt',
               'quart', 'qt', 'gallon', 'gal', 'milliliter', 'ml',
               'liter', 'l', 'ct', 'count']
 
@@ -134,10 +134,10 @@ class CSVImport:
         fill_in_ingr_nums(self.data_dict)
         fill_in_formula_nums(self.data_dict)
 
-        try:
-            clean_data(self.data_dict)
-        except ValidationError as error_message:
-            print(error_message)
+        # try:
+        #     clean_data(self.data_dict)
+        # except ValidationError as error_message:
+        #     return "ERROR: " + str(error_message), False
 
         if validFilePrefixes[1] in self.data_dict:
             models.Ingredient.objects.bulk_create(self.data_dict[validFilePrefixes[1]])
@@ -700,12 +700,23 @@ def formulas_parser_helper(row, num_records_parsed, data_dict, formula_local_dat
         return formula_error_message, None, None
     if not formula_chosen_successfully:
         chosen_formula = models.Formula(name=row[1], number=int(row[0]), comment=row[4])
-        return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
-                                    quantity=float(number_string), quantity_units=unit_string), chosen_formula, \
-                                    used_neg_numbers_list
+        ing_qty_model = models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
+                                             quantity=float(number_string), quantity_units=unit_string)
+        try:
+            ing_qty_model.clean()
+            return ing_qty_model, chosen_formula, used_neg_numbers_list
+        except ValidationError as error_message:
+            return ("ERROR: Problem in Ingredient CSV file in row #" + str(num_records_parsed + 2)
+                    + ". " + str(error_message).replace("[", "").replace("'", "").replace("]", "") + "."), None, None
     else:
-        return models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
-                                    quantity=float(number_string), quantity_units=unit_string), None, used_neg_numbers_list
+        ing_qty_model = models.IngredientQty(formula=chosen_formula, ingredient=chosen_ing,
+                                             quantity=float(number_string), quantity_units=unit_string)
+        try:
+            ing_qty_model.clean()
+            return ing_qty_model, None, used_neg_numbers_list
+        except ValidationError as error_message:
+            return ("ERROR: Problem in Ingredient CSV file in row #" + str(num_records_parsed + 2)
+                    + ". " + str(error_message).replace("[", "").replace("'", "").replace("]", "") + "."), None, None
 
 
 def get_formula_if_exists_for_formula(formula_number, formula_name, data_dict, formula_local_data, check_local):
@@ -987,8 +998,8 @@ def check_for_identical_record(record, shortname_array, file_prefix, number_reco
                     item.comment == record.comment):
                 sku_mfg_pass, sku_mfg_conflict_message = sku_mfg_line_check(record, shortname_array, item,
                                                                             number_records_imported)
-                print(sku_mfg_pass)
-                print(sku_mfg_conflict_message)
+                #print(sku_mfg_pass)
+                #print(sku_mfg_conflict_message)
                 if sku_mfg_pass:
                     return "identical", None
                 else:
@@ -1156,6 +1167,7 @@ def get_number_and_unit(mixed_unit):
     matches_regex, number_string, unit_string = mixed_unit_valid_check(mixed_unit)
     if matches_regex:
         if not float_check(number_string):
+            #print("Not float: ", number_string, unit_string)
             return None, unit_string, matches_regex, False
         # strip unit of spaces, '.', make lowercase, and removes trailing 's'
         unit_string = unit_string.strip().replace('.', '').replace(' ', '').lower()
@@ -1166,8 +1178,10 @@ def get_number_and_unit(mixed_unit):
             unit_string = unit_mappings[unit_string]
             return number_string, unit_string, matches_regex, True
         else:
+            #print("unit_string NOT in validUnits: ", unit_string)
             return number_string, None, matches_regex, False
     else:
+        #print("Doesn't match: ", number_string, unit_string)
         return None, None, matches_regex, False
 
 
