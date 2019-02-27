@@ -10,6 +10,7 @@ from sku_manage.models import Ingredient, SKU, ManufacturingLine, IngredientQty
 from django_tables2 import RequestConfig, paginators
 from .tables import IngredientTable, SelectedTable, MfgLineTable
 from manufacturing_goals.models import ScheduleItem
+from manufacturing_goals import unitconvert
 
 @login_required
 def ingr_dep_menu(request):
@@ -142,7 +143,7 @@ def mfg_sch_menu(request):
 @login_required
 def schedule_report(request, pk):
 	manufacturingline = ManufacturingLine.objects.get(pk=pk)
-	schedule_items = ScheduleItem.objects.filter(mfgline=manufacturingline)
+	schedule_items = ScheduleItem.objects.filter(mfgline=manufacturingline, mfgqty__goal__enabled=True, start__isnull=False).order_by('start')
 	if request.method == 'GET':
 		if 'starttime' in request.GET and request.GET['starttime'] != '':
 			start_time = request.GET['starttime']
@@ -154,13 +155,15 @@ def schedule_report(request, pk):
 	ingredient_list = Ingredient.objects.filter(ingredientqty__formula__sku__manufacturingqty__scheduleitem__in=schedule_items)
 	ingredient_dict = dict()
 	for ingredient in ingredient_list:
-		sku_list = SKU.objects.filter(formula__ingredientqty__ingredient=ingredient, manufacturingqty__scheduleitem__in=schedule_items)
 		total_q = 0
-		for sku in sku_list:
-			caseqty = schedule_items.get(mfgqty__sku=sku).mfgqty.caseqty
-			ingrqty = IngredientQty.objects.get(formula__sku=sku, ingredient=ingredient).quantity
-			total_q += round(ingrqty * caseqty, 12)
-		ingredient_dict[ingredient] = total_q
+		for schedule_item in schedule_items:
+			sku = schedule_item.mfgqty.sku
+			caseqty = schedule_item.mfgqty.caseqty
+			ingrqty = IngredientQty.objects.get(formula__sku=sku, ingredient=ingredient)
+			quantity = round(ingrqty.quantity * caseqty * sku.formula_scale, 12)
+			total_q += unitconvert.convert(quantity, ingrqty.quantity_units, ingredient.package_size_units)
+		package_num = round(total_q / ingredient.package_size, 12)
+		ingredient_dict[ingredient] = [total_q, package_num]
 
 	context = {
 		'manufacturingline': manufacturingline,

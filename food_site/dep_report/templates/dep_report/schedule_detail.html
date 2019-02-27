@@ -25,7 +25,7 @@
                 <li>Ingredients</li>
                 <ul>
                     {% for choice in item.mfgqty.sku.formula.ingredientqty_set.all %}
-                        <li>{{ choice.ingredient }}: **units** {{ choice.quantity|mult:item.mfgqty.caseqty }} packages</li>
+                        <li>{{ choice.ingredient }}: {{ choice.quantity|mult:item.mfgqty.sku.formula_scale|mult:item.mfgqty.caseqty }} {{ choice.quantity_units }}</li>
                     {% endfor %}
                 </ul>
             </ul>
@@ -34,7 +34,7 @@
     <h2>Ingredients Summary</h2>
     <ul>
         {% for ingredient, quantity in ingredients.items %}
-            <li>{{ ingredient.name }} (INGR#{{ ingredient.number }}): **units** {{ quantity }} packages</li>
+            <li>{{ ingredient.name }} (INGR#{{ ingredient.number }}): {{ quantity.0 }} {{ ingredient.package_size_units }} ({{ quantity.1 }} packages)</li>
         {% endfor %}
     </ul>
 {% endblock content %}
