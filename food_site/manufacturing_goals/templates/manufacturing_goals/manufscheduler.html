@@ -81,6 +81,10 @@
 				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
 			{% endif %}
 		{% endfor %}
+		<h3>Overlapping production on a manufacturing line:</h3>
+		{% for item in mfg_overlap %}
+			<p>{{ item }}</p>
+		{% endfor %}
 		<h3>Manually Adjusted Duration:</h3>
 		{% for item in scheduled_items %}
 			{% if item.mfgqty.goal.enabled and item.endoverride %}
