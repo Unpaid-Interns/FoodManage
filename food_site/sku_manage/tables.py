@@ -7,6 +7,7 @@ from .models import ManufacturingLine
 
 class IngredientTable(tables.Table):
 	name = tables.TemplateColumn('<a class="ing" href="{{record.pk}}">{{ record.name }}</a>')
+	package_size = tables.TemplateColumn('{{ record.package_size }} {{ record.package_size_units }}')
 	class Meta:
 		model = Ingredient
 		fields = ['name', 'number', 'vendor_info', 'package_size', 'cost']

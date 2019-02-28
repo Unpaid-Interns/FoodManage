@@ -10,13 +10,13 @@
     <p>{{ formula.ingredientqty_set.all|length }} Ingredients:</p>
     <ul>
     	{% for choice in formula.ingredientqty_set.all %}
-        	<li> <a class="detail_list" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} packages</li>
+        	<li> <a class="detail_list" href="{% url 'ingredient_detail' choice.ingredient.pk %}">{{ choice.ingredient.name }}</a> - {{ choice.quantity }} {{ choice.quantity_units }}</li>
     	{% endfor %}
     </ul>
     <p>{{ formula.sku_set.all|length }} SKUs:</p>
     <ul>
     	{% for sku in formula.sku_set.all %}
-        	<li> <a class="detail_list" href="{% url 'sku_detail' sku.pk %}">{{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
+        	<li> <a class="detail_list" href="{% url 'sku_detail' sku.pk %}">{{ sku }}</a> - Scale {{ sku.formula_scale }}</li>
     	{% endfor %}
     </ul>
 {% endblock content %}

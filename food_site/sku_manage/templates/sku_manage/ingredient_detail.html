@@ -5,7 +5,7 @@
 	<ul>
 		<li>Ingredient Name: {{ ingredient.name }}</li>
 		<li>Ingredient#: {{ ingredient.number }}</li>
-		<li>Package Size: {{ ingredient.package_size }}</li>
+		<li>Package Size: {{ ingredient.package_size }} {{ ingredient.package_size_units }}</li>
 		<li>Package Cost: ${{ ingredient.cost }} (USD)</li>
 		<li>Vendor Information: {{ ingredient.vendor_info }}</li>
 		<li>Comment: {{ ingredient.comment }}</li>
@@ -13,14 +13,14 @@
 	<p>{{ ingredient.ingredientqty_set.all|length }} Formulas:</p>
 	<ul>
 		{% for choice in ingredient.ingredientqty_set.all %}
-			<li><a class="detail_list" href="{% url 'formula_detail' choice.formula.pk %}"> {{ choice.formula }}</a> - {{ choice.quantity }} packages</li>
+			<li><a class="detail_list" href="{% url 'formula_detail' choice.formula.pk %}"> {{ choice.formula }}</a> - {{ choice.quantity }} {{ choice.quantity_units }}</li>
 		{% endfor %}
 	</ul>
 	<p>SKUs:</p>
 	<ul>
 		{% for ingq in ingredient.ingredientqty_set.all %}
 			{% for sku in ingq.formula.sku_set.all %}
-				<li><a class="detail_list" href="{% url 'sku_detail' sku.pk %}"> {{ sku }} (SKU# = {{ sku.sku_num }})</a></li>
+				<li><a class="detail_list" href="{% url 'sku_detail' sku.pk %}"> {{ sku }}</a></li>
 			{% endfor %}
 		{% endfor %}
 	</ul>

@@ -4,8 +4,10 @@
 	<p>Create a new manufacturing goal</p>
 	<form class="form-inline" method="POST" action="/manufacturing/">
 		{% csrf_token %}
+		<p>Name:</p>
 		<input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Goal Name">
-		<input value="{{ deadline }}" type="text" name="deadline" required="required" placeholder="Deadline (mm/dd/yyyy)">
+		<p>Deadline:</p>
+		<input value="{{ deadline }}" type="date" name="deadline" required="required">
 		<button type="submit" id="submit" name="submit">Create New Goal</button>
 	</form>
 	<p><strong>OR</strong></p>
@@ -15,4 +17,8 @@
 		{{ form2 }}
 		<button type="submit" id="submit" name="submit">Go</button>
 	</form>
+	{% if request.user.is_staff %}
+	<a style="padding:8px;" href="{% url 'enable_menu' %}">Enable/Disable Goals</a>
+	<a style="padding:8px;" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
+	{% endif %}
 {% endblock content %}

@@ -118,6 +118,7 @@ def SKUView(request):
 		'selected_ingredient': None,
 		'all_product_lines': ProductLine.objects.all(),
 		'selected_product_line': None,
+		'groupable': True,
 		'numtab': False,
 		't': None,
 	}	
@@ -153,6 +154,7 @@ def SKUView(request):
 		if 'remove_pagination' in request.GET:
 			paginate = False
 			context['paginated'] = False
+
 		if 'group' in request.GET:
 			pline = list()
 			tlist = list()
@@ -166,7 +168,7 @@ def SKUView(request):
 					if obj.product_line.pk == n.pk:
 						temp.append(obj)
 				tlist.append(SKUTable(temp))
-			context['t'] = tlist			
+			context['t'] = tlist	
 
 	if request.method == 'POST' and 'export_data' in request.POST:
 		if 'sort' in request.GET:
@@ -292,12 +294,20 @@ def search(request):
 @login_required
 def populate(request):
 	ex_data.load_data()
-	return redirect('search')
+	return redirect('/')
+
+@login_required
+def clear(request):
+	SKU.objects.all().delete()
+	ProductLine.objects.all().delete()
+	Formula.objects.all().delete()
+	ManufacturingLine.objects.all().delete()
+	Ingredients.objects.all().delete()
+	return redirect('/')
 
 @login_required
 def authout(request):
         logout(request)
-        response = redirect('/')
-        return response
+        return redirect('/')
 
 	

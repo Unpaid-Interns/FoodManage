@@ -2,13 +2,16 @@ from django.shortcuts import render, redirect
 from django.db.models import Q
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, IngredientQty, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
-from .tables import SKUTable, MfgQtyTable
-from .models import ManufacturingQty, ManufacturingGoal
-from .forms import GoalsForm, GoalsChoiceForm
+from .tables import SKUTable, MfgQtyTable, EnableTable
+from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
+from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
 from django.views import generic
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
+import json
 from django.core.exceptions import ValidationError
+from datetime import datetime
+from . import unitconvert
 
 @login_required
 def manufacturing(request):
@@ -30,27 +33,22 @@ def manufacturing(request):
 			for mq in goal_qty:
 				# Details about the Goal itself
 				sku = mq.sku
-				norm_qty = mq.caseqty.normalize()
+				norm_qty = mq.caseqty
 				caseqty = '{:f}'.format(norm_qty)
 				mq_info = {"name": sku.name, "sku_number": sku.sku_num, "unit_size": sku.unit_size, "units_per_case": sku.units_per_case, "case_quantity": caseqty}
 				goal_list.append(mq_info)
 				# Calculation and report
 				mq_dict = dict()
 				iqtotalslist = list()
-				#iqtotalslist_pkgs = list()
 				mq_dict["sku"] = str(sku)
 				mq_dict["sku_num"] = sku.sku_num
 				mq_dict["unit_size"] = sku.unit_size
 				mq_dict["units_per_case"] = sku.units_per_case
 				formula = sku.formula
 				for iq in formula.ingredientqty_set.all():
-					ingredient = iq.ingredient
-					i_qty = iq.quantity
-					formula_scale = sku.formula_scale
-					ipkg_size = ingredient.package_size
-					ingtotalunits = (i_qty * float(mq.caseqty) * formula_scale)
-					ingtotalpkgs = (ingtotalunits/ipkg_size)
-					iqtotalslist.append({ingredient.name: ['{:g}'.format(ingtotalunits)+' '+ingredient.package_size_units, '{:g}'.format(ingtotalpkgs)+' packages']})
+					ingtotalunits = (unitconvert.convert(iq.quantity, iq.quantity_units, iq.ingredient.package_size_units) * mq.caseqty * sku.formula_scale)
+					ingtotalpkgs = (ingtotalunits/iq.ingredient.package_size)
+					iqtotalslist.append({iq.ingredient.name: ['{:g}'.format(ingtotalunits)+' '+iq.ingredient.package_size_units, '{:g}'.format(ingtotalpkgs)+' packages']})
 				mq_dict["ingredienttotals"] = iqtotalslist
 				goalcalc_list.append(mq_dict)
 			request.session['goal_name'] = goal.name
@@ -120,6 +118,7 @@ def manufqty(request):
 	RequestConfig(request, paginate=paginate).configure(input_table)
 	return render(request, 'manufacturing_goals/data.html', context)
 
+@login_required
 def goal_add(request, pk):
 	try:
 		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
@@ -127,10 +126,11 @@ def goal_add(request, pk):
 		caseqty = request.POST['case_qty']
 		ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
 		request.session['errormsg'] = ''
-	except ValidationError:
+	except (ValueError, ValidationError):
 		request.session['errormsg'] = 'Include Case Quantity'
 	return redirect('manufqty')
 
+@login_required
 def goal_remove(request, pk):
 	ManufacturingQty.objects.get(pk=pk).delete()
 	request.session['errormsg'] = ''
@@ -204,3 +204,111 @@ def manufdetails(request):
 	goal_info = request.session['goal_export_info']
 	goal_calc = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc})
+
+@login_required(login_url='index')
+def timeline(request):
+	context = dict()
+	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
+	for mfg_qty in mfg_qtys:
+		sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
+		mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
+		if len(mfg_lines) > 0 and len(sched_items) == 0:
+			ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
+	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
+	form = ManufacturingSchedForm()
+	scheditems = ScheduleItem.objects.all()
+	mfdurations = list()
+	mfg_overlap = list()
+	if not scheditems:
+		pass
+	else:
+		for s in scheditems:
+			duration = dict()
+			duration['id'] = s.pk
+			# raw, how many hours it takes via calculated time
+			ttl_hrs = s.duration().seconds / 3600.0
+			# 8 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
+			ttl_wrkd = ttl_hrs // 8
+			hrs = (ttl_wrkd * 24) # gives the appearance of multiple days on the timeline
+			# and the remainder is the additional hours needed to add on
+			hrs = hrs + (ttl_hrs % 8)
+			duration['duration'] = hrs
+			duration['mfline'] = s.mfgline.pk
+			mfdurations.append(duration)
+			for s2 in scheditems:
+				if s.start is not None and s2.start is not None and s != s2 and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
+					mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
+
+	
+	if request.method == "POST":
+		form = ManufacturingSchedForm(request.POST)
+		if form.is_valid():
+			data = form.cleaned_data['data']
+			overrides = form.cleaned_data['overrides']
+			json_data = json.loads(data)
+			ovr = json.loads(overrides)
+			#print(ovr)
+			ids_in_tl = list()
+			for item in json_data:
+				# actually store the information
+				schedItem = ScheduleItem.objects.get(pk=item['id'])
+				schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
+				if len(item['start'].split('.'))>1:
+					schedItem.start = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+				elif len(item['start'].split(':'))>=4:
+					schedItem.start = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+				else:
+					schedItem.start = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
+				ids_in_tl.append(item['id'])
+				schedItem.save()
+			for pk in ScheduleItem.objects.filter(start__isnull=False).values('pk'):
+				# if it WAS in the TL, and now its not, remove info
+				if pk['pk'] not in ids_in_tl:
+					removed_item = ScheduleItem.objects.get(pk=pk['pk'])
+					removed_item.start = None
+					removed_item.save()
+			for ovr_item in ovr:
+				# if the duration was manually overridden, reflect that here
+				#print(
+				end_override_item = ScheduleItem.objects.get(pk=ovr_item)
+				for item in json_data:
+					if item['id'] == ovr_item:
+						if len(item['end'].split('.'))>1:
+							end_override_item.endoverride = datetime.strptime(item['end'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+						elif len(item['end'].split(':'))>=4:
+							end_override_item.endoverride = datetime.strptime(item['end'].split(':')[0]+':'+item['end'].split(':')[1]+':'+item['end'].split(':')[2]+item['end'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+						else:
+							end_override_item.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
+						end_override_item.save()
+
+			return redirect('timeline')
+	context['form'] = form, 
+	context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
+	context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
+	context['mfg_lines'] = ManufacturingLine.objects.all()
+	context['mfdurations'] = mfdurations
+	context['mfg_overlap'] = mfg_overlap
+	print(mfg_overlap)
+	return render(request, 'manufacturing_goals/manufscheduler.html', context)
+
+@login_required
+def enable_menu(request):
+	context = dict()	
+	queryset = ManufacturingGoal.objects.all()
+	table = EnableTable(queryset)
+	context['table'] = table
+	return render(request, 'manufacturing_goals/enable_menu.html', context)
+
+def enable_goal(request, pk):
+	goal = ManufacturingGoal.objects.get(pk=pk)
+	context = {'goal' : goal}
+	if request.method == 'POST':
+		if 'yes' in request.POST:
+			goal.enabled = not goal.enabled;
+			goal.full_clean()
+			goal.save()
+			return redirect('enable_menu')
+		if 'no' in request.POST:
+			return redirect('enable_menu')
+	return render(request, 'manufacturing_goals/enable_goal.html', context)
+
