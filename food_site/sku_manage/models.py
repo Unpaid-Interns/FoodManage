@@ -13,7 +13,7 @@ def validate_upc(value):
     pattern = re.compile('[0-9]{12}')
     if pattern.match(value) is None:
         raise ValidationError('UPC must only contain numbers')
-    if 2 < int(value[0]) < 6:
+    if 1 < int(value[0]) < 6:
         raise ValidationError('UPC first digit is not valid')
     sum_val = 0
     for i in range(0, 6):
