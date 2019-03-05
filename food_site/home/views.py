@@ -25,6 +25,9 @@ def invalidlogin(request):
 def help(request):
 	return render(request, 'home/help.html', context=None)
 
+def aboutus(request):
+	return render(request, 'home/aboutus.html', context=None)
+
 def authout(request):
         logout(request)
         return redirect('/')
@@ -77,6 +80,22 @@ def netret(request):
 		login(request, user)
 		return redirect('/')	
 	return redirect('/invalidlogin')
+
+def assistant(request):
+	toSend = request.POST['message']
+	toSend.replace(' ','_')
+	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
+	reply = ''
+	try:
+		tr = r.json()
+		reply = tr.get('reply')
+		reply.replace('_',' ')
+	except:
+		reply = "I'm sorry, your inquiry is above my pay grade. Do you have any other questions?"
+	context = {
+		'reply': reply,
+	}
+	return render(request, 'home/index.html', context)	
 
 def authmid(request):
 	return render(request, 'home/test.html', context=None)

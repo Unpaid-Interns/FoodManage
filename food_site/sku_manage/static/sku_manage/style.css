@@ -292,3 +292,15 @@ body {
 .form-inline button:hover {
   background-color: royalblue;
 }
+
+/* Assistant Styling */
+
+.asst {
+  text-align: center;
+  padding: 10px;
+  background-color: lightblue;
+  border: 1px solid royalblue;
+  border-radius: 5px;
+  font-family: verdana;
+  width: auto;
+}

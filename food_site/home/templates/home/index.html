@@ -22,6 +22,14 @@
 			<input class="bt" type="submit" value="NetID Login">
 		</form>
 	{% else %}
+		<form action="/assistant/" method="post">
+		{% csrf_token %}
+		<p>Speak to our virtual help assistant: </p>
+		<input class="if" type="text" placeholder="Inquire here..." name="message" required>
+		</form>
+		{% if reply %}
+		<p class="asst">{{reply}}</p>
+		{% endif %}
 		<br>
 		<a class="btn btn-primary" href="/help">Help</a>
 	{% endif %}
