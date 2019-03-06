@@ -13,8 +13,6 @@ headerDict = {
     "formulas.csv": ["Formula#", "Name", "Ingr#", "Quantity", "Comment"]
 }
 
-# ^\s*\$?\s*([+-]?\d*\.?\d+)\D*$
-
 '''
     validFilePrefixes's contents can be changed but MUST remain in order of what was originally:
     skus, ingredients, product_lines, formulas
@@ -213,7 +211,9 @@ class CSVImport:
                                       product_line=chosen_product_line,
                                       formula=chosen_formula, formula_scale=float(data_string_array[8]),
                                       mfg_rate=float(data_string_array[9]),
-                                      comment=data_string_array[10])
+                                      mfg_setup_cost=Decimal(data_string_array[10]),
+                                      mfg_run_cost=Decimal(data_string_array[11]),
+                                      comment=data_string_array[12])
                 elif len(data_string_array) - 1 == len(headerDict[validFilePrefixes[1] + ".csv"]):
                     data = models.Ingredient(number=int(data_string_array[0]), name=data_string_array[1],
                                              vendor_info=data_string_array[2],
@@ -439,7 +439,7 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
         if not integer_check(row[0]):
             return ("ERROR: SKU# in SKU CSV file is not an integer in row #" + str(num_records_parsed + 2) \
                     + "and col #1."), None, shortname_array
-    for i in chain(range(1, 9), range(10, 13), range()):
+    for i in chain(range(1, 9), range(10, 13)):
         if row[i] == "":
             if i == 8:
                 row[i] = "1"
@@ -481,7 +481,16 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
             if not integer_check(row[i]):
                 return ("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required "
-                                                                                  "to be a integer value but is not."), None, shortname_array
+                                                                               "to be a integer value but is not."), None, shortname_array
+        if i in [10, 11]:
+            usd_check, usd_value = usd_valid_check(row[i])
+            if not usd_check:
+                return("ERROR: ?")
+            if not decimal_check(usd_value):
+                return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
+                        + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required to be a "
+                                                                   "decimal value but is not."), None, shortname_array
+            row[i] = str(round(Decimal(usd_value), 2))
     pl_success, chosen_product_line_or_error_message = choose_product_line_for_sku(row[6], data_dict)
     if not pl_success:
         return chosen_product_line_or_error_message, None, shortname_array
@@ -493,7 +502,7 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
     sku = models.SKU(sku_num=int(row[0]), name=row[1], case_upc=row[2], unit_upc=row[3],
                      unit_size=row[4], units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
                      formula=chosen_formula_or_error_message, formula_scale=float(row[8]), mfg_rate=float(row[10]),
-                     comment=row[11])
+                     mfg_setup_cost=Decimal(row[11]), mfg_run_cost=Decimal(row[12]), comment=row[13])
 
     mfg_line_array = []
     for ml_shortname in row[9].split(','):
@@ -634,20 +643,20 @@ def ingredients_parser_helper(row, num_records_parsed):
                                + "number/unit pair."
                 return error_string
         if i in [4]:
-            if not float_check(row[i]):
+            usd_check, usd_value = usd_valid_check(row[i])
+            if not usd_check:
+                return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
+                        + " and col #" + str(i + 1) + ". Entry in this row/column does not conform to USD formatting"
+                                                      "standards.")
+            if not float_check(usd_value):
                 return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a decimal value "
                                                       "but is not.")
-            if float(row[i]) < 0:
+            if float(usd_value) < 0:
                 return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be a non-zero "
                                                       "value but is not.")
-            split_by_decimal = row[i].split(".")
-            if len(split_by_decimal) > 1:
-                if len(split_by_decimal[1]) > 2:
-                    return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
-                            + " and col #" + str(
-                                i + 1) + ". Entry in this row/column cannot have more than 2 digits after the decimal.")
+            row[i] = str(round(Decimal(usd_value), 2))
             if Decimal(row[i]) > 9999999999.99:
                 return ("ERROR: Problem with 'Cost' in Ingredient CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry in this row/column is required to be 12 digits or less "
@@ -861,6 +870,19 @@ def integer_check(number_string):
         return False
 
 
+def decimal_check(number_string):
+    """
+    Checks if a string can be converted to an integer
+    :param number_string: str input to be checked as an integer
+    :return: True/False to indicate if it is/is not an integer
+    """
+    try:
+        _ = Decimal(number_string)
+        return True
+    except:
+        return False
+
+
 def make_product_lines_dict(data_dict):
     product_line_dict = dict()
     if validFilePrefixes[2] in data_dict:
@@ -1034,8 +1056,8 @@ def check_for_identical_record(record, shortname_array, file_prefix, number_reco
                     and item.unit_size == record.unit_size and item.units_per_case ==
                     record.units_per_case and item.product_line.name == record.product_line.name and
                     item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
-                    item.mfg_rate == record.mfg_rate and
-                    item.comment == record.comment):
+                    item.mfg_rate == record.mfg_rate and item.mfg_setup_cost == record.mfg_setup_cost and
+                    item.mfg_run_cost == record.mfg_run_cost and item.comment == record.comment):
                 sku_mfg_pass, sku_mfg_conflict_message = sku_mfg_line_check(record, shortname_array, item,
                                                                             number_records_imported)
                 # print(sku_mfg_pass)
@@ -1049,8 +1071,8 @@ def check_for_identical_record(record, shortname_array, file_prefix, number_reco
                   and item.unit_size == record.unit_size and item.units_per_case ==
                   record.units_per_case and item.product_line.name == record.product_line.name and
                   item.formula.number == record.formula.number and item.formula_scale == record.formula_scale and
-                  item.mfg_rate == record.mfg_rate and
-                  item.comment == record.comment):
+                  item.mfg_rate == record.mfg_rate and item.mfg_setup_cost == record.mfg_setup_cost and
+                  item.mfg_run_cost == record.mfg_run_cost and item.comment == record.comment):
                 sku_mfg_pass, sku_mfg_conflict_message = sku_mfg_line_check(record, shortname_array, item,
                                                                             number_records_imported)
                 if sku_mfg_pass:
@@ -1236,6 +1258,15 @@ def mixed_unit_valid_check(mixed_unit):
         return True, match.group(1), match.group(2)
     else:
         return False, None, None
+
+
+def usd_valid_check(usd_expression):
+    pattern = re.compile("^\s*\$?\s*([+-]?\d*\.?\d+)\D*$")
+    match = pattern.fullmatch(usd_expression)
+    if match is not None:
+        return True, match.group(1)
+    else:
+        return False, None
 
 
 def clean_data(data_dict):
