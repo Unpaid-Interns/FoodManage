@@ -1,0 +1,69 @@
+
+<!-- home/templates/help.html -->
+<!DOCTYPE html>
+<html>
+    {% load staticfiles %}
+    <head>
+        <meta charset="utf-8">
+        <title>HypoMeals</title>
+	<link rel="stylesheet" type="text/css" href="{% static "home/help.css" %}">
+    </head>
+    <body>
+        <h1>About us - Our story</h1>
+	<a class="btn btn-primary" href="/">Return to home page</a>
+	<p>Welcome to the about us page! Please enjoy the heartfelt story about our origins below:</p>
+	<div align="left">
+	<p>
+		Once upon a time, there was a team of four unpaid interns working hard to make a multinational food company more efficient.  They walked through a world filled with sundry spreadsheets and miscellaneous macros, and saw a better path forward.  With that vision, they set out on a journey that would take them far from the land of Excel sheets and into the internet of the early 2000s.  Thus begins the story of the team of unpaid interns who set out to revolutionize the food management industry.  
+Starting their journey, the unpaid interns were confronted by a ferocious monster feared throughout the land. When it bared its many yellow teeth and let out a gooey roar, they immediately recognized it as the hideous creature known as Javascript. Paralyzed by fear and unprepared for the frightening world they had found themselves in, they stared, mouths agape in horror, as the beast pawed the ground and prepared to charge. Sure they would be eaten alive, the unpaid interns cowered in fear, when suddenly a wiry man with a long brown beard leapt out of the bushes, brandishing a scimitar at the frothing monster. Rearing back in surprise, the Javascript was forced back, leaving the path into the web domain clear. Upon vanquishing the monster, the bearded man then turned to the four unpaid interns and introduced himself. “Hello there travelers,” he said, “My name is Django Framework, and I am here to guide you through the web domain.”
+	</p>
+	</div>
+	<audio autoplay>
+      	<source src="{% static 'audio/UnpaidInterns.wav' %}" type="audio/wav">
+      	Your browser does not support the audio element.
+	</audio>
+	<body id="bg" style="background-image: url('{% static "img/bg.jpg"%}')";>
+    </body>
+</html>
+
+<style>
+a {
+    color: red;
+    font-size: 20px;
+    text-shadow:
+        0.05em 0 black,
+        0 0.05em black,
+        -0.05em 0 black,
+        0 -0.05em black,
+        -0.05em -0.05em black,
+        -0.05em 0.05em black,
+        0.05em -0.05em black,
+        0.05em 0.05em black;
+}
+h1 {
+    color: white;
+    font-size: 30px;
+    text-shadow:
+        0.05em 0 black,
+        0 0.05em black,
+        -0.05em 0 black,
+        0 -0.05em black,
+        -0.05em -0.05em black,
+        -0.05em 0.05em black,
+        0.05em -0.05em black,
+        0.05em 0.05em black;
+}
+p {
+    color: white;
+    font-size: 20px;
+    text-shadow:
+        0.05em 0 black,
+        0 0.05em black,
+        -0.05em 0 black,
+        0 -0.05em black,
+        -0.05em -0.05em black,
+        -0.05em 0.05em black,
+        0.05em -0.05em black,
+        0.05em 0.05em black;
+}
+</style>
