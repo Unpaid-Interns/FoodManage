@@ -20,7 +20,7 @@ class SkuMfgLineInline(admin.TabularInline):
 
 class SkuAdmin(admin.ModelAdmin):
 	fieldsets = [
-		(None, {'fields': [('name', 'sku_num'), 'product_line', ('formula', 'formula_scale'), 'mfg_rate']}),
+		(None, {'fields': [('name', 'sku_num'), 'product_line', ('formula', 'formula_scale'), ('mfg_rate', 'mfg_setup_cost', 'mfg_run_cost')]}),
 		('UPC Information', {'fields': [('case_upc', 'unit_upc')]}),
 		('Size Information', {'fields': [('unit_size', 'units_per_case')]}),
 		('Comments', {'fields': ['comment'], 'classes': ['collapse']}),

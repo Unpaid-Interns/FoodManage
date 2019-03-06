@@ -33,6 +33,9 @@ def map_view(request):
 				Q(unit_upc__iexact=keyword) |
 				Q(unit_size__icontains=keyword) | 
 				Q(units_per_case__iexact=keyword) | 
+				Q(mfg_rate__iexact=keyword) |
+				Q(mfg_setup_cost__iexact=keyword) |
+				Q(mfg_run_cost__iexact=keyword) |
 				Q(comment__icontains=keyword))
 			context['keyword'] = keyword
 
