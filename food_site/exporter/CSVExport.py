@@ -6,7 +6,7 @@ import os
 
 headerDict = {
     "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "PL Name",
-                 "Formula#", "Formula factor", "ML Shortnames", "Rate", "Comment"],
+                 "Formula#", "Formula factor", "ML Shortnames", "Rate", "Mfg setup cost", "Mfg run cost", "Comment"],
     "ingredients.csv": ["Ingr#", "Name", "Vendor Info", "Size", "Cost", "Comment"],
     "product_lines.csv": ["Name"],
     "formulas.csv": ["Formula#", "Name", "Ingr#", "Quantity", "Comment"],
@@ -39,7 +39,7 @@ class CSVExport():
 
         # calling function to get all file paths in the directory
         # file_paths = get_all_file_paths(directory)
-        file_paths = ["exporter/exports/" + path for path in file_paths]
+        file_paths = [directory + path for path in file_paths]
 
         # printing the list of all files to be zipped
         # print('Following files will be zipped:')
@@ -47,7 +47,7 @@ class CSVExport():
         #     print(file_name)
 
         # writing files to a zipfile
-        with ZipFile('exporter/exports/foodmanage.zip', 'w') as zip:
+        with ZipFile(directory + 'foodmanage.zip', 'w') as zip:
             # writing each file one by one
             remove_file_list = []
             for file in file_paths:
@@ -79,6 +79,8 @@ def export_to_csv(filename, data):
             exportData.append(str(item.formula_scale))
             exportData.append(get_ml_lines_string(item))
             exportData.append(str(item.mfg_rate))
+            exportData.append(str(item.mfg_setup_cost))
+            exportData.append(str(item.mfg_run_cost))
             exportData.append(item.comment)
         if validFilePrefixes[1] in filename:
             exportData.append(str(item.number))

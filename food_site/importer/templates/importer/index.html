@@ -4,7 +4,7 @@
 {% if user.is_authenticated %}
 {% if request.user.is_staff %}
 <div class="menu-buttons">
-  <h1>HypoImports&#8482;</h1>
+  <h1>HypoImports<sup>&#174;</sup></h1>
   <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <label>{{ count }}</label>

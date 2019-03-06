@@ -118,7 +118,7 @@ class SKU(models.Model):
     def get_serializable_string_array(self):
         return [str(self.sku_num), self.name, self.case_upc, self.unit_upc, self.unit_size, str(self.units_per_case),
                 self.product_line.name, str(self.formula.number), str(self.formula_scale), str(self.mfg_rate),
-                self.comment]
+                str(self.mfg_setup_cost), str(self.mfg_run_cost), self.comment]
 
 
 class ManufacturingLine(models.Model):
