@@ -25,6 +25,9 @@ def invalidlogin(request):
 def help(request):
 	return render(request, 'home/help.html', context=None)
 
+def aboutus(request):
+	return render(request, 'home/aboutus.html', context=None)
+
 def authout(request):
         logout(request)
         return redirect('/')
