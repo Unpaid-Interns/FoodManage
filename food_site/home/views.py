@@ -83,6 +83,8 @@ def netret(request):
 
 def assistant(request):
 	toSend = request.POST['message']
+	if 'story' in toSend or toSend == 'DJANGO':
+		return redirect('/aboutus')
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''
