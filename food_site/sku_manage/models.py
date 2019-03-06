@@ -108,6 +108,8 @@ class SKU(models.Model):
     formula = models.ForeignKey(Formula, on_delete=models.PROTECT)
     formula_scale = models.FloatField(default=1.0, validators=[validate_gt_zero], verbose_name='Formula Scale Factor')
     mfg_rate = models.FloatField(validators=[validate_gt_zero], verbose_name='Manufacturing Rate')
+    mfg_setup_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero], verbose_name='Manufacturing Setup Cost')
+    mfg_run_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero], verbose_name='Manufacturing Run Cost per Case')
     comment = models.TextField(blank=True)
 
     def __str__(self):
