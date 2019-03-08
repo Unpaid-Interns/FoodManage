@@ -1,0 +1,11 @@
+<form class="form-inline" method="get">
+	<select name="custfilter" onchange='this.form.submit()'>
+		<option value="all">All Customers</option>
+		{% for customer in all_customers %}
+			<option value="{{ customer.number }}" 
+				{% if selected_customer == customer.number %}selected="selected"{% endif %}>
+				{{ customer }}
+			</option>
+		{% endfor %}
+	</select>
+</form>
