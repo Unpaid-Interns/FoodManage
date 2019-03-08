@@ -25,4 +25,37 @@
 		{% load bootstrap3 %}
 		{% render_table table %}
 	</div>
+	<form class="form-inline" method="post">
+		{% csrf_token %}
+		<button type="submit" name="export_data">Download CSV</button>
+	</form>
+	<br>
+	<h3>Totals</h3>
+	<p>Add stuff here!</p>
+	<div id="chart"></div>
+	
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+		// Load google charts
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(drawChart);
+
+		// Draw the chart and set the chart values
+		function drawChart() {
+		  var data = google.visualization.arrayToDataTable([
+		  ['Date', 'Revenue'],
+		  {% for date, revenue in records.items %}
+		  ['{{ date }}', {{ revenue }}],
+		  {% endfor %}
+		]);
+
+		  // Optional; add a title and set the width and height of the chart
+		  var options = {'title':'Revenue from {{ sku.name }}', 'vAxis':{'title':'Revenue (USD)'}, 'hAxis':{'title':'Date (Year, Week)'}, 'height':600, 'legend':'none', 'series':{0: {'color':'royalblue'}}};
+
+		  // Display the chart inside the <div> element with id="piechart"
+		  var chart = new google.visualization.LineChart(document.getElementById('chart'));
+		  chart.draw(data, options);
+		}
+	</script>
+
 {% endblock %}
