@@ -1,6 +1,28 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
 	<h1>Sales Report</h1>
 	<h2>{{ sku }}</h2>
-	
+	<form class="form-inline" method="get">
+		<p>Filter By Customer:</p>
+		<select name="custfilter" onchange='this.form.submit()'>
+			<option value="all">All Customers</option>
+			{% for customer in all_customers %}
+				<option value="{{ customer.number }}" 
+					{% if selected_customer == customer.number %}selected="selected"{% endif %}>
+					{{ customer }}
+				</option>
+			{% endfor %}
+		</select>
+        <p>Start Date:</p>
+        <input class="narrow" name="starttime" type="date" value="{{ start_time }}">
+        <p>End Date:</p>
+        <input class="narrow" name="endtime" type="date" value = "{{ end_time }}">
+        <button type="submit"><i class="fa fa-arrow-right"></i></button>
+    </form>
+    <br>
+    <div class="table" style="overflow-x:auto;">
+		{% load render_table from django_tables2 %}
+		{% load bootstrap3 %}
+		{% render_table table %}
+	</div>
 {% endblock %}
