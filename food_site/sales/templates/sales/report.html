@@ -1,7 +1,18 @@
 {% extends "base.html" %}
+{% load ex_tags %}
 {% block content %}
 	<h1>Sales Report</h1>
-	{% for sku in sku_list %}
-		<h2>{{ sku }}</h2>
+	{% for product_line in product_lines %}
+		<h3>{{ product_line }}</h3>
+		{% for sku in product_line.sku_set.all %}
+			{{ sku }} <a href="{% url 'sku_drilldown' sku.pk %}">Detailed Report</a>
+			<div class="table", style="overflow-x:auto;">
+				{% load render_table from django_tables2 %}
+				{% load bootstrap3 %}
+				{% render_table tables|lookup:sku %}
+			</div>
+			<p>Total goes here!</p>
+			<br>
+		{% endfor %}
 	{% endfor %}
 {% endblock %}

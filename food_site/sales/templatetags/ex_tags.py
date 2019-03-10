@@ -13,3 +13,7 @@ def year(value):
 @register.filter
 def week(value):
 	return value.isocalendar()[1]
+
+@register.filter
+def lookup(value, arg):
+	return value[arg]

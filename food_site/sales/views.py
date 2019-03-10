@@ -18,6 +18,7 @@ def pl_select(request):
 		'paginated': True,
 		'keyword': '',
 		'all_skus': SKU.objects.all(),
+		'all_customers': Customer.objects.all(),
 		'selected_sku': None,
 	}	
 	paginate = {
@@ -52,6 +53,7 @@ def pl_select(request):
 			request.session['productlines'] = list()
 			return redirect('sales_report_select')
 		if 'gen_report' in request.POST:
+			request.session['customer'] = request.POST['custfilter']
 			return redirect('sales_report')
 
 	input_table = ProductLineTable(queryset)
@@ -79,9 +81,17 @@ def product_line_remove(request, pk):
 
 @login_required
 def sales_report(request):
-	context = {
-		'sku_list': SKU.objects.filter(product_line__pk__in=request.session.get('productlines'))
-	}
+	context = dict()
+	tables = dict()
+	product_lines = ProductLine.objects.filter(pk__in=request.session.get('productlines'))
+	for sku in SKU.objects.filter(product_line__in=product_lines):
+		sales_records = SalesRecord.objects.filter(sku=sku).order_by('sku__sku_num', 'date')
+		cust_id = request.session.get('customer')
+		if cust_id != 'all':
+			sales_records = sales_records.filter(customer__pk=cust_id, date__lte=date.today(), date_gte=date.today() - timedelta(years=10))
+		tables[sku] = SkuSalesTable(sales_records)
+	context['product_lines'] = product_lines
+	context['tables'] = tables
 	return render(request, 'sales/report.html', context)
 
 @login_required
@@ -94,6 +104,11 @@ def sku_drilldown(request, pk):
 		'end_time': date.today().isoformat(),
 	}
 	queryset = SalesRecord.objects.filter(sku__pk=pk).order_by('date')
+	prev_customer = request.session.get('customer')
+	if prev_customer != None and prev_customer != 'all':
+		context['selected_customer'] = int(prev_customer)
+		queryset = queryset.filter(customer__pk=prev_customer)
+	request.session['customer'] = None
 	if request.method == 'GET':
 		if 'custfilter' in request.GET:
 			cust_id = request.GET['custfilter']
