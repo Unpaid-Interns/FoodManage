@@ -9,6 +9,15 @@ body {
   margin-bottom: 4px;
 }
 
+.row {
+  display: flex;
+}
+
+.column {
+  flex: 50%;
+  padding-right: 10px;
+}
+
 .inline {
   display: flex;
   flex-flow: row wrap;

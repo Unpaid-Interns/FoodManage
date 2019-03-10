@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Sales Report</h1>
+	{% for sku in sku_list %}
+		<h2>{{ sku }}</h2>
+	{% endfor %}
+{% endblock %}
