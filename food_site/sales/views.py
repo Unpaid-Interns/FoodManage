@@ -1,12 +1,15 @@
 from datetime import date, timedelta
+from decimal import Decimal
 
+from manufacturing_goals import unitconvert
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum, Q
 from django_tables2 import RequestConfig, paginators
-from sku_manage.models import SKU, ProductLine
+from sku_manage.models import SKU, ProductLine, IngredientQty
+from manufacturing_goals.models import ManufacturingQty
 from .models import SalesRecord, Customer
-from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable
+from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable, SkuSummaryTable, SkuTotalTable
 
 @login_required
 def pl_select(request):
@@ -83,15 +86,71 @@ def product_line_remove(request, pk):
 def sales_report(request):
 	context = dict()
 	tables = dict()
+	totals = dict()
 	product_lines = ProductLine.objects.filter(pk__in=request.session.get('productlines'))
 	for sku in SKU.objects.filter(product_line__in=product_lines):
-		sales_records = SalesRecord.objects.filter(sku=sku).order_by('sku__sku_num', 'date')
+		sales_records = SalesRecord.objects.filter(sku=sku, date__lte=date.today(), date__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365)).order_by('date')
 		cust_id = request.session.get('customer')
 		if cust_id != 'all':
-			sales_records = sales_records.filter(customer__pk=cust_id, date__lte=date.today(), date_gte=date.today() - timedelta(years=10))
-		tables[sku] = SkuSalesTable(sales_records)
+			sales_records = sales_records.filter(customer__pk=cust_id)
+		
+		# Sales Calculations
+		tot_revenue = 0
+		tot_cases = 0
+		sales_computed = list()
+		sales_total = list()
+		if sales_records:
+			year = 0
+			revenue = 0
+			cases = 0
+			for record in sales_records:
+				tot_revenue += record.cases_sold * record.price_per_case
+				tot_cases += record.cases_sold
+				if year == record.date.year:
+					revenue += record.cases_sold * record.price_per_case
+					cases += record.cases_sold
+				else:
+					if year > 0:
+						sales_computed.append({'year': year, 'sku': sku, 'revenue': revenue, 'revenue_per_case': (revenue/cases)})
+					year = record.date.year
+					revenue = record.cases_sold * record.price_per_case
+					cases = record.cases_sold
+			sales_computed.append({'year': year, 'sku': sku, 'revenue': revenue, 'revenue_per_case': round(revenue/cases, 2)})
+			
+			# Manufacturing run size
+			mfg_run_size = Decimal(sku.mfg_rate * 10) # num cases in 10 hrs
+			mfg_runs = ManufacturingQty.objects.filter(sku=sku, goal__enabled=True, scheduleitem__start__lte=date.today(), scheduleitem__start__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365))
+			if mfg_runs:
+				mfg_run_tot = 0
+				for run in mfg_runs:
+					mfg_run_tot += run.caseqty
+				mfg_run_size = Decimal(mfg_run_tot)/len(mfg_runs)
+
+			# Total Ingredient Cost
+			ingr_cost = 0
+			for ingrqty in IngredientQty.objects.filter(formula=sku.formula):
+				ingr_cost += Decimal(sku.formula_scale) * ingrqty.ingredient.cost * Decimal(unitconvert.convert(ingrqty.quantity, ingrqty.quantity_units, ingrqty.ingredient.package_size_units)) / Decimal(ingrqty.ingredient.package_size)
+
+			# Totals Table
+			cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
+			sales_total = [{
+				'sku': sku,
+				'revenue': tot_revenue, 
+				'mfg_run_size': mfg_run_size, 
+				'ingredient_cost': round(ingr_cost, 2), 
+				'mfg_setup_cost': round(sku.mfg_setup_cost/mfg_run_size, 2), 
+				'mfg_run_cost': round(sku.mfg_run_cost/mfg_run_size, 2), 
+				'cogs': round(cogs, 2), 
+				'revenue_per_case': round(tot_revenue/tot_cases, 2), 
+				'profit_per_case': round(tot_revenue/tot_cases - cogs, 2), 
+				'profit_margin': str(int(round(100*((tot_revenue/tot_cases) / cogs - 1), 2))) + '%',
+			}]
+
+		tables[sku] = SkuSummaryTable(sales_computed)
+		totals[sku] = SkuTotalTable(sales_total)
 	context['product_lines'] = product_lines
 	context['tables'] = tables
+	context['totals'] = totals
 	return render(request, 'sales/report.html', context)
 
 @login_required
@@ -103,6 +162,8 @@ def sku_drilldown(request, pk):
 		'start_time': (date.today() - timedelta(days=365)).isoformat(),
 		'end_time': date.today().isoformat(),
 	}
+
+	# Data Acquisition
 	queryset = SalesRecord.objects.filter(sku__pk=pk).order_by('date')
 	prev_customer = request.session.get('customer')
 	if prev_customer != None and prev_customer != 'all':
@@ -120,15 +181,35 @@ def sku_drilldown(request, pk):
 		if 'endtime' in request.GET and request.GET['endtime'] != '':
 			context['end_time'] = request.GET['endtime']
 	queryset = queryset.filter(date__gte=context['start_time'], date__lte=context['end_time'])	
+	
+	# CSV Export
 	if request.method == 'POST' and 'export_data' in request.POST:
 		return CSVExport.export_to_csv('sku_sales_report', queryset)		
+	
+	# Main Table
 	table = SkuSalesTable(queryset)
+
+	# Totals Table
+	tot_revenue = 0
+	tot_cases = 0
+	sales_total = list()
+	if queryset:
+		for record in queryset:
+			tot_revenue += record.cases_sold * record.price_per_case
+			tot_cases += record.cases_sold
+		sales_total = [{'revenue': tot_revenue, 'revenue_per_case': round(tot_revenue/tot_cases, 2)}]
+	total = SkuTotalTable(sales_total)
+
+
+	# Graph
 	graph_records = dict()
 	for record in queryset:
 		week = str(record.date.isocalendar()[0]) + " wk " + str(record.date.isocalendar()[1])
 		if week not in graph_records:
 			graph_records[week] = 0
 		graph_records[week] += record.cases_sold*record.price_per_case
+
 	context['records'] = graph_records
 	context['table'] = table
+	context['total'] = total
 	return render(request, 'sales/sku_drilldown.html', context)

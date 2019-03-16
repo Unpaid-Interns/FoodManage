@@ -10,8 +10,12 @@
 				{% load render_table from django_tables2 %}
 				{% load bootstrap3 %}
 				{% render_table tables|lookup:sku %}
+				{% if tables|lookup:sku|rows %}
+					{% render_table totals|lookup:sku %}
+				{% else %}
+				<table><tr><td>loading...</td></tr></table>
+				{% endif %}
 			</div>
-			<p>Total goes here!</p>
 			<br>
 		{% endfor %}
 	{% endfor %}

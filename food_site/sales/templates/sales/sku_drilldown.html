@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap3 %}
 {% block content %}
 	<h1>Sales Report</h1>
 	<h2>{{ sku }}</h2>
@@ -21,8 +23,6 @@
     </form>
     <br>
     <div class="table" style="overflow-x:auto;">
-		{% load render_table from django_tables2 %}
-		{% load bootstrap3 %}
 		{% render_table table %}
 	</div>
 	<form class="form-inline" method="post">
@@ -31,7 +31,9 @@
 	</form>
 	<br>
 	<h3>Totals</h3>
-	<p>Add stuff here!</p>
+    <div class="table" style="overflow-x:auto;">
+		{% render_table total %}
+	</div>
 	<div id="chart"></div>
 	
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>

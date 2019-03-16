@@ -23,3 +23,23 @@ class SelectedPLTable(tables.Table):
 	class Meta:
 		model = ProductLine
 		fields = ['name', 'remove']
+
+class SkuSummaryTable(tables.Table):
+	year = tables.Column()
+	sku = tables.Column(verbose_name="SKU")
+	revenue = tables.Column(verbose_name="Total Revenue")
+	revenue_per_case = tables.Column(verbose_name="Average Revenue per Case")
+
+class SkuTotalTable(tables.Table):
+	sku = tables.Column(verbose_name="SKU")
+	revenue = tables.Column(verbose_name="Total Revenue")
+	mfg_run_size = tables.Column(verbose_name="Avg Manufacturing Run Size")
+	ingredient_cost = tables.Column(verbose_name="Ingr Cost / Case")
+	mfg_setup_cost = tables.Column(verbose_name="Avg Manufacturing Setup Cost / Case")
+	mfg_run_cost = tables.Column(verbose_name="Manufacturing Run Cost / Case")
+	cogs = tables.Column(verbose_name="Total COGS / Case")
+	revenue_per_case = tables.Column(verbose_name="Avg Revenue / Case")
+	profit_per_case = tables.Column(verbose_name="Avg Profit / Case")
+	profit_margin = tables.Column(verbose_name="Profit Margin")
+
+

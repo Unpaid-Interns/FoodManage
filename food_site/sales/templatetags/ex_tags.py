@@ -7,6 +7,10 @@ def mult(value, arg):
 	return value * arg
 
 @register.filter
+def hours(value):
+	return value.seconds//3600
+
+@register.filter
 def year(value):
 	return value.isocalendar()[0]
 
@@ -17,3 +21,8 @@ def week(value):
 @register.filter
 def lookup(value, arg):
 	return value[arg]
+
+@register.filter
+def rows(value):
+	return value.rows
+
