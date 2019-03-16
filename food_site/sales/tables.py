@@ -31,7 +31,6 @@ class SkuSummaryTable(tables.Table):
 	revenue_per_case = tables.Column(verbose_name="Average Revenue per Case")
 
 class SkuTotalTable(tables.Table):
-	sku = tables.Column(verbose_name="SKU")
 	revenue = tables.Column(verbose_name="Total Revenue")
 	mfg_run_size = tables.Column(verbose_name="Avg Manufacturing Run Size")
 	ingredient_cost = tables.Column(verbose_name="Ingr Cost / Case")

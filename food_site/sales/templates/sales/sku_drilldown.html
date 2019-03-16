@@ -2,7 +2,14 @@
 {% load render_table from django_tables2 %}
 {% load bootstrap3 %}
 {% block content %}
-	<h1>Sales Report</h1>
+	<div class="inline">
+		<h1>Sales Report</h1>
+		<button onclick="window.print()"><i class="fa fa-print"></i></button>
+        <form method="post">
+			{% csrf_token %}
+        	<button type="submit" name="export_data"><i class="fa fa-download"></i></button>
+		</form>
+    </div>
 	<h2>{{ sku }}</h2>
 	<form class="form-inline" method="get">
 		<p>Filter By Customer:</p>
@@ -25,10 +32,6 @@
     <div class="table" style="overflow-x:auto;">
 		{% render_table table %}
 	</div>
-	<form class="form-inline" method="post">
-		{% csrf_token %}
-		<button type="submit" name="export_data">Download CSV</button>
-	</form>
 	<br>
 	<h3>Totals</h3>
     <div class="table" style="overflow-x:auto;">

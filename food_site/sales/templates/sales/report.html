@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 {% load ex_tags %}
 {% block content %}
-	<h1>Sales Report</h1>
+	<div class="inline">
+		<h1>Sales Report</h1>
+        <button onclick="window.print()"><i class="fa fa-print"></i></button>
+        <form method="post">
+			{% csrf_token %}
+        	<button type="submit" name="export_data"><i class="fa fa-download"></i></button>
+		</form>
+    </div>
 	{% for product_line in product_lines %}
 		<h3>{{ product_line }}</h3>
 		{% for sku in product_line.sku_set.all %}

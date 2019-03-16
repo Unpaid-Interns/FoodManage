@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Ingredient Dependency Report</h1>
-
-<form class="form-inline" action="{% url 'ingr_dep_download' %}" method="post">
-    {% csrf_token %}
-    <label>{{ count }}</label>
-    <button type="submit" name="download">Download CSV</button>
-</form>
-
+<div class="inline">
+    <h1>Ingredient Dependency Report</h1>
+    <button onclick="window.print()"><i class="fa fa-print"></i></button>
+    <form class="form-inline" action="{% url 'ingr_dep_download' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" name="download"><i class="fa fa-download"></i></button>
+    </form>
+</div>
 <table class="table">
 <tr><td>Ingredient</td><td>SKUs (SKU#: Name)</td></tr>
 {% for ingredient in ingredients.all %}

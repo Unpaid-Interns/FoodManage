@@ -134,7 +134,6 @@ def sales_report(request):
 			# Totals Table
 			cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
 			sales_total = [{
-				'sku': sku,
 				'revenue': tot_revenue, 
 				'mfg_run_size': mfg_run_size, 
 				'ingredient_cost': round(ingr_cost, 2), 
@@ -148,6 +147,11 @@ def sales_report(request):
 
 		tables[sku] = SkuSummaryTable(sales_computed)
 		totals[sku] = SkuTotalTable(sales_total)
+
+	# CSV Export
+	if request.method == 'POST' and 'export_data' in request.POST:
+		return CSVExport.export_to_csv('sales_report')		
+
 	context['product_lines'] = product_lines
 	context['tables'] = tables
 	context['totals'] = totals
@@ -155,8 +159,9 @@ def sales_report(request):
 
 @login_required
 def sku_drilldown(request, pk):
+	sku = SKU.objects.get(pk=pk)
 	context = {
-		'sku': SKU.objects.get(pk=pk),
+		'sku': sku,
 		'all_customers': Customer.objects.all(),
 		'selected_customer': None,
 		'start_time': (date.today() - timedelta(days=365)).isoformat(),
@@ -197,9 +202,33 @@ def sku_drilldown(request, pk):
 		for record in queryset:
 			tot_revenue += record.cases_sold * record.price_per_case
 			tot_cases += record.cases_sold
-		sales_total = [{'revenue': tot_revenue, 'revenue_per_case': round(tot_revenue/tot_cases, 2)}]
-	total = SkuTotalTable(sales_total)
+		# Manufacturing run size
+		mfg_run_size = Decimal(sku.mfg_rate * 10) # num cases in 10 hrs
+		mfg_runs = ManufacturingQty.objects.filter(sku=sku, goal__enabled=True, scheduleitem__start__lte=date.today(), scheduleitem__start__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365))
+		if mfg_runs:
+			mfg_run_tot = 0
+			for run in mfg_runs:
+				mfg_run_tot += run.caseqty
+			mfg_run_size = Decimal(mfg_run_tot)/len(mfg_runs)
+		# Total Ingredient Cost
+		ingr_cost = 0
+		for ingrqty in IngredientQty.objects.filter(formula=sku.formula):
+			ingr_cost += Decimal(sku.formula_scale) * ingrqty.ingredient.cost * Decimal(unitconvert.convert(ingrqty.quantity, ingrqty.quantity_units, ingrqty.ingredient.package_size_units)) / Decimal(ingrqty.ingredient.package_size)
+		# Totals Table
+		cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
+		sales_total = [{
+			'revenue': tot_revenue, 
+			'mfg_run_size': mfg_run_size, 
+			'ingredient_cost': round(ingr_cost, 2), 
+			'mfg_setup_cost': round(sku.mfg_setup_cost/mfg_run_size, 2), 
+			'mfg_run_cost': round(sku.mfg_run_cost/mfg_run_size, 2), 
+			'cogs': round(cogs, 2), 
+			'revenue_per_case': round(tot_revenue/tot_cases, 2), 
+			'profit_per_case': round(tot_revenue/tot_cases - cogs, 2), 
+			'profit_margin': str(int(round(100*((tot_revenue/tot_cases) / cogs - 1), 2))) + '%',
+		}]
 
+	total = SkuTotalTable(sales_total)
 
 	# Graph
 	graph_records = dict()
