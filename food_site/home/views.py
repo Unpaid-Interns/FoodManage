@@ -99,5 +99,13 @@ def assistant(request):
 	}
 	return render(request, 'home/index.html', context)	
 
+def cya(request):
+	request.session['cya'] = True
+	return render(request, 'home/index.html', {'animate': True})
+
+def cya_end(request):
+	request.session['cya'] = False
+	return render(request, 'home/victory.html', context=None)
+
 def authmid(request):
 	return render(request, 'home/test.html', context=None)

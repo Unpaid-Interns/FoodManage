@@ -1,9 +1,15 @@
 {% extends "base.html" %}
-{% block content %}
 {% load staticfiles %}
+{% load static %}
+{% block styling %}
+	{% if animate %}
+    <link rel="stylesheet" type="text/css" href="{% static "sku_manage/cya-init.css" %}" />
+	{% endif %}
+{% endblock styling %}
+{% block content %}
 <div class="menu-buttons">
 	<br>
-	<img id="main-img" src="{% static "home/logo.JPG" %}" alt="Company Logo" width="400" height="250">
+	<div class="main-image"></div>
     <h1>Welcome to Hypothetical Meals!</h1>
 	{% if not user.is_authenticated %}
 		{% if invalidlogin %}
@@ -31,7 +37,29 @@
 		<p class="asst">{{reply}}</p>
 		{% endif %}
 		<br>
-		<a class="btn btn-primary" href="/help">Help</a>
+		{% if request.session.cya %}
+			<a class="btn btn-primary" href="/search/">Data</a>
+			<a class="btn btn-primary" href="/reporting/">Reporting</a>
+			<a class="btn btn-primary" href="/manufacturing/">Manufacturing</a>
+			<br><br>
+			{% if user.is_staff %}
+				<a class="btn btn-primary" href="/admin/">Edit Users and Data</a>
+				<a class="btn btn-primary" href="/importer/">CSV Import</a>
+				<a class="btn btn-primary" href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
+				<br><br>
+			{% endif %}
+			<a class="btn btn-primary" href="/authout/">Log Out</a>
+			<br><br>
+		{% else %}
+			<a class="btn btn-primary" href="{% url 'cya' %}">Choose Your Own Adventure</a>
+			<br><br>
+		{% endif %}
+		<a class="btn btn-primary" href="{% url 'help' %}">Help</a>
 	{% endif %}
 </div>
+{% if animate %} 
+	<audio autoplay>
+      	<source src="{% static 'audio/zelda1.wav' %}" type="audio/wav">
+	</audio>
+{% endif %}
 {% endblock content %}

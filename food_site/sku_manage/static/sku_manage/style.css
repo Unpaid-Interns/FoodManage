@@ -9,6 +9,18 @@ body {
   margin-bottom: 4px;
 }
 
+.main-image {
+  width: 400px;
+  height: 250px;
+  margin-left: auto;
+  margin-right: auto;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  alignment-baseline: middle;
+  background-image: url("/static/home/logo.jpg");
+}
+
 .inline {
   display: flex;
   flex-flow: row wrap;
