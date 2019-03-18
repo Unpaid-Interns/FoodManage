@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'importer.apps.ImportConfig',
     'dep_report.apps.DepReportConfig',
     'mfg_map.apps.MfgMapConfig',
+    'sales.apps.SalesConfig',
     'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',

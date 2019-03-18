@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load render_table from django_tables2 %}
+{% load bootstrap3 %}
+{% block content %}
+	<div class="inline">
+		<h1>Sales Report</h1>
+		<button onclick="window.print()"><i class="fa fa-print"></i></button>
+        <form method="post">
+			{% csrf_token %}
+        	<button type="submit" name="export_data"><i class="fa fa-download"></i></button>
+		</form>
+    </div>
+	<h2>{{ sku }}</h2>
+	<form class="form-inline" method="get">
+		<p>Filter By Customer:</p>
+		<select name="custfilter" onchange='this.form.submit()'>
+			<option value="all">All Customers</option>
+			{% for customer in all_customers %}
+				<option value="{{ customer.number }}" 
+					{% if selected_customer == customer.number %}selected="selected"{% endif %}>
+					{{ customer }}
+				</option>
+			{% endfor %}
+		</select>
+        <p>Start Date:</p>
+        <input class="narrow" name="starttime" type="date" value="{{ start_time }}">
+        <p>End Date:</p>
+        <input class="narrow" name="endtime" type="date" value = "{{ end_time }}">
+        <button type="submit"><i class="fa fa-arrow-right"></i></button>
+    </form>
+    <br>
+    <div class="table" style="overflow-x:auto;">
+		{% render_table table %}
+	</div>
+	<br>
+	<h3>Totals</h3>
+    <div class="table" style="overflow-x:auto;">
+		{% render_table total %}
+	</div>
+	<div id="chart"></div>
+	
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+		// Load google charts
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(drawChart);
+
+		// Draw the chart and set the chart values
+		function drawChart() {
+		  var data = google.visualization.arrayToDataTable([
+		  ['Date', 'Revenue'],
+		  {% for date, revenue in records.items %}
+		  ['{{ date }}', {{ revenue }}],
+		  {% endfor %}
+		]);
+
+		  // Optional; add a title and set the width and height of the chart
+		  var options = {'title':'Revenue from {{ sku.name }}', 'vAxis':{'title':'Revenue (USD)'}, 'hAxis':{'title':'Date (Year, Week)'}, 'height':600, 'legend':'none', 'series':{0: {'color':'royalblue'}}};
+
+		  // Display the chart inside the <div> element with id="piechart"
+		  var chart = new google.visualization.LineChart(document.getElementById('chart'));
+		  chart.draw(data, options);
+		}
+	</script>
+
+{% endblock %}
