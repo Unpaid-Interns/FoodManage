@@ -108,6 +108,8 @@ class SKU(models.Model):
     formula = models.ForeignKey(Formula, on_delete=models.PROTECT)
     formula_scale = models.FloatField(default=1.0, validators=[validate_gt_zero], verbose_name='Formula Scale Factor')
     mfg_rate = models.FloatField(validators=[validate_gt_zero], verbose_name='Manufacturing Rate')
+    mfg_setup_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero], verbose_name='Manufacturing Setup Cost')
+    mfg_run_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero], verbose_name='Manufacturing Run Cost per Case')
     comment = models.TextField(blank=True)
 
     def __str__(self):
@@ -116,7 +118,7 @@ class SKU(models.Model):
     def get_serializable_string_array(self):
         return [str(self.sku_num), self.name, self.case_upc, self.unit_upc, self.unit_size, str(self.units_per_case),
                 self.product_line.name, str(self.formula.number), str(self.formula_scale), str(self.mfg_rate),
-                self.comment]
+                str(self.mfg_setup_cost), str(self.mfg_run_cost), self.comment]
 
 
 class ManufacturingLine(models.Model):
