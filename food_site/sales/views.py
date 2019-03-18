@@ -252,17 +252,26 @@ def scrape(request):
 	dat = urllib.request.urlopen(url)
 	data = list()
 	for line in dat.readlines():
-		if '<tr>' in line:
+		line = str(line)
+		if '<tr>' in line and '<td>' in line:
 			cur = line.split('<td>')
-			cust = Customer(name=cur[4],number=cur[3]).create()
-			srec = SalesRecord(
-				sku = cur[1],
-				# DATE NEEDS SOME WORK
-				date = cur[0],
+			cust = None
+			if Customer.objects.filter(name=cur[5],number=cur[4]).exists():
+				cust = Customer.objects.filter(name=cur[5],number=cur[4])[0]
+			else:	
+				cust = Customer.objects.create(name=cur[5],number=cur[4])
+			skug = None
+			if SKU.objects.filter(sku_num=cur[2]).exists():
+				skug = SKU.objects.filter(sku_num=cur[2])[0]
+			else:
+				continue
+			srec = SalesRecord.objects.create(
+				sku = skug,
+				date = date(year=int(cur[1]), month=1, day=1)+timedelta(days=(int(cur[3])-1)*7),
 				customer = cust,
-				cases_sold = cur[5],
-				price_per_case = cur[6]
-				).create()
+				cases_sold = cur[6],
+				price_per_case = cur[7]
+				)
 			data.append(srec)
 	context = {
 		'data': data

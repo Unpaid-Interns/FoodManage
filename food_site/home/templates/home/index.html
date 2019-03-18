@@ -32,6 +32,14 @@
 		{% endif %}
 		<br>
 		<a class="btn btn-primary" href="/help">Help</a>
+
+		<br>
+		<form action="/scrape" method="get">
+			<input class="if" type="text" placeholder="SKU" name="sku" required>
+			<input class="if" type="text" placeholder="Year" name="year" required>
+			<input class="bt" type="submit" value="Scrape">
+		</form>
+
 	{% endif %}
 </div>
 {% endblock content %}
