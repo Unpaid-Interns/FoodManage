@@ -135,10 +135,10 @@ class CSVImport:
         fill_in_ingr_nums(self.data_dict)
         fill_in_formula_nums(self.data_dict)
 
-        try:
-            clean_data(self.data_dict)
-        except ValidationError as error_message:
-            return "ERROR: Database error = " + str(error_message), False
+        # try:
+        #     clean_data(self.data_dict)
+        # except ValidationError as error_message:
+        #     return "ERROR: Database error = " + str(error_message), False
 
         if validFilePrefixes[1] in self.data_dict:
             models.Ingredient.objects.bulk_create(self.data_dict[validFilePrefixes[1]])
@@ -346,8 +346,8 @@ def read_file(filename, file_prefix, data_dict):
                 return None, None, None, None, None, None, None, False, "ERROR: File is empty. Aborting import."
     except FileNotFoundError:
         return None, None, None, None, None, None, None, False, "*ERROR: File not found. Unable to open file: '" + filename + "'."
-    except:
-        return None, None, None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
+    # except:
+    #     return None, None, None, None, None, None, None, False, "*ERROR: File type not valid or unknown error."
     return parsed_data, sku_mfg_lines_data, formulas_data, conflicting_records_tpl, \
            num_records_parsed - num_record_ignored - num_record_conflicted, \
            num_record_ignored, num_record_conflicted, True, ""
@@ -475,17 +475,18 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
         if i in [4]:
             if len(row[i]) > 256:
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
-                        + str(i + 1) + ". Entry in this row/column is greater than the 256 character limit."), None,\
-                        shortname_array
+                        + str(i + 1) + ". Entry in this row/column is greater than the 256 character limit."), None, \
+                       shortname_array
         if i in [5]:
             if not integer_check(row[i]):
                 return ("ERROR: Problem with 'Count per case' in SKU CSV file in row #" + str(num_records_parsed + 2)
                         + " and col #" + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required "
-                                                                               "to be a integer value but is not."), None, shortname_array
-        if i in [10, 11]:
+                                                                                  "to be a integer value but is not."), None, shortname_array
+        if i in [11, 12]:
             usd_check, usd_value = usd_valid_check(row[i])
             if not usd_check:
-                return("ERROR: ?")
+                return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #" +
+                        str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is not valid USD formatted.")
             if not decimal_check(usd_value):
                 return ("ERROR: Problem in SKU CSV file in row #" + str(num_records_parsed + 2) + " and col #"
                         + str(i + 1) + ". Entry '" + str(row[i]) + "' in this row/column is required to be a "
@@ -498,6 +499,9 @@ def skus_parser_helper(row, num_records_parsed, data_dict):
     formula_success, chosen_formula_or_error_message = choose_formula_for_sku(int(row[7]), data_dict)
     if not formula_success:
         return chosen_formula_or_error_message, None, shortname_array
+
+    print(row[10])
+    print(row[11])
 
     sku = models.SKU(sku_num=int(row[0]), name=row[1], case_upc=row[2], unit_upc=row[3],
                      unit_size=row[4], units_per_case=int(row[5]), product_line=chosen_product_line_or_error_message,
@@ -1271,6 +1275,8 @@ def usd_valid_check(usd_expression):
 
 def clean_data(data_dict):
     for key in data_dict:
+        if key == "formulas":
+            continue
         for item in data_dict[key]:
             item.full_clean()
 

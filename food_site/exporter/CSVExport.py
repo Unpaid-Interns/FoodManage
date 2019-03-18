@@ -2,6 +2,7 @@ import csv
 from zipfile import ZipFile
 from sku_manage import models
 from django.http import HttpResponse
+from decimal import Decimal
 import os
 
 headerDict = {
@@ -86,20 +87,20 @@ def export_to_csv(filename, data):
             exportData.append(str(item.number))
             exportData.append(item.name)
             exportData.append(item.vendor_info)
-            exportData.append(str(item.package_size) + " " + str(item.package_size_units))
+            exportData.append(str(Decimal(item.package_size)) + " " + str(item.package_size_units))
             exportData.append(str(item.cost))
             exportData.append(item.comment)
         if validFilePrefixes[2] in filename:
             exportData.append(item.name)
         if validFilePrefixes[3] in filename:
-            ingredient_number_list, quantity_list = get_lists_for_formula(item)
+            ingredient_number_list, quantity_list, quantity_unit_list = get_lists_for_formula(item)
             count = 0
             for ing_num in ingredient_number_list:
                 exportData = []
                 exportData.append(str(item.number))
                 exportData.append(str(item.name))
                 exportData.append(str(ing_num))
-                exportData.append(str(quantity_list[count]))
+                exportData.append(str(Decimal(quantity_list[count])) + " " + str(quantity_unit_list[count]))
                 exportData.append(str(item.comment))
                 count = count + 1
                 dataWriter.writerow(exportData)
@@ -141,8 +142,10 @@ def get_ml_lines_string(sku):
 def get_lists_for_formula(formula):
     ingredient_num_list = []
     quantity_list = []
+    quantity_unit_list = []
     ingredient_qty_from_database = models.IngredientQty.objects.filter(formula__number=formula.number)
     for ing_qty in ingredient_qty_from_database:
         ingredient_num_list.append(ing_qty.ingredient.number)
         quantity_list.append(ing_qty.quantity)
-    return ingredient_num_list, quantity_list
+        quantity_unit_list.append(ing_qty.quantity_units)
+    return ingredient_num_list, quantity_list, quantity_unit_list
