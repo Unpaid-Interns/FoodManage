@@ -87,6 +87,7 @@ def sales_report(request):
 	context = dict()
 	tables = dict()
 	totals = dict()
+	export_data = dict()
 	product_lines = ProductLine.objects.filter(pk__in=request.session.get('productlines'))
 	for sku in SKU.objects.filter(product_line__in=product_lines):
 		sales_records = SalesRecord.objects.filter(sku=sku, date__lte=date.today(), date__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365)).order_by('date')
@@ -147,10 +148,11 @@ def sales_report(request):
 
 		tables[sku] = SkuSummaryTable(sales_computed)
 		totals[sku] = SkuTotalTable(sales_total)
+		export_data[sku] = (sales_computed, sales_total)
 
 	# CSV Export
 	if request.method == 'POST' and 'export_data' in request.POST:
-		return CSVExport.export_to_csv('sales_report')		
+		return CSVExport.export_to_csv('sales_report', export_data)		
 
 	context['product_lines'] = product_lines
 	context['tables'] = tables
