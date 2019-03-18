@@ -4,6 +4,7 @@ from dep_report import views
 from django.urls import path
 
 urlpatterns = [
+	path('', views.reporting, name='reporting'),
 	path('ingredient/', views.ingr_dep_menu, name='ingr_dep'),
 	path('ingredient/add/<int:pk>/', views.ingr_dep_add, name='ingr_dep_add'),
 	path('ingredient/remove/<int:pk>/', views.ingr_dep_remove, name='ingr_dep_remove'),
