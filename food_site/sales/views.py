@@ -10,6 +10,7 @@ from sku_manage.models import SKU, ProductLine, IngredientQty
 from manufacturing_goals.models import ManufacturingQty
 from .models import SalesRecord, Customer
 from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable, SkuSummaryTable, SkuTotalTable
+import urllib
 
 @login_required
 def pl_select(request):
@@ -242,3 +243,29 @@ def sku_drilldown(request, pk):
 	context['table'] = table
 	context['total'] = total
 	return render(request, 'sales/sku_drilldown.html', context)
+
+@login_required
+def scrape(request):
+	sku = request.GET['sku']
+	year = request.GET['year']
+	url = 'http://hypomeals-sales.colab.duke.edu:8080/?sku='+str(sku)+'&year='+str(year)
+	dat = urllib.request.urlopen(url)
+	data = list()
+	for line in dat.readlines():
+		if '<tr>' in line:
+			cur = line.split('<td>')
+			cust = Customer(name=cur[4],number=cur[3]).create()
+			srec = SalesRecord(
+				sku = cur[1],
+				# DATE NEEDS SOME WORK
+				date = cur[0],
+				customer = cust,
+				cases_sold = cur[5],
+				price_per_case = cur[6]
+				).create()
+			data.append(srec)
+	context = {
+		'data': data
+	}
+	return render(request, 'sales/scrape_test.html', context)
+
