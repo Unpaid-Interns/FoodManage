@@ -17,6 +17,7 @@
 		<li>Manufacturing Run Cost: ${{ sku.mfg_run_cost }} per case (USD)</li>
 		<li>Comment: {{ sku.comment }}</li>
 	</ul>
+	<a class="detail_list" href="{% url 'sku_drilldown' sku.pk %}">SKU Sales Report</a>
 	<p>{{ sku.skumfgline_set.all|length }} Manufacturing Lines:</p>
 	<ul>
 		{% for choice in sku.skumfgline_set.all %}
