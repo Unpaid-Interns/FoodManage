@@ -33,6 +33,8 @@
                 <li>Case UPC: {{ item.mfgqty.sku.case_upc }}</li>
                 <li>Unit UPC: {{ item.mfgqty.sku.unit_upc }}</li>
                 <li>Manufacturing Rate: {{ item.mfgqty.sku.mfg_rate }}</li>
+                <li>Manufacturing Setup Cost: ${{ item.mfgqty.sku.mfg_setup_cost }} (USD)</li>
+                <li>Manufacturing Run Cost: ${{ item.mfgqty.sku.mfg_run_cost }} per case (USD)</li>
             </ul>
             <br>
         {% endfor %}
