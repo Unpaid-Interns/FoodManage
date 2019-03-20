@@ -10,6 +10,7 @@ from sku_manage.models import SKU, ProductLine, IngredientQty
 from manufacturing_goals.models import ManufacturingQty
 from .models import SalesRecord, Customer
 from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable, SkuSummaryTable, SkuTotalTable
+from exporter import CSVExport
 
 @login_required
 def pl_select(request):
