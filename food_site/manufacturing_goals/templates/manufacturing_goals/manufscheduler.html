@@ -19,7 +19,17 @@
 			clear: both;
 		}
 	</style>
-	<div id="visualization" style="padding:10px;"></div>
+	<div class="row">
+		<div id="visualization" style="padding:10px;float:left;width:80%;"></div>
+		<div id="colorkey" style="float:left;font-size:12px;">
+			<p>Timeline Key:</p>
+			<p><div style="background-color:#D5DDF6;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Unselected Item</p>
+			<p><div style="background-color:#FFC200;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Selected Item</p>
+			<p><div style="background-color:red;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item completes after deadline</p>
+			<p><div style="background-color:silver;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's goal has been deactivated</p>
+			<p><div style="background-color:green;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's duration has been modified</p>
+		</div>
+	</div>
 	<div class="items-panel row">
 		<div class="side column">
 			<!-- This should pull from the db -->
@@ -115,7 +125,7 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: royalblue;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
@@ -143,10 +153,10 @@
 			hiddenDates: [
 				{start: '1970-01-01 18:00:00', end: '1970-01-02 8:00:00', repeat: 'daily'}
 			],
-			timeAxis: {
-				scale: 'hour',
-				step: 1
-			},
+			//timeAxis: {
+			//	scale: 'hour',
+			//	step: 1
+			//},
 			type: 'range',
 			start: today,
 			end: tomorrow,

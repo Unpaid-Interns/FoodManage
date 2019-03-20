@@ -35,7 +35,7 @@ class ScheduleItem(models.Model):
 			raise ValidationError('Cannot produce selected SKU on manufacturing line')
 
 	def duration(self):
-		return timedelta(hours=(self.mfgqty.sku.mfg_rate*self.mfgqty.caseqty))
+		return timedelta(hours=(self.mfgqty.caseqty/self.mfgqty.sku.mfg_rate))
 
 	def end_calc(self):
 		endtime = self.start + self.duration()

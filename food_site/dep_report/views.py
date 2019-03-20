@@ -13,6 +13,10 @@ from manufacturing_goals.models import ScheduleItem
 from manufacturing_goals import unitconvert
 
 @login_required
+def reporting(request):
+	return render(request, 'dep_report/reporting.html', context=None)
+
+@login_required
 def ingr_dep_menu(request):
 	if 'ingredients' not in request.session or request.session.get('ingredients') == None:
 		request.session['ingredients'] = list()
