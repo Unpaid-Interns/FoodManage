@@ -38,23 +38,23 @@
 		{% endif %}
 		<br>
 		{% if request.session.cya %}
-			<a class="btn btn-primary" href="/search/">Data</a>
-			<a class="btn btn-primary" href="/reporting/">Reporting</a>
-			<a class="btn btn-primary" href="/manufacturing/">Manufacturing</a>
+			<a href="/search/">Data</a>
+			<a href="/reporting/">Reporting</a>
+			<a href="/manufacturing/">Manufacturing</a>
 			<br><br>
 			{% if user.is_staff %}
-				<a class="btn btn-primary" href="/admin/">Edit Users and Data</a>
-				<a class="btn btn-primary" href="/importer/">CSV Import</a>
-				<a class="btn btn-primary" href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
+				<a href="/admin/">Edit Users and Data</a>
+				<a href="/importer/">CSV Import</a>
+				<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
 				<br><br>
 			{% endif %}
-			<a class="btn btn-primary" href="/authout/">Log Out</a>
+			<a href="/authout/">Log Out</a>
 			<br><br>
 		{% else %}
-			<a class="btn btn-primary" href="{% url 'cya' %}">Choose Your Own Adventure</a>
+			<a href="{% url 'cya' %}">Choose Your Own Adventure</a>
 			<br><br>
 		{% endif %}
-		<a class="btn btn-primary" href="{% url 'help' %}">Help</a>
+		<a href="{% url 'help' %}">Help</a>
     <br>
 		  <form action="{% url 'scrape' %}" method="get">
 			  <input class="bt" type="submit" value="Scrape">
