@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>{{ productline }}</h1>
+    <div class="inline">
+        <h1>{{ productline }}</h1>
+        {% if user.is_staff %}
+            <a class="btn" href="{% url 'admin:sku_manage_productline_change' productline.pk %}"><i class="fa fa-edit"></i></a>
+        {% endif %}
+    </div>
     <p>General Information:</p>
     <ul>
     	<li>Product Line Name: {{ productline.name }}</li>

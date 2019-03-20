@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 import requests
 from django.contrib.auth.models import User
+from sales.models import SalesRecord, Customer
 
 # Create your views here.
 def index(request):
@@ -29,8 +30,13 @@ def aboutus(request):
 	return render(request, 'home/aboutus.html', context=None)
 
 def authout(request):
-        logout(request)
-        return redirect('/')
+	logout(request)
+	return redirect('/')
+
+def clear_sales_cache(request):
+	SalesRecord.objects.all().delete()
+	Customer.objects.all().delete()
+	return redirect('/')
 
 token = None
 
@@ -98,6 +104,14 @@ def assistant(request):
 		'reply': reply,
 	}
 	return render(request, 'home/index.html', context)	
+
+def cya(request):
+	request.session['cya'] = True
+	return render(request, 'home/index.html', {'animate': True})
+
+def cya_end(request):
+	request.session['cya'] = False
+	return render(request, 'home/victory.html', context=None)
 
 def authmid(request):
 	return render(request, 'home/test.html', context=None)

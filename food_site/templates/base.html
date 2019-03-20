@@ -1,17 +1,42 @@
 <!DOCTYPE html>
 <html>
-	{% load staticfiles %}
-	{% load static %}
-	<head>
-		<meta charset="utf-8">
-        	<title>HypoMeals</title>
-        	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        	<link rel="stylesheet" type="text/css" href="{% static "sku_manage/style.css" %}" />
-        	{% block styling %}{% endblock styling %}
-	</head>
-	<body>
-		{% if user.is_authenticated %} {% include "header.html" %} {% endif %}
-		{% block content %}
-		{% endblock content %}
-	</body>
+    {% load staticfiles %}
+    {% load static %}
+    <head>
+        <meta charset="utf-8">
+            <title>HypoMeals</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+            <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}" />
+            {% if request.session.cya %}
+                <link rel="stylesheet" type="text/css" href="{% static "css/cya.css" %}" />
+            {% endif %}
+            {% block styling %}{% endblock styling %}
+    </head>
+    <body>
+        {% if user.is_authenticated %}
+            {% include "header.html" %} 
+        {% endif %}
+        {% block content %}
+        {% endblock content %}
+        {% if request.session.cya and not request.path == '/' %}
+        <div class="ret">
+            <br>
+            {% if ingredient.name == 'Hylian Shroom' %}
+                <a href="{% url 'cyaend' %}"><img src="https://www.zelda.com/assets/img/home/button_decoration_left.png">Congratulations Link, peace has been restored to Hyrule<img src="https://www.zelda.com/assets/img/home/button_decoration_right.png"></a>
+                <audio autoplay>
+                    <source src="{% static 'audio/zelda2.wav' %}" type="audio/wav">
+                </audio>
+            {% elif ingredient.name == 'Silent Princess' %}
+                <a href="{% url 'cyaend' %}"><img src="https://www.zelda.com/assets/img/home/button_decoration_left.png">Congratulations, Princess Zelda, Ganon has been defeated<img src="https://www.zelda.com/assets/img/home/button_decoration_right.png"></a>
+                <audio autoplay>
+                    <source src="{% static 'audio/zelda2.wav' %}" type="audio/wav">
+                </audio>
+            {% else %}
+                <a href="{{ request.path }}../"><img src="https://www.zelda.com/assets/img/home/button_decoration_left.png">Return<img src="https://www.zelda.com/assets/img/home/button_decoration_right.png"></a>
+            {% endif %}
+            <br>
+        </div>
+        {% endif %}
+    <br>
+    </body>
 </html>
