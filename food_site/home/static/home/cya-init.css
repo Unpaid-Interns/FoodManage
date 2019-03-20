@@ -1,15 +1,15 @@
 body {
   animation-name: bkgd-swap;
-  animation-duration: 2s;
+  animation-duration: 3s;
 }
 
 @keyframes bkgd-swap {
-  from {
+  0%, 33% {
     color: black;
     background-color: white;
     background-image: none;
   }
-  to {
+  100% {
     color: #d1aa62;
     background-color: darkslategray;
     background-image: url("https://www.zelda.com/assets/img/common/pattern-triforce-2x.png");
@@ -32,30 +32,30 @@ body {
 
 .main-image {
   animation-name: image-swap;
-  animation-duration: 2s;
+  animation-duration: 5s;
 }
 
 @keyframes image-swap {
-  from {
-    background-image: url("/static/home/logo.jpg");
+  0%, 60% {
+    background-image: url("/static/home/logo.png");
   }
-  to {
+  100% {
     background-image: url("https://gamepedia.cursecdn.com/zelda_gamepedia_en/thumb/7/70/ALBW_Triforce_Artwork.png/300px-ALBW_Triforce_Artwork.png?version=2631c5d3bf85e6a24f1c78427b098815");
   }
 }
 
 .menu-buttons a {
   animation-name: mba-swap;
-  animation-duration: 2s;
+  animation-duration: 3s;
 }
 
 @keyframes mba-swap {
-  from {
+  0%, 33% {
     background-color: #93baf9;
     color: black;
     padding: 14px 25px;
   }
-  to {
+  100% {
     background-color: #203535;
     color: #d1aa62;
     margin: 2px 5px 2px 5px;
@@ -68,16 +68,16 @@ body {
 
 .menu-buttons .if {
   animation-name: mbaif-swap;
-  animation-duration: 2s
+  animation-duration: 3s
 }
 
 @keyframes mbaif-swap {
-  from {
+  0%, 33% {
     border: 2px solid #c4e8ff;
     background-color: white;
     color: black;
   }
-  to {
+  100% {
     border: 2px solid #254040;
     background-color: #d1aa62;
     color: #203535;
