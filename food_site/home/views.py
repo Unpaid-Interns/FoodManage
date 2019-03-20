@@ -91,6 +91,35 @@ def assistant(request):
 	toSend = request.POST['message']
 	if 'story' in toSend or toSend == 'DJANGO':
 		return redirect('/aboutus')
+	if 'choose' in toSend and 'adventure' in toSend:
+		return redirect('/cya')
+	if 'Choose' in toSend and 'adventure' in toSend:
+		return redirect('/cya')
+	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend:
+		if 'sku' in toSend or 'SKU' in toSend:
+			return redirect('SKU')
+		if 'ingredient' in toSend:
+			return redirect('Ingredient')
+		if 'product' in toSend and 'line' in toSend:
+			return redirect('ProductLine')
+		if 'formula' in toSend:
+			return redirect('formula')
+		if 'manufacturing' in toSend and 'line' in toSend:
+			return redirect('ManufacturingLine')
+		if 'sales' in toSend and 'report' in toSend:
+			return redirect('sales_report_select')
+		if 'admin' in toSend:
+			return redirect('/admin')
+		if 'mapping' in toSend:
+			return redirect('map_view')
+		if 'timeline' in toSend or 'map' in toSend or 'schedule' in toSend:
+			return redirect('timeline')
+		if 'report' in toSend:
+			return redirect('reporting')
+	if 'upload' in toSend:
+		return redirect('simple_upload')
+	if 'scrape' in toSend or 'Scrape' in toSend:
+		return redirect('scrape')
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''
