@@ -10,6 +10,8 @@ from sku_manage.models import SKU, ProductLine, IngredientQty
 from manufacturing_goals.models import ManufacturingQty
 from .models import SalesRecord, Customer
 from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable, SkuSummaryTable, SkuTotalTable
+import urllib
+import time
 from exporter import CSVExport
 
 @login_required
@@ -245,3 +247,36 @@ def sku_drilldown(request, pk):
 	context['table'] = table
 	context['total'] = total
 	return render(request, 'sales/sku_drilldown.html', context)
+
+@login_required
+def scrape(request):
+	data = list()
+	for skuo in SKU.objects.all():
+		sku = skuo.sku_num
+		for year in range(1999,2019):
+			time.sleep(.2)
+			url = 'http://hypomeals-sales.colab.duke.edu:8080/?sku='+str(sku)+'&year='+str(year)
+			dat = urllib.request.urlopen(url)
+			for line in dat.readlines():
+				line = str(line)
+				if '<tr>' in line and '<td>' in line:
+					cur = line.split('<td>')
+					cust = None
+					ppc = cur[7][0:(len(cur[7])-3)]
+					if Customer.objects.filter(name=cur[5],number=cur[4]).exists():
+						cust = Customer.objects.filter(name=cur[5],number=cur[4])[0]
+					else:	
+						cust = Customer.objects.create(name=cur[5],number=cur[4])
+					srec = SalesRecord.objects.create(
+						sku = skuo,
+						date = date(year=int(cur[1]), month=1, day=1)+timedelta(days=(int(cur[3])-1)*7),
+						customer = cust,
+						cases_sold = int(cur[6]),
+						price_per_case = Decimal(ppc)
+						)
+					data.append(srec)
+	context = {
+		'data': data
+	}
+	return render(request, 'sales/scrape_test.html', context)
+
