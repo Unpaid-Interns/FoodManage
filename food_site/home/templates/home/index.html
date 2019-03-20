@@ -56,7 +56,7 @@
 		{% endif %}
 		<a class="btn btn-primary" href="{% url 'help' %}">Help</a>
     <br>
-		  <form action="/scrape" method="get">
+		  <form action="{% url 'scrape' %}" method="get">
 			  <input class="bt" type="submit" value="Scrape">
 		  </form>
 	{% endif %}
