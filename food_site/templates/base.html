@@ -14,9 +14,7 @@
     </head>
     <body>
         {% if user.is_authenticated %}
-            {% if not request.session.cya or request.path == '/' %} 
-                {% include "header.html" %} 
-            {% endif %}
+            {% include "header.html" %} 
         {% endif %}
         {% block content %}
         {% endblock content %}

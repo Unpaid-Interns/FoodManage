@@ -3,29 +3,31 @@
 	<h1>Filter Ingredients for Report:</h1>
 	{% include "data/filters.html" %}
 	<br>
-	<div class="table" style="overflow-x:auto;">
-		{% load render_table from django_tables2 %}
-		{% load bootstrap3 %}
-		{% render_table input_table %}
-	</div>
-	<form class="form-inline" method="get">
-		{% if queryset.all|length > 25 %}
-			{% if paginated %}
-				<button type="submit" name="remove_pagination">View All Records</button>
-			{% else %}
-				<button type="submit" name="add_pagination">Paged View</button>
-			{% endif %}
-		{% endif %}
+	<form class="form-inline" action="{% url 'ingr_dep_gen' %}" method="post">
+		{% csrf_token %}
+		<button type="submit" name="gen_report"	{% if not selected_table.rows %} disabled {% endif %}>Generate Report - {{ selected_table.rows|length }} Result(s)</button>
 	</form>
-	<br>
-	{% if selected_table.rows %}
-		<form class="form-inline" action="{% url 'ingr_dep_gen' %}" method="post">
-			{% csrf_token %}
-			<button type="submit" name="gen_report">Generate Report - {{ selected_table.rows|length }} Result(s)</button>
-		</form>
-		<div class="table" style="overflow-x:auto;">
-			{% render_table selected_table %}
+	<div class="row">
+		<div class="column">
+			<div class="table" style="overflow-x:auto;">
+				{% load render_table from django_tables2 %}
+				{% load bootstrap3 %}
+				{% render_table input_table %}
+			</div>
+			<form class="form-inline" method="get">
+				{% if queryset.all|length > 25 %}
+					{% if paginated %}
+						<button type="submit" name="remove_pagination">View All Records</button>
+					{% else %}
+						<button type="submit" name="add_pagination">Paged View</button>
+					{% endif %}
+				{% endif %}
+			</form>
 		</div>
-	{% endif %}
-
+		<div class="column">
+			<div class="table" style="overflow-x:auto;">
+				{% render_table selected_table %}
+			</div>
+		</div>
+	</div>
 {% endblock content %}

@@ -293,24 +293,4 @@ class ManufacturingLineDetailView(generic.DetailView):
 @login_required
 def search(request):
 	return render(request, 'sku_manage/search.html', context=None)
-
-@login_required
-def populate(request):
-	ex_data.load_data()
-	return redirect('/')
-
-@login_required
-def clear(request):
-	SKU.objects.all().delete()
-	ProductLine.objects.all().delete()
-	Formula.objects.all().delete()
-	ManufacturingLine.objects.all().delete()
-	Ingredients.objects.all().delete()
-	return redirect('/')
-
-@login_required
-def authout(request):
-        logout(request)
-        return redirect('/')
-
 	

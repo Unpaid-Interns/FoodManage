@@ -15,6 +15,4 @@ urlpatterns = [
 	path('sku/<int:pk>/', views.SKUDetailView.as_view(), name='sku_detail'),
 	path('formula/<int:pk>/', views.FormulaDetailView.as_view(), name='formula_detail'),
 	path('manufacturingline/<int:pk>/', views.ManufacturingLineDetailView.as_view(), name='mfg_line_detail'),
-	path('populate/', views.populate, name='populate'),
-	path('clear/', views.clear, name='clear'),
 ]
