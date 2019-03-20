@@ -31,13 +31,18 @@
     <br>
     <div class="table" style="overflow-x:auto;">
 		{% render_table table %}
+		{% if not table.rows %}
+			<table><tr><td>loading...</td></tr></table>
+		{% endif %}
 	</div>
 	<br>
-	<h3>Totals</h3>
-    <div class="table" style="overflow-x:auto;">
-		{% render_table total %}
-	</div>
-	<div id="chart"></div>
+	{% if table.rows %}
+		<h3>Totals</h3>
+	    <div class="table" style="overflow-x:auto;">
+			{% render_table total %}
+		</div>
+		<div id="chart"></div>
+	{% endif %}
 	
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 	<script type="text/javascript">
