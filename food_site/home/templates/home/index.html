@@ -50,15 +50,8 @@
 			{% endif %}
 			<a href="/authout/">Log Out</a>
 			<br><br>
-		{% else %}
-			<a href="{% url 'cya' %}">Choose Your Own Adventure</a>
-			<br><br>
 		{% endif %}
-		<a href="{% url 'help' %}">Help</a>
-    <br>
-		  <form action="{% url 'scrape' %}" method="get">
-			  <input class="bt" type="submit" value="Scrape">
-		  </form>
+		<a class="btn btn-primary" href="{% url 'help' %}">Help</a>
 	{% endif %}
 </div>
 {% if animate %} 
