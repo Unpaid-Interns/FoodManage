@@ -11,7 +11,7 @@
 		</form>
     </div>
 	<h2>{{ sku }}</h2>
-	<form class="form-inline" method="get">
+		<form class="form-inline" method="get">
 		<p>Filter By Customer:</p>
 		<select name="custfilter" onchange='this.form.submit()'>
 			<option value="all">All Customers</option>
@@ -29,16 +29,24 @@
         <button type="submit"><i class="fa fa-arrow-right"></i></button>
     </form>
     <br>
-    <div class="table" style="overflow-x:auto;">
-		{% render_table table %}
-	</div>
-	<br>
-	<h3>Totals</h3>
-    <div class="table" style="overflow-x:auto;">
-		{% render_table total %}
-	</div>
-	<div id="chart"></div>
-	
+    {% if error %}
+		<div class="warnings"><p>{{ error }}</p></div>
+	{% else %}
+	    <div class="table" style="overflow-x:auto;">
+			{% render_table table %}
+			{% if not table.rows %}
+				<table><tr><td>loading...</td></tr></table>
+			{% endif %}
+		</div>
+		<br>
+		{% if table.rows %}
+			<h3>Totals</h3>
+		    <div class="table" style="overflow-x:auto;">
+				{% render_table total %}
+			</div>
+			<div id="chart"></div>
+		{% endif %}
+	{% endif %}
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 	<script type="text/javascript">
 		// Load google charts

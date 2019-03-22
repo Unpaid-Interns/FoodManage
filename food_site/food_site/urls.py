@@ -26,5 +26,4 @@ urlpatterns = [
     path('search/', include('sku_manage.urls')),
     path('manufacturing/', include('manufacturing_goals.urls')),
     path('admin/manufacturinglinemap/', include('mfg_map.urls')),
-    path('', include('sales.urls')),
 ]

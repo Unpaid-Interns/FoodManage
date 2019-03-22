@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from decimal import Decimal
 
 from manufacturing_goals import unitconvert
@@ -171,6 +171,7 @@ def sku_drilldown(request, pk):
 		'selected_customer': None,
 		'start_time': (date.today() - timedelta(days=365)).isoformat(),
 		'end_time': date.today().isoformat(),
+		'error': None,
 	}
 
 	# Data Acquisition
@@ -191,6 +192,16 @@ def sku_drilldown(request, pk):
 		if 'endtime' in request.GET and request.GET['endtime'] != '':
 			context['end_time'] = request.GET['endtime']
 	queryset = queryset.filter(date__gte=context['start_time'], date__lte=context['end_time'])	
+
+	# errors
+	enddate = datetime.strptime(context['end_time'], '%Y-%m-%d').date()
+	startdate = datetime.strptime(context['start_time'], '%Y-%m-%d').date()
+	if enddate < startdate or enddate > date.today():
+		context['error'] = 'Invalid Date Filters'
+	elif startdate.year < 1999:
+		context['error'] = 'No data from before 1999'
+	elif enddate < startdate + timedelta(days=7):
+		context['error'] = 'Data at week granularity'
 	
 	# CSV Export
 	if request.method == 'POST' and 'export_data' in request.POST:
