@@ -19,6 +19,7 @@ pip install --upgrade django-tables2
 pip install --upgrade django-bootstrap3
 pip install --upgrade psycopg2-binary
 pip install --upgrade requests
+pip install --upgrade django-background-tasks
 
 # Setup Django
 ./food_site/manage.py migrate
