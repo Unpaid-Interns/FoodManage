@@ -1,10 +1,12 @@
 from django.shortcuts import render
+from background_task import background
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 import requests
 from django.contrib.auth.models import User
 from sales.models import SalesRecord, Customer
+from sales import tasks
 
 # Create your views here.
 def index(request):
@@ -119,7 +121,12 @@ def assistant(request):
 	if 'upload' in toSend:
 		return redirect('simple_upload')
 	if 'scrape' in toSend or 'Scrape' in toSend:
-		return redirect('scrape')
+		tasks.scrape()
+		reply = 'The sales records are being updated.'
+		context = {
+			'reply': reply,
+		}
+		return render(request, 'home/index.html', context)
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''
