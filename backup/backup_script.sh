@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python backup_script.py
+python ~/FoodManage/backup/backup_script.py
