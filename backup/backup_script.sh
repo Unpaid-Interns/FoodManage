@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python backup_server.py
+python backup_script.py
