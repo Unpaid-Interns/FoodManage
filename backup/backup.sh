@@ -2,5 +2,5 @@
 
 # Run Backup
 source ../site_env/bin/activate
-./backup.py
+python backup.py
 deactivate
