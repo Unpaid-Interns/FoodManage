@@ -262,6 +262,7 @@ def sku_drilldown(request, pk):
 @login_required
 def scrape(request):
 	data = list()
+	data.append('Sales records updated from remote server.')
 	for skuo in SKU.objects.all():
 		sku = skuo.sku_num
 		for year in range(1999,date.today().year+1):
