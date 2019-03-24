@@ -1,5 +1,6 @@
 import os
 import datetime
+import email_sender
 
 debug = False
 
@@ -13,11 +14,30 @@ monthly_limit = 12
 
 def create_backup():
     success, file = get_file()
+    today = str(datetime.datetime.today().date())
     if not success:
-        print("ERROR: File not found.")
+        send_email("Backup Failed on " + today,
+                   "Backup failed due to no backup file being available at 2am backup time.\n\n- Unpaid Interns")
+        print("Backup failed due to no backup file being available at 2am backup time.")
         return
-    os.rename(path + "/" + file, path + "/hypo_backups/" + default_backup_folder_name + "/" + file)
-    move_backups_as_needed()
+    try:
+        os.rename(path + "/" + file, path + "/hypo_backups/" + default_backup_folder_name + "/" + file)
+    except:
+        send_email("Backup Failed on " + today,
+                   "Backup failed due to being unable to move file on backup server.\n\n- Unpaid Interns")
+        print("Backup failed due to being unable to move file on backup server.")
+        return
+    try:
+        move_backups_as_needed()
+    except:
+        send_email("Backup Failed on " + today,
+                   "Backup failed due to error in backup file structure. Please contact the Unpaid Interns."
+                   "\n\n- Unpaid Interns")
+        print("Backup failed due to error in backup file structure.")
+        return
+    send_email("Backup Succeeded on " + today,
+               "Backup taken successfully today on " + today + ".\n\n- Unpaid Interns")
+    print("Backup finished successfully.")
 
 
 def move_backups_as_needed():
@@ -166,7 +186,7 @@ def get_date_from_filename(filename):
 
 def test():
     today = datetime.datetime.today()
-    for i in range(0, 400):
+    for i in range(0, 1):
         f = open(path + "/backup-" + str((today + datetime.timedelta(days=i)).date()), "w+")
         f.close()
         # print("calling backup for: " + str("backup-" + str((today + datetime.timedelta(days=i)).date())))
@@ -184,6 +204,11 @@ def delete_test_files():
             os.remove(path + "/" + file)
     else:
         return False, None
+
+
+def send_email(subject, body):
+    sender = email_sender.EmailSender(subject, body)
+    sender.send_email()
 
 
 #test()
