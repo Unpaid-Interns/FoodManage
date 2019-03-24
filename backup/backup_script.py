@@ -128,17 +128,17 @@ def move_weekly_to_monthly():
                             - get_date_from_filename(newest_monthly_file).year) * 12 \
                            + get_date_from_filename(oldest_weekly_file).month \
                            - get_date_from_filename(newest_monthly_file).month
-            print(oldest_weekly_file)
-            print(newest_monthly_file)
-            print(delta_months)
-            print()
+            # print(oldest_weekly_file)
+            # print(newest_monthly_file)
+            # print(delta_months)
+            # print()
             if delta_months > 0:
                 move = True
         else:
-            print(oldest_weekly_file)
-            print(newest_monthly_file)
-            print("neweset monthly NONE")
-            print()
+            # print(oldest_weekly_file)
+            # print(newest_monthly_file)
+            # print("neweset monthly NONE")
+            # print()
             move = True
     if move:
 
