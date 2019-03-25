@@ -2,6 +2,7 @@
 from django.conf.urls import url
 from django.urls import path
 from . import views
+from . import tasks
 
 urlpatterns = [
 	path('sales/sku/<int:pk>/', views.sku_drilldown, name='sku_drilldown'),
@@ -11,3 +12,5 @@ urlpatterns = [
 	path('sales/report/', views.sales_report, name='sales_report'),
 	path('scrape/', views.scrape, name='scrape'),
 ]
+
+tasks.scrape(repeat=86400)
