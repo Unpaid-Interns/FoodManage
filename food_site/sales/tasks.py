@@ -76,8 +76,9 @@ def scrape_year():
 					)
 
 @background(schedule=1)
-def scrape_sku(sku_obj):
-	sku = sku_obj.sku_num
+def scrape_sku(sku_num):
+	sku_obj = SKU.objects.get(sku_num=sku_num)
+	sku = sku_num
 	for year in range(1999,date.today().year+1):
 		time.sleep(.2)
 		url = 'http://hypomeals-sales.colab.duke.edu:8080/?sku='+str(sku)+'&year='+str(year)
