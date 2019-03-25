@@ -109,5 +109,8 @@ source site_env/bin/activate
 ./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
 deactivate
 
+# Setup backup and background cron jobs
+crontab scripts/servercrontab
+
 # Restart apache to reflect changes
 sudo service apache2 restart

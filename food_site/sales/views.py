@@ -115,7 +115,7 @@ def sales_report(request):
 					cases += record.cases_sold
 				else:
 					if year > 0:
-						sales_computed.append({'year': year, 'sku': sku, 'revenue': revenue, 'revenue_per_case': (revenue/cases)})
+						sales_computed.append({'year': year, 'sku': sku, 'revenue': revenue, 'revenue_per_case': round(revenue/cases, 2)})
 					year = record.date.year
 					revenue = record.cases_sold * record.price_per_case
 					cases = record.cases_sold
