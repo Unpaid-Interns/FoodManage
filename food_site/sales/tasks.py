@@ -1,5 +1,6 @@
 import time
 import urllib
+from decimal import Decimal
 from datetime import date, timedelta
 from background_task import background
 
