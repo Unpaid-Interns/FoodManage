@@ -89,6 +89,9 @@ def manufqty(request):
 				Q(unit_upc__iexact=keyword) |
 				Q(unit_size__icontains=keyword) | 
 				Q(units_per_case__iexact=keyword) | 
+				Q(mfg_rate__iexact=keyword) |
+				Q(mfg_setup_cost__iexact=keyword) |
+				Q(mfg_run_cost__iexact=keyword) |
 				Q(comment__icontains=keyword))
 			context['keyword'] = keyword
 
@@ -218,6 +221,7 @@ def timeline(request):
 	form = ManufacturingSchedForm()
 	scheditems = ScheduleItem.objects.all()
 	mfdurations = list()
+	mfg_overlap = list()
 	if not scheditems:
 		pass
 	else:
@@ -234,6 +238,10 @@ def timeline(request):
 			duration['duration'] = hrs
 			duration['mfline'] = s.mfgline.pk
 			mfdurations.append(duration)
+			for s2 in scheditems:
+				if s.start is not None and s2.start is not None and s != s2 and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
+					mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
+
 	
 	if request.method == "POST":
 		form = ManufacturingSchedForm(request.POST)
@@ -282,6 +290,8 @@ def timeline(request):
 	context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
 	context['mfg_lines'] = ManufacturingLine.objects.all()
 	context['mfdurations'] = mfdurations
+	context['mfg_overlap'] = mfg_overlap
+	print(mfg_overlap)
 	return render(request, 'manufacturing_goals/manufscheduler.html', context)
 
 @login_required

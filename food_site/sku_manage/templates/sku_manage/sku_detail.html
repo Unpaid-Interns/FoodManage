@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-	<h1>{{ sku }}</h1>
+	<div class="inline">
+		<h1>{{ sku }}</h1>
+		{% if user.is_staff %}
+			<a class="btn" href="{% url 'admin:sku_manage_sku_change' sku.pk %}"><i class="fa fa-edit"></i></a>
+		{% endif %}
+	</div>
 	<p>General Information:</p>
 	<ul>
 		<li>Name: {{ sku.name }}</li>
@@ -13,8 +18,11 @@
 		<li>Formula: <a class="detail_list" href="{% url 'formula_detail' sku.formula.pk %}">{{ sku.formula }}</a></li>
 		<li>Formula Scale: {{ sku.formula_scale }}</li>
 		<li>Manufacturing Rate: {{ sku.mfg_rate }}</li>
+		<li>Manufacturing Setup Cost: ${{ sku.mfg_setup_cost }} (USD)</li>
+		<li>Manufacturing Run Cost: ${{ sku.mfg_run_cost }} per case (USD)</li>
 		<li>Comment: {{ sku.comment }}</li>
 	</ul>
+	<a class="detail_list" href="{% url 'sku_drilldown' sku.pk %}">SKU Sales Report</a>
 	<p>{{ sku.skumfgline_set.all|length }} Manufacturing Lines:</p>
 	<ul>
 		{% for choice in sku.skumfgline_set.all %}

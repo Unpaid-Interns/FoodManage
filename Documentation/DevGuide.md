@@ -8,10 +8,11 @@ The apps are as follows:
 * manufacturing_goals: Handles the storage and displaying of manufacturing goals used for production. Also handles the manufacturing schedule storage and displays.
 * dep_report: Handles the displaying and exporting of the ingredient dependency report
 * mfg_map: Handles the mapping of manufacturing lines to SKUs
+* sales: Handles all of the sales reporting functionality, including the models used to store the data in the database and the screen-scraping functionality to access data from the company's internal sales tracking system.
 
-Additionally, the exporter directory has the backend code for the bulk exports of items imported by the importer. It
+Additionally, the exporter directory has the backend code for the bulk exports of items imported by the importer.
 ### Technologies Used
-The system was constructed using the Django framework which uses Python to drive the database interactions and logic used to manipulate data for displaying and storage. Views are driven by Python and templates rendered in html files (augmented with CSS and JavaScript as needed) with template tags that can generate elements on the page based on information provided by the Python logic. The manufacturing schedule made use of vis.js as a general structure for the timeline visual interface.
+The system was constructed using the Django framework which uses Python to drive the database interactions with a PostgreSQL database, and logic used to manipulate data for displaying and storage. Views are driven by Python and templates rendered in html files (augmented with CSS and JavaScript as needed) with template tags that can generate elements on the page based on information provided by the Python logic. The manufacturing schedule made use of vis.js as a general structure for the timeline visual interface.
 ### Environment Setup
 The development environment was built within a Linux machine running Ubuntu 16.04 LTS. The environment requires the installation and usage of the following: 
 * Python 3.5.2 (or later)
@@ -19,6 +20,7 @@ The development environment was built within a Linux machine running Ubuntu 16.0
 * django-tables2 (with pip)
 * django-bootstrap3 (with pip)
 * psycopg2-binary (with pip)
+* requests (with pip)
 
 Python 3 is usually installed with Ubuntu 16.04 and can be used to run commands in terminal by typing `python3`. Pip is installable via the command `sudo apt-get install pip3`. The remaining Python packages can be installed using `pip3 install <PACKAGE_NAME>`. The use of a virtual environment is not neccessary but is recommended.
 ### Development Build Deployment
@@ -44,5 +46,7 @@ Additionally, users' manufacturing goals are stored in the database in two table
 
 Timeline information is stored by ScheduleItem, which stores a tuple of (ManufacturingQty, ManufacturingLine) associated with a manufacturing activity to be shown on the timeline. It also stores the start time and end time of the activity as optional fields depending on the placement of activities by the administrator.
 
+Sales reporting includes two new models: Customer, which stores a name and unique identifying number for each customer, and SalesRecord, which, for each item in the report, keeps track of the SKU, the date of sale, the customer (as a foreign key),  the number of cases sold, and the price per case.
+
 #### Database Schema
-![alt text](https://i.imgur.com/7OgXuVk.png "Database Schema")
+![alt text](https://i.imgur.com/i5SxmTT.png "Database Schema")

@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '152.3.53.33',
+    '152.3.53.32',
     '127.0.0.1',
     '152.3.53.32',
     '192.168.0.21',
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'importer.apps.ImportConfig',
     'dep_report.apps.DepReportConfig',
     'mfg_map.apps.MfgMapConfig',
+    'sales.apps.SalesConfig',
     'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
+    'background_task',
     'bootstrap3',
 ]
 

@@ -1,0 +1,85 @@
+body {
+  animation-name: bkgd-swap;
+  animation-duration: 3s;
+}
+
+@keyframes bkgd-swap {
+  0%, 33% {
+    color: black;
+    background-color: white;
+    background-image: none;
+  }
+  100% {
+    color: #d1aa62;
+    background-color: darkslategray;
+    background-image: url("https://www.zelda.com/assets/img/common/pattern-triforce-2x.png");
+  }
+}
+
+.topnav {
+  animation-name: disappear;
+  animation-duration: 1s;
+}
+
+@keyframes disappear {
+  from {
+    margin-top: 0;
+  }
+  to {
+      margin-top: -49px;
+  }
+}
+
+.main-image {
+  animation-name: image-swap;
+  animation-duration: 5s;
+}
+
+@keyframes image-swap {
+  0%, 60% {
+    background-image: url("/static/home/logo.png");
+  }
+  100% {
+    background-image: url("https://gamepedia.cursecdn.com/zelda_gamepedia_en/thumb/7/70/ALBW_Triforce_Artwork.png/300px-ALBW_Triforce_Artwork.png?version=2631c5d3bf85e6a24f1c78427b098815");
+  }
+}
+
+.menu-buttons a {
+  animation-name: mba-swap;
+  animation-duration: 3s;
+}
+
+@keyframes mba-swap {
+  0%, 33% {
+    background-color: #93baf9;
+    color: black;
+    padding: 14px 25px;
+  }
+  100% {
+    background-color: #203535;
+    color: #d1aa62;
+    margin: 2px 5px 2px 5px;
+    padding: 12px 20px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+  }
+}
+
+.menu-buttons .if {
+  animation-name: mbaif-swap;
+  animation-duration: 3s
+}
+
+@keyframes mbaif-swap {
+  0%, 33% {
+    border: 2px solid #c4e8ff;
+    background-color: white;
+    color: black;
+  }
+  100% {
+    border: 2px solid #254040;
+    background-color: #d1aa62;
+    color: #203535;
+  }
+}

@@ -3,6 +3,8 @@
 {% load staticfiles %}
     <h1>Please wait to be redirected...</h1>
 	<br>
+	<a class="btn btn-primary" href="/">Click to Cancel</a>
+	<br>
 	<form action="/netret/" method="post" id="theform">
 		{% csrf_token %}
 		<input type="hidden" id="goodtoken" name="token">

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from django.utils import timezone
 from django.db import models
@@ -35,7 +35,7 @@ class ScheduleItem(models.Model):
 			raise ValidationError('Cannot produce selected SKU on manufacturing line')
 
 	def duration(self):
-		return timedelta(hours=(self.mfgqty.sku.mfg_rate*self.mfgqty.caseqty))
+		return timedelta(hours=(self.mfgqty.caseqty/self.mfgqty.sku.mfg_rate))
 
 	def end_calc(self):
 		endtime = self.start + self.duration()
@@ -49,6 +49,9 @@ class ScheduleItem(models.Model):
 		if self.endoverride is not None:
 			return self.endoverride
 		return self.end_calc()
+
+	def too_late(self):
+		return datetime.combine(self.mfgqty.goal.deadline, time.max).replace(tzinfo=timezone.get_current_timezone()) < self.end()
 
 	def start_time(self):
 		return self.start.strftime("%Y-%m-%dT%H:%M:%S%z")

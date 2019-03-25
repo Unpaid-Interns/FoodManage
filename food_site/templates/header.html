@@ -11,10 +11,11 @@
 		</div>
 	</div>
 	<div class="dropdown">
-		<a {% if request.path|slice:":10" == '/reporting' %} class="active" {% endif %}>Reporting</a>
+		<a {% if request.path|slice:":10" == '/reporting' %} class="active" {% endif %} href="/reporting/">Reporting</a>
 		<div class="dropdown-content">
 			<a href="/reporting/ingredient/">Ingredient Dependency</a>
 			<a href="/reporting/manufacturing/">Manufacturing Schedule</a>
+			<a href="/reporting/sales/productline/">Sales</a>
 		</div>
 	</div>
 	<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load static %}
+{% block styling %}
+    <link rel="stylesheet" type="text/css" href="{% static "css/cya.css" %}" />
+{% endblock styling %}
+{% block content %}
+<br>
+<div class=main-image></div>
+<div class="menu-buttons">
+	<h1>Nice Job!</h1>
+</div>
+<div class="ret">
+	<a href="/"><img src="https://www.zelda.com/assets/img/home/button_decoration_left.png">Exit Game<img src="https://www.zelda.com/assets/img/home/button_decoration_right.png"></a>
+</div>
+<br>
+<audio autoplay>
+	<source src="{% static 'audio/zelda3.wav' %}" type="audio/wav">
+</audio>
+{% endblock content %}

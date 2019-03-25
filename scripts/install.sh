@@ -82,11 +82,13 @@ fi
 
 # Install and update python packages in virtual environment
 source site_env/bin/activate
-pip install --upgrade django
-pip install --upgrade django-tables2
-pip install --upgrade django-bootstrap3
-pip install --upgrade psycopg2-binary
-pip install --upgrade requests
+pip install django
+pip install django-tables2
+pip install django-bootstrap3
+pip install psycopg2-binary
+pip install requests
+pip install django-background-tasks
+
 
 # Configure django settings
 python -c 'import random; import os; result = "".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)]); os.environ["SECRET_KEY"] = result'
@@ -106,6 +108,9 @@ source site_env/bin/activate
 ./food_site/manage.py collectstatic --noinput -v 0
 ./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
 deactivate
+
+# Setup backup and background cron jobs
+crontab scripts/servercrontab
 
 # Restart apache to reflect changes
 sudo service apache2 restart

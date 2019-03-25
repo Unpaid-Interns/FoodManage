@@ -1,0 +1,150 @@
+body {
+  background-color: darkslategray;
+  background-image: url("https://www.zelda.com/assets/img/common/pattern-triforce-2x.png");
+  color: #d1aa62;
+}
+
+a {
+  color: #d1aa62;
+}
+
+.detail_list {
+  color: #d1aa62;
+}
+
+.topnav {
+  margin-top: -49px;
+}
+
+.main-image {
+  width: 400px;
+  height: 250px;
+  margin-left: auto;
+  margin-right: auto;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  alignment-baseline: middle;
+  background-image: url("https://gamepedia.cursecdn.com/zelda_gamepedia_en/thumb/7/70/ALBW_Triforce_Artwork.png/300px-ALBW_Triforce_Artwork.png?version=2631c5d3bf85e6a24f1c78427b098815");
+}
+
+.inline button, a.btn {
+  background-color: #203535;
+  border: 1px solid #203535;
+  color: #d1aa62;
+}
+
+.inline button:hover, a.btn:hover {
+  background-color: #254040;
+}
+
+.menu-buttons a {
+  background-color: #203535;
+  color: #d1aa62;
+  margin: 2px 5px 2px 5px;
+  padding: 12px 20px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.menu-buttons .if {
+  border: 2px solid #254040;
+  background-color: #d1aa62;
+  color: #203535;
+}
+
+.asst {
+  font-size: 12px;
+  background-color: #203535;
+  color: #d1aa62;
+  margin: 5px 5px 35px 5px;
+  padding: 9px 20px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block; 
+  border: none; 
+}
+
+.menu-buttons a:hover {
+  background-color: #254040;
+}
+
+.table {
+  border: 2px solid #203535;
+}
+
+.table th {
+  background-color: #203535;
+  color: #d1aa62;
+}
+
+.table tr:nth-child(odd) {
+  background-color: #2f4f4f;
+}
+
+.table tr:nth-child(even) {
+  background-color: #294646;
+}
+
+.table tr:hover {
+  background-color: #254040;
+}
+
+.table text {
+  color: #d1aa62;
+}
+
+.table a {
+  color: #d1aa62;
+}
+
+.table .ing {
+  color: #d1aa62;
+}
+
+.form-inline input {
+  background-color: #d1aa62;
+  border: 1px solid #203535;
+}
+
+.form-inline select {
+  background-color: #d1aa62;
+  border: 1px solid #203535;
+}
+
+.form-inline button {
+  background-color: #173030;
+  border: 1px solid #203535;
+  color: #d1aa62;
+}
+
+.form-inline button:hover {
+  background-color: #254040;
+}
+
+.form-inline button:disabled {
+  background-color: #284848;
+  border: 1px solid #254040;
+  color: #a17a52;
+}
+
+.ret {
+  text-align: center;
+}
+
+.ret a {
+  vertical-align: middle;
+  text-decoration: none;
+  color: #d1aa62;
+}
+
+.ret img {
+  height: 30px;
+  width: auto;
+  vertical-align: middle;
+}
+
