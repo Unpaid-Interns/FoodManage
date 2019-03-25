@@ -1,5 +1,8 @@
 from background_task import background
 
+from sku_manage.models import SKU
+from .models import SalesRecord, Customer
+
 @background(schedule=1)
 def scrape():
 	for skuo in SKU.objects.all():
