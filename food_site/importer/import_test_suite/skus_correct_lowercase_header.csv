@@ -1,10 +1,10 @@
-sku#,name,case upc,unit upc,unit size,count per case,pl Name,formula#,formula factor,Ml Shortnames,Rate,comment
-1001,Burger Beef,042272010264,725272730706,600g,50,Hamburger,1001,1,"line1",1,
-1002,Burger Turkey,987654321098,705632085943,250g,80,Hamburger,1001,1,"line1",1,
-1003,Burger Vegan,020357122682,697929110035,1000g,60,Hamburger,1001,1,"line1",1,Burger for vegan
-1004,House Salad,759606077656,701197933774,6.25oz,20,Salad,1001,1,"line1",1,"""Salad made at house Extra line for extra taste"""
-1005,Caeser Salad,849665001980,692771981161,22.25oz,28,Salad,1001,1,"line1",1,
-1006,Fruit Salad,046677422158,049000011340,24oz,50,Salad,1001,1,"line1",1,
-1007,SPICY IL FORNO,950110153007,022334545453,15.25oz,100,Pasta,1001,1,"line1",1,
-1008,CHICKEN ALFREDO,075678164125,614141000036,14.5oz,75,Pasta,1001,1,"line1",1,220Cal
-1009,PARMA ROSA,036000291452,036000291452,4.3oz,30,Pasta,1001,1,"line1",1,
+sku#,Name,Case UPC,Unit UPC,Unit size,Count per case,PL Name,Formula#,formula factor,ML Shortnames,Rate,mfg setup cost,Mfg run cost,Comment
+1001,Burger Beef,042272010264,725272730706,600g,50,Hamburger,1001,1,"line1",1,$1,$2,
+1002,Burger Turkey,987654321098,705632085943,250g,80,Hamburger,1001,1,"line1",1,$1,$2,
+1003,Burger Vegan,020357122682,697929110035,1000g,60,Hamburger,1001,1,"line1",1,$1,$2,Burger for vegan
+1004,House Salad,759606077656,701197933774,6.25oz,20,Salad,1001,1,"line1",1,$1,$2,"""Salad made at house Extra line for extra taste"""
+1005,Caeser Salad,849665001980,692771981161,22.25oz,28,Salad,1001,1,"line1",1,$1,$2,
+1006,Fruit Salad,046677422158,049000011340,24oz,50,Salad,1001,1,"line1",1,$1,$2,
+1007,SPICY IL FORNO,950110153007,022334545453,15.25oz,100,Pasta,1001,1,"line1",1,$1,$2,
+1008,CHICKEN ALFREDO,075678164125,614141000036,14.5oz,75,Pasta,1001,1,"line1",1,$1,$2,220Cal
+1009,PARMA ROSA,036000291452,036000291452,4.3oz,30,Pasta,1001,1,"line1",1,$1,$2,
