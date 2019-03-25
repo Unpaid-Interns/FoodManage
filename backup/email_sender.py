@@ -3,7 +3,6 @@ import smtplib
 
 class EmailSender:
 
-
     def __init__(self, subject, body):
         self.gmail_user = 'unpaidinterns.hypomeals@gmail.com'
         self.gmail_password = ''
