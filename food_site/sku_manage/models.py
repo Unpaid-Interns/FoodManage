@@ -2,6 +2,7 @@ import re
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from sales.tasks import scrape_sku
 
 weights = ('Ounce', 'oz.', 'Pound', 'lb.', 'Ton', 'ton.', 'Gram', 'g.', 'Kilogram', 'kg.')
 volumes = ('Fluid Ounce', 'fl.oz.', 'Pint', 'pt.', 'Quart', 'qt.', 'Gallon', 'gal.', 'Milliliter', 'mL', 'Liter', 'L')
@@ -120,6 +121,9 @@ class SKU(models.Model):
                 self.product_line.name, str(self.formula.number), str(self.formula_scale), str(self.mfg_rate),
                 str(self.mfg_setup_cost), str(self.mfg_run_cost), self.comment]
 
+    def save(self):
+        super(models.Model, self).save()
+        scrape_sku(self)
 
 class ManufacturingLine(models.Model):
     name = models.CharField(max_length=32)

@@ -13,4 +13,5 @@ urlpatterns = [
 	path('scrape/', views.scrape, name='scrape'),
 ]
 
-tasks.scrape(repeat=86400)
+tasks.scrape()
+tasks.scrape_year(repeat=86400)
