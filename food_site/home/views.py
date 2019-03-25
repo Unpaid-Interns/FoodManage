@@ -7,6 +7,8 @@ import requests
 from django.contrib.auth.models import User
 from sales.models import SalesRecord, Customer
 from sales import tasks
+from manufacturing_goals import models as mfg_models
+from sku_manage import models as sku_models
 
 # Create your views here.
 def index(request):
@@ -35,9 +37,22 @@ def authout(request):
 	logout(request)
 	return redirect('/')
 
+def clear_database(request):
+	SalesRecord.objects.all().delete()
+	Customer.objects.all().delete()
+	mfg_models.ScheduleItem.objects.all().delete()
+	mfg_models.ManufacturingGoal.objects.all().delete()
+	sku_models.SKU.objects.all().delete()
+	sku_models.Formula.objects.all().delete()
+	sku_models.ManufacturingLine.objects.all().delete()
+	sku_models.ProductLine.objects.all().delete()
+	sku_models.Ingredient.objects.all().delete()
+	return redirect('/')
+
 def clear_sales_cache(request):
 	SalesRecord.objects.all().delete()
 	Customer.objects.all().delete()
+	tasks.scrape()
 	return redirect('/')
 
 token = None
