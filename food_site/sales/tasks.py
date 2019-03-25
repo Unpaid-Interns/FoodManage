@@ -1,4 +1,11 @@
 from background_task import background
+from sku_manage.models import SKU
+from .models import SalesRecord, Customer
+from datetime import date, timedelta, datetime
+from decimal import Decimal
+import time
+import urllib
+
 
 @background(schedule=1)
 def scrape():
