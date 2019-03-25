@@ -3,6 +3,9 @@ from django.conf.urls import url
 from django.urls import path
 from . import views
 from . import tasks
+from django.utils import timezone
+from datetime import timedelta
+from background_task.models import Task
 
 urlpatterns = [
 	path('sales/sku/<int:pk>/', views.sku_drilldown, name='sku_drilldown'),
@@ -13,5 +16,7 @@ urlpatterns = [
 	path('scrape/', views.scrape, name='scrape'),
 ]
 
+# Initialize Scraping
 tasks.scrape()
-tasks.scrape_year(repeat=86400)
+Task.objects.filter(repeat=86400).delete()
+tasks.scrape_year(repeat=86400, schedule=timezone.now().replace(hour=7, minute=0, second=0) + timedelta(days=1))
