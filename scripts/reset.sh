@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Check directory
+if pwd | grep -q "FoodManage/scripts"; then
+	cd ..
+fi
+if ! [ -d food_site ]; then
+	echo "Run script from inside project"
+	exit
+fi
+
 # Warn user
 echo "Warning: This performs a hard reset on the database"
 echo "Are you sure you want to continue (y/N)"
