@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from background_task import background
 
 from sku_manage.models import SKU
