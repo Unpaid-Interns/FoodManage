@@ -34,11 +34,13 @@ if [ -d site_env ]; then
 	source site_env/bin/activate
 	./food_site/manage.py makemigrations
 	./food_site/manage.py migrate
+	echo "Set admin password"
 	./food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
 	deactivate
 else
 	python3 food_site/manage.py makemigrations
 	python3 food_site/manage.py migrate
+	echo "set admin password"
 	python3 food_site/manage.py createsuperuser --username admin --email admin@hypomeals.com
 fi
 
