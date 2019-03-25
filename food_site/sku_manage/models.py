@@ -120,6 +120,10 @@ class SKU(models.Model):
                 self.product_line.name, str(self.formula.number), str(self.formula_scale), str(self.mfg_rate),
                 str(self.mfg_setup_cost), str(self.mfg_run_cost), self.comment]
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from sales import tasks
+        tasks.scrape_sku(self.sku_num)
 
 class ManufacturingLine(models.Model):
     name = models.CharField(max_length=32)
