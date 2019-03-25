@@ -11,6 +11,7 @@ fi
 
 # Warn user
 echo "Warning: This performs a hard reset on the database"
+echo "DO NOT USE THIS SCRIPT - Nathaniel"
 echo "Are you sure you want to continue (y/N)"
 read resp
 if ! echo "$resp" | grep -q "y"; then
