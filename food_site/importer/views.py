@@ -11,24 +11,24 @@ import os
 
 
 def simple_upload(request):
-    # try:
-    if request.method == 'POST' and request.FILES['myfile']:
-        myfile = request.FILES['myfile']
-        fs = FileSystemStorage()
-        filename = fs.save(myfile.name, myfile)
-        importer_module = CSVImport.CSVImport()
-        importer_module.clear_filenames()
-        importer_module.add_filename(filename)
-        success, conflicts_exist, result_message = importer_module.import_csv()
-        #print(result_message)
-        os.remove(filename)
-        serializable_conflict_dict = importer_module.make_serializable_conflict_dict(None)
-        request.session['serializable_conflict_dict'] = serializable_conflict_dict
-        request.session['result_message'] = result_message
-        return redirect("messages/")
-    return render(request, 'importer/index.html')
-    # except:
-    #     return render(request, 'importer/index.html')
+    try:
+        if request.method == 'POST' and request.FILES['myfile']:
+            myfile = request.FILES['myfile']
+            fs = FileSystemStorage()
+            filename = fs.save(myfile.name, myfile)
+            importer_module = CSVImport.CSVImport()
+            importer_module.clear_filenames()
+            importer_module.add_filename(filename)
+            success, conflicts_exist, result_message = importer_module.import_csv()
+            #print(result_message)
+            os.remove(filename)
+            serializable_conflict_dict = importer_module.make_serializable_conflict_dict(None)
+            request.session['serializable_conflict_dict'] = serializable_conflict_dict
+            request.session['result_message'] = result_message
+            return redirect("messages/")
+        return render(request, 'importer/index.html')
+    except:
+        return render(request, 'importer/index.html')
 
 
 def message_displayer(request):
