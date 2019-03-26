@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect
 from django.db.models import Q
 from django.http import HttpResponse
 from django.db import IntegrityError
+from django.contrib.admin.views.decorators import staff_member_required
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
 from .tables import SKUTable, SelectedTable
 
+@staff_member_required
 def map_view(request):
 	if 'skus' not in request.session or request.session.get('skus') == None:
 		request.session['skus'] = list()
@@ -62,12 +64,14 @@ def map_view(request):
 	RequestConfig(request, paginate=paginate).configure(input_table)
 	return render(request, 'mfg_map/data.html', context)
 
+@staff_member_required
 def map_add(request, pk):
 	skus = [pk]
 	skus.extend(request.session.get('skus'))
 	request.session['skus'] = skus
 	return redirect('map_view')
 
+@staff_member_required
 def map_remove(request, pk):
 	skus = list()
 	skus.extend(request.session.get('skus'))
@@ -75,6 +79,7 @@ def map_remove(request, pk):
 	request.session['skus'] = skus
 	return redirect('map_view')
 
+@staff_member_required
 def edit_mapping(request):
 	print(request.POST)
 	if request.POST['mfg-line-select'] != 'none':
