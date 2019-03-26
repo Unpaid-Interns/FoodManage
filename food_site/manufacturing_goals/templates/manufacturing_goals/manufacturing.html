@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-	<h3>Manufacturing Goals</h3>
-	<p>Create a new manufacturing goal</p>
+	<h1>Manufacturing Goals</h1>
+	<h2>Create a new manufacturing goal</h2>
 	<form class="form-inline" method="POST" action="/manufacturing/">
 		{% csrf_token %}
 		<p>Name:</p>
@@ -11,14 +11,17 @@
 		<button type="submit" id="submit" name="submit">Create New Goal</button>
 	</form>
 	<p><strong>OR</strong></p>
-	<p>View a Manufacturing Goal and its ingredient quantity calculation.</p>
+	<h2>View a Manufacturing Goal and Calculations</h2> 
 	<form class="form-inline" method="post">
 		{% csrf_token %}
 		{{ form2 }}
 		<button type="submit" id="submit" name="submit">Go</button>
 	</form>
+	<br>
 	{% if request.user.is_staff %}
-	<a style="padding:8px;" href="{% url 'enable_menu' %}">Enable/Disable Goals</a>
-	<a style="padding:8px;" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
+	<div class="menu-buttons" style="text-align: left">
+		<a class="btn" href="{% url 'enable_menu' %}">Enable/Disable Goals</a>
+		<a class="btn" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
+	</div>
 	{% endif %}
 {% endblock content %}

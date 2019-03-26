@@ -24,7 +24,9 @@
 </div>
 <style>
 body{ 
-    background:url(http://subtlepatterns.subtlepatterns.netdna-cdn.com/patterns/wild_oliva.png);
+  {% if not request.session.cya %}
+  background:url(http://subtlepatterns.subtlepatterns.netdna-cdn.com/patterns/wild_oliva.png);
+  {% endif %}
 }
 .centered {
   margin:50px auto;

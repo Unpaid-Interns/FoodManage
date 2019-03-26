@@ -3,6 +3,13 @@ import urllib
 from decimal import Decimal
 from datetime import date, timedelta
 from background_task import background
+from sku_manage.models import SKU
+from .models import SalesRecord, Customer
+from datetime import date, timedelta, datetime
+from decimal import Decimal
+import time
+import urllib
+
 
 from sku_manage.models import SKU
 from .models import SalesRecord, Customer

@@ -3,7 +3,8 @@
     <div class="inline">
         <h1>{{ productline }}</h1>
         {% if user.is_staff %}
-            <a class="btn" href="{% url 'admin:sku_manage_productline_change' productline.pk %}"><i class="fa fa-edit"></i></a>
+            <a class="btn" href="{% url 'admin:sku_manage_productline_change' productline.pk %}"><i class="fa fa-pencil"></i></a>
+            <a class="btn" href="{% url 'admin:sku_manage_productline_delete' productline.pk %}"><i class="fa fa-trash"></i></a>
         {% endif %}
     </div>
     <p>General Information:</p>
