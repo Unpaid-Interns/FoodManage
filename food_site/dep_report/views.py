@@ -47,7 +47,7 @@ def ingr_dep_menu(request):
 		if 'skufilter' in request.GET:
 			sku_num = request.GET['skufilter']
 			if sku_num != 'all':
-				queryset = queryset.filter(ingredientqty__sku__sku_num=sku_num)
+				queryset = queryset.filter(ingredientqty__formula__sku__sku_num=sku_num)
 				context['selected_sku'] = int(sku_num)
 
 		if 'remove_pagination' in request.GET:
