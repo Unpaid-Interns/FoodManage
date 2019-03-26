@@ -35,21 +35,27 @@ def message_displayer(request):
     serializable_conflict_dict = request.session.get('serializable_conflict_dict')
     importer_module = CSVImport.CSVImport()
     conflict_dict = importer_module.get_conflict_dict_from_serializable(serializable_conflict_dict)
-    #print(result_message)
+    # print(result_message)
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         messages.add_message(request, messages.INFO, " ", extra_tags="first")
     split_results_messages = result_message.split('\n')
     for message_to_display in split_results_messages:
+        remove_message = True
+        for file_prefix in conflict_dict:
+            if len(conflict_dict[file_prefix]) != 0:
+                remove_message = False
+        if remove_message and ("Conflicts exist. Please confirm how to handle them below." in message_to_display):
+            message_to_display = message_to_display.replace('Conflicts exist. Please confirm how to handle them below.', '')
         messages.add_message(request, messages.INFO, message_to_display, extra_tags="result")
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         for file_prefix in conflict_dict:
-            #print(file_prefix + " in message_displayer")
+            # print(file_prefix + " in message_displayer")
             conflict_records_list = conflict_dict[file_prefix]
             for conflict_tuple in conflict_records_list:
                 # data = conflict_tuple[0]
                 # conflict_database_model = conflict_tuple[1]
                 database_record_check_message = conflict_tuple[2]
-                #print(conflict_tuple[2] + " in message_displayer")
+                # print(conflict_tuple[2] + " in message_displayer")
                 messages.add_message(request, messages.INFO, database_record_check_message, extra_tags="conflict")
     return render(request, 'importer/messages.html')
 
@@ -174,7 +180,7 @@ def commit_all_to_database(request):
 
 def fix_mfg_lines(sku, shortnames_array):
     # Delete all Sku_Mfg_Line's associated with SKU
-    models.SkuMfgLine.objects.filter(sku__sku_num=sku.sku_num).delete()
+    models.SkuMfgLine.objects.filter(sku=sku).delete()
 
     # Create all Sku_Mfg_Line's again
     sku_mfg_line_array = []

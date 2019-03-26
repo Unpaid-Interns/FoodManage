@@ -1,3 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    td {
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    border-collapse: collapse;
+}
+</style>
+</head>
+
+<body>
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
@@ -16,10 +29,13 @@
             <th><p class="result message">{{ message }}</p></th>
         {% endif %}
         {% if 'conflict' in message.tags %}
-            <th><p class="conflict">{{ message }}</p></th>
-            <th class="menu-buttons"><a href="{% url 'commit_to_database' forloop.counter %}">Commit To Database</a></th>
+            <td><p class="conflict">{{ message }}</p></td>
+            <td class="menu-buttons"><a href="{% url 'commit_to_database' forloop.counter %}">Commit To Database</a></td>
         {% endif %}
     {% endfor %}
     </tr>
 </table>
 {% endblock %}
+
+</body>
+</html>
