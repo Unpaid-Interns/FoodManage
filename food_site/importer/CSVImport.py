@@ -155,8 +155,8 @@ class CSVImport:
             if "ML" in self.data_dict:
                 fix_sku_mfg_lines(self.data_dict)
                 models.SkuMfgLine.objects.bulk_create(self.data_dict["ML"])
-            # for sku in self.data_dict[validFilePrefixes[3]]:
-            #     scrape_sku(sku)
+            for sku in self.data_dict[validFilePrefixes[3]]:
+                scrape_sku(sku.sku_num)
         return "", True
 
     def add_filename(self, filename):

@@ -100,6 +100,7 @@ def commit_to_database(request, messagenum):
                     conflict_database_model.mfg_run_cost = data.mfg_run_cost
                     conflict_database_model.comment = data.comment
                     fix_mfg_lines(conflict_database_model, shortnames_array)
+                    scrape_sku(conflict_database_model.sku_num)
                 elif data.__class__.__name__ == "Ingredient":
                     conflict_database_model.number = data.number
                     conflict_database_model.name = data.name
@@ -160,6 +161,7 @@ def commit_all_to_database(request):
                 conflict_database_model.comment = data.comment
                 conflict_database_model.save()
                 fix_mfg_lines(conflict_database_model, shortnames_array)
+                scrape_sku(conflict_database_model.sku_num)
             elif data.__class__.__name__ == "Ingredient":
                 conflict_database_model.number = data.number
                 conflict_database_model.name = data.name
