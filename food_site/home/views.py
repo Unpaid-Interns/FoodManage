@@ -149,6 +149,8 @@ def assistant(request):
 				'reply': reply,
 			}
 			return render(request, 'home/index.html', context)
+	if 'company standards' in toSend:
+		return redirect('https://www.toysrusinc.com/corporate-responsibility/safety-practices/safety/practices')
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''
