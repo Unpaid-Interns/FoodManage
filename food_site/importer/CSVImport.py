@@ -4,7 +4,7 @@ import re
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from itertools import chain
-# from sales.tasks import scrape_sku
+from sales.tasks import scrape_sku
 
 headerDict = {
     "skus.csv": ["SKU#", "Name", "Case UPC", "Unit UPC", "Unit size", "Count per case", "PL Name",
