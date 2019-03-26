@@ -31,6 +31,11 @@
                 <audio autoplay>
                     <source src="{% static 'audio/zelda2.wav' %}" type="audio/wav">
                 </audio>
+            {% elif ingredient.name == 'Korok Seed' %}
+                <a href="{% url 'cyaend' %}"><img src="https://www.zelda.com/assets/img/home/button_decoration_left.png">You found Hestu!<img src="https://www.zelda.com/assets/img/home/button_decoration_right.png"></a>
+                <audio autoplay>
+                    <source src="{% static 'audio/hestu.wav' %}" type="audio/wav">
+                </audio>
             {% else %}
                 <a href="{{ request.path }}../"><img src="https://www.zelda.com/assets/img/home/button_decoration_left.png">Return<img src="https://www.zelda.com/assets/img/home/button_decoration_right.png"></a>
             {% endif %}
