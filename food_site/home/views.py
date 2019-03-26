@@ -3,10 +3,13 @@ from background_task import background
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 import requests
 from django.contrib.auth.models import User
 from sales.models import SalesRecord, Customer
 from sales import tasks
+from manufacturing_goals import models as mfg_models
+from sku_manage import models as sku_models
 
 # Create your views here.
 def index(request):
@@ -28,11 +31,25 @@ def invalidlogin(request):
 def help(request):
 	return render(request, 'home/help.html', context=None)
 
+@login_required
 def aboutus(request):
 	return render(request, 'home/aboutus.html', context=None)
 
 def authout(request):
 	logout(request)
+	return redirect('/')
+
+@login_required
+def clear_database(request):
+	SalesRecord.objects.all().delete()
+	Customer.objects.all().delete()
+	mfg_models.ScheduleItem.objects.all().delete()
+	mfg_models.ManufacturingGoal.objects.all().delete()
+	sku_models.SKU.objects.all().delete()
+	sku_models.Formula.objects.all().delete()
+	sku_models.ManufacturingLine.objects.all().delete()
+	sku_models.ProductLine.objects.all().delete()
+	sku_models.Ingredient.objects.all().delete()
 	return redirect('/')
 
 token = None
@@ -84,6 +101,7 @@ def netret(request):
 		return redirect('/')	
 	return redirect('/invalidlogin')
 
+@login_required
 def assistant(request):
 	toSend = request.POST['message']
 	if 'story' in toSend or toSend == 'DJANGO':
@@ -145,10 +163,12 @@ def assistant(request):
 	}
 	return render(request, 'home/index.html', context)	
 
+@login_required
 def cya(request):
 	request.session['cya'] = True
 	return render(request, 'home/index.html', {'animate': True})
 
+@login_required
 def cya_end(request):
 	request.session['cya'] = False
 	return render(request, 'home/victory.html', context=None)
