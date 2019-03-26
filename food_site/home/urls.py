@@ -10,7 +10,6 @@ urlpatterns = [
     path('authout/', views.authout, name='authout'),
     path('invalidlogin/', views.invalidlogin, name='invalidlogin'),
     path('help/', views.help, name='help'),
-    path('clearsales/', views.clear_sales_cache, name='clearsales'),
     path('aboutus/', views.aboutus, name='aboutus'),
     path('netlog/', views.netlog, name='netlog'),
     path('netret/', views.netret, name='netret'),

@@ -35,11 +35,6 @@ def authout(request):
 	logout(request)
 	return redirect('/')
 
-def clear_sales_cache(request):
-	SalesRecord.objects.all().delete()
-	Customer.objects.all().delete()
-	return redirect('/')
-
 token = None
 
 def netlog(request):
@@ -127,6 +122,15 @@ def assistant(request):
 			'reply': reply,
 		}
 		return render(request, 'home/index.html', context)
+	if 'clear' in toSend or 'Clear' in toSend:
+		if 'sales' in toSend:
+			SalesRecord.objects.all().delete()
+			Customer.objects.all().delete()
+			reply = 'Sales data is being cleared.'
+			context = {
+				'reply': reply,
+			}
+			return render(request, 'home/index.html', context)
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''
