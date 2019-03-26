@@ -3,7 +3,8 @@
     <div class="inline">
         <h1>{{ formula }}</h1>
         {% if user.is_staff %}
-            <a class="btn" href="{% url 'admin:sku_manage_formula_change' formula.pk %}"><i class="fa fa-edit"></i></a>
+            <a class="btn" href="{% url 'admin:sku_manage_formula_change' formula.pk %}"><i class="fa fa-pencil"></i></a>
+            <a class="btn" href="{% url 'admin:sku_manage_formula_delete' formula.pk %}"><i class="fa fa-trash"></i></a>
         {% endif %}
     </div>
     <p>General Information:</p>

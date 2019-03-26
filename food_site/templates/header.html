@@ -18,12 +18,21 @@
 			<a href="/reporting/sales/productline/">Sales</a>
 		</div>
 	</div>
-	<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>
+	<div class="dropdown">
+		<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>
+		{% if request.user.is_staff %}
+			<div class="dropdown-content">
+				<a href="/manufacturing/">Manufacturing Goals</a>
+				<a href="/manufacturing/enable/">Goal Enable</a>
+				<a href="/manufacturing/timeline/">Manufacturing Schedule</a>
+			</div>			
+		{% endif %}
+	</div>
 	{% if request.user.is_staff %}
 		<div class="dropdown">
 			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' %} class="active" {% endif %}>Administration</a>
 			<div class="dropdown-content">
-				<a href="/admin/">Edit Users and Data</a>
+				<a href="/admin/">Site Administration</a>
 				<a href="/importer/">CSV Data Import</a>
 				<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
 			</div>
