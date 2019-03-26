@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 	<!-- add option show calc via a button that reaveals calc on click -->
-	<h3>Manufacturing Goal Details</h3>
-	<strong>{{ goal_name }}</strong>
+	<h1>Manufacturing Goal Details</h1>
+	<div class="inline">
+		<h2>{{ goal_name }}</h2>
+		<a href="#" id="xx" class="btn"><i class="fa fa-download"></i></a><br>
+	</div>
 	<table class="sku_table table" style="margin-bottom:10px;">
 		<tr>
 			<th>Name</th>
@@ -21,32 +24,32 @@
 		</tr>
 		{% endfor %}
 	</table>
-	<a href="#" id="xx" class="bbut">Export to CSV</a><br>
 	<!--<button id="ctogglebutton" class="bbut" onclick="toggleCalc()">Hide Manufacturing Calculation</button>-->
 	<div id="calcdiv" style="display:block;">
-	<div id="dvContainer">
-		<h3>Manufacturing Calculator Results</h3>
-		<h4>{{ goal_name }}</h4>
-		{% for g in goal_calc %}
-			<strong>{{ g.sku }}</strong>
-			<table class="ingredient_table table" style="margin-bottom:10px">
-			<tr><th hidden>sku</th><th>Ingredient</th><th>Quantity (units)</th><th>Quantity (Packages)</th></tr>
-			{% for i in g.ingredienttotals %}
-				<tr>
-				{% for k, v in i.items %}
-					<td hidden>{{ g.sku }}</td>
-					<td>{{ k }}</td>
-					{% for t in v %}
-					<td>{{ t }}</td>
+		<div class="inline">
+			<h2>Calculator Results</h2>
+			<a href="#" id="yy" class="btn"><i class="fa fa-download"></i></a><br>
+			<button id="btnPrint"><i class="fa fa-print"></i></button>
+		</div>
+		<div id="dvContainer">
+			{% for g in goal_calc %}
+				<strong>{{ g.sku }}</strong>
+				<table class="ingredient_table table" style="margin-bottom:10px">
+				<tr><th hidden>sku</th><th>Ingredient</th><th>Quantity (units)</th><th>Quantity (Packages)</th></tr>
+				{% for i in g.ingredienttotals %}
+					<tr>
+					{% for k, v in i.items %}
+						<td hidden>{{ g.sku }}</td>
+						<td>{{ k }}</td>
+						{% for t in v %}
+						<td>{{ t }}</td>
+						{% endfor %}
 					{% endfor %}
+					</tr>
 				{% endfor %}
-				</tr>
+				</table>
 			{% endfor %}
-			</table>
-		{% endfor %}
-	</div>
-	<a href="#" id="yy" class="bbut">Export to CSV</a><br>
-	<input class="bbut" type="button" value="Print Goal Calculation" id="btnPrint" />
+		</div>
 	</div>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script>

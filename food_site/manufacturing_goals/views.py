@@ -54,6 +54,7 @@ def manufacturing(request):
 			request.session['goal_name'] = goal.name
 			request.session['goal_export_info'] = goal_list
 			request.session['goal_calc_list'] = goalcalc_list
+			request.session['goal_id'] = goal.id
 			return redirect('manufdetails')
 	else:
 		form = GoalsForm()

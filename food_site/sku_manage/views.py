@@ -14,6 +14,8 @@ from . import ex_data
 def IngredientView(request):
 	queryset = Ingredient.objects.all()
 	context = {
+		'title': 'Ingredients',
+		'type': 'ingredient',
 		'paginated': True,
 		'keyword': '',
 		'all_skus': SKU.objects.all(),
@@ -67,6 +69,8 @@ class IngredientDetailView(generic.DetailView):
 def ProductLineView(request):
 	queryset = ProductLine.objects.all()
 	context = {
+		'title': 'Product Lines',
+		'type': 'productline',
 		'paginated': True,
 		'keyword': '',
 		'all_skus': SKU.objects.all(),
@@ -112,6 +116,8 @@ class ProductLineDetailView(generic.DetailView):
 def SKUView(request):
 	queryset = SKU.objects.all()
 	context = {
+		'title': 'SKUs',
+		'type': 'sku',
 		'paginated': True,
 		'keyword': '',
 		'all_ingredients': Ingredient.objects.all(),
@@ -192,6 +198,8 @@ class SKUDetailView(generic.DetailView):
 def FormulaView(request):
 	queryset = Formula.objects.all()
 	context = {
+		'title': 'Formulas',
+		'type': 'formula',
 		'paginated': True,
 		'keyword': '',
 		'all_ingredients': Ingredient.objects.all(),
@@ -247,6 +255,8 @@ class FormulaDetailView(generic.DetailView):
 def ManufacturingLineView(request):
 	queryset = ManufacturingLine.objects.all()
 	context = {
+		'title': 'Manufacturing Lines',
+		'type': 'manufacturingline',
 		'paginated': True,
 		'keyword': '',
 		'all_skus': SKU.objects.all(),

@@ -12,6 +12,6 @@ urlpatterns = [
 	path('ingredient/report/', views.ingr_dep_report, name='ingr_dep_report'),
 	path('ingredient/report/download', views.ingr_dep_download, name='ingr_dep_download'),
 	path('manufacturing/', views.mfg_sch_menu, name='mfg_sch'),
-	path('manufacturing/report/<int:pk>/', views.schedule_report, name='mfg_sch_report'),
-	path('manufacturing/report/<int:pk>/print', views.mfg_sch_print, name='mfg_sch_print'),
+	path('manufacturing/<int:pk>/', views.schedule_report, name='mfg_sch_report'),
+	path('manufacturing/<int:pk>/print', views.mfg_sch_print, name='mfg_sch_print'),
 ]
