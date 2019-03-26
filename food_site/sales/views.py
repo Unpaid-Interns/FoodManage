@@ -175,7 +175,7 @@ def sku_drilldown(request, pk):
 	}
 
 	# Data Acquisition
-	queryset = SalesRecord.objects.filter(sku__pk=pk).order_by('date')
+	queryset = SalesRecord.objects.filter(sku__pk=pk).order_by('-date')
 	prev_customer = request.session.get('customer')
 	if prev_customer != None and prev_customer != 'all':
 		context['selected_customer'] = int(prev_customer)
@@ -247,12 +247,15 @@ def sku_drilldown(request, pk):
 	total = SkuTotalTable(sales_total)
 
 	# Graph
-	graph_records = dict()
+	graph_records = list()
+	prev_week = None
 	for record in queryset:
 		week = str(record.date.isocalendar()[0]) + " wk " + str(record.date.isocalendar()[1])
-		if week not in graph_records:
-			graph_records[week] = 0
-		graph_records[week] += record.cases_sold*record.price_per_case
+		if week != prev_week:
+			graph_records.append((week, 0))
+		stuff = graph_records[len(graph_records) - 1]
+		graph_records[len(graph_records) - 1] = (stuff[0], stuff[1] + record.cases_sold*record.price_per_case)
+		prev_week = week
 
 	context['records'] = graph_records
 	context['table'] = table

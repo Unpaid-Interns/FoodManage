@@ -57,8 +57,8 @@
 		function drawChart() {
 		  var data = google.visualization.arrayToDataTable([
 		  ['Date', 'Revenue'],
-		  {% for date, revenue in records.items %}
-		  ['{{ date }}', {{ revenue }}],
+		  {% for stuff in records %}
+		  ['{{ stuff.0 }}', {{ stuff.1 }}],
 		  {% endfor %}
 		]);
 
