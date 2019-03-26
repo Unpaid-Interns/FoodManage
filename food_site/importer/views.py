@@ -40,9 +40,12 @@ def message_displayer(request):
         messages.add_message(request, messages.INFO, " ", extra_tags="first")
     split_results_messages = result_message.split('\n')
     for message_to_display in split_results_messages:
-        print(message_to_display)
-        if (not conflict_dict) and ("Conflicts exist. Please confirm how to handle them below." in message_to_display):
-            continue
+        remove_message = True
+        for file_prefix in conflict_dict:
+            if len(conflict_dict[file_prefix]) != 0:
+                remove_message = False
+        if remove_message and ("Conflicts exist. Please confirm how to handle them below." in message_to_display):
+            message_to_display = message_to_display.replace('Conflicts exist. Please confirm how to handle them below.', '')
         messages.add_message(request, messages.INFO, message_to_display, extra_tags="result")
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         for file_prefix in conflict_dict:
@@ -177,7 +180,7 @@ def commit_all_to_database(request):
 
 def fix_mfg_lines(sku, shortnames_array):
     # Delete all Sku_Mfg_Line's associated with SKU
-    models.SkuMfgLine.objects.filter(sku__sku_num=sku.sku_num).delete()
+    models.SkuMfgLine.objects.filter(sku=sku).delete()
 
     # Create all Sku_Mfg_Line's again
     sku_mfg_line_array = []
