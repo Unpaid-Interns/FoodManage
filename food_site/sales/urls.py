@@ -17,6 +17,5 @@ urlpatterns = [
 ]
 
 # Initialize Scraping
-tasks.scrape()
 Task.objects.filter(repeat=86400).delete()
 tasks.scrape_year(repeat=86400, schedule=timezone.now().replace(hour=7, minute=0, second=0) + timedelta(days=1))

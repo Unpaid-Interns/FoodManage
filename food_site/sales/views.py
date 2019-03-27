@@ -136,13 +136,13 @@ def sales_report(request):
 				ingr_cost += Decimal(sku.formula_scale) * ingrqty.ingredient.cost * Decimal(unitconvert.convert(ingrqty.quantity, ingrqty.quantity_units, ingrqty.ingredient.package_size_units)) / Decimal(ingrqty.ingredient.package_size)
 
 			# Totals Table
-			cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
+			cogs = ingr_cost + sku.mfg_setup_cost/mfg_run_size + sku.mfg_run_cost
 			sales_total = [{
 				'revenue': tot_revenue, 
 				'mfg_run_size': mfg_run_size, 
 				'ingredient_cost': round(ingr_cost, 2), 
 				'mfg_setup_cost': round(sku.mfg_setup_cost/mfg_run_size, 2), 
-				'mfg_run_cost': round(sku.mfg_run_cost/mfg_run_size, 2), 
+				'mfg_run_cost': sku.mfg_run_cost, 
 				'cogs': round(cogs, 2), 
 				'revenue_per_case': round(tot_revenue/tot_cases, 2), 
 				'profit_per_case': round(tot_revenue/tot_cases - cogs, 2), 
@@ -231,13 +231,13 @@ def sku_drilldown(request, pk):
 		for ingrqty in IngredientQty.objects.filter(formula=sku.formula):
 			ingr_cost += Decimal(sku.formula_scale) * ingrqty.ingredient.cost * Decimal(unitconvert.convert(ingrqty.quantity, ingrqty.quantity_units, ingrqty.ingredient.package_size_units)) / Decimal(ingrqty.ingredient.package_size)
 		# Totals Table
-		cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
+		cogs = ingr_cost + sku.mfg_setup_cost/mfg_run_size + sku.mfg_run_cost
 		sales_total = [{
 			'revenue': tot_revenue, 
 			'mfg_run_size': mfg_run_size, 
 			'ingredient_cost': round(ingr_cost, 2), 
 			'mfg_setup_cost': round(sku.mfg_setup_cost/mfg_run_size, 2), 
-			'mfg_run_cost': round(sku.mfg_run_cost/mfg_run_size, 2), 
+			'mfg_run_cost': sku.mfg_run_cost, 
 			'cogs': round(cogs, 2), 
 			'revenue_per_case': round(tot_revenue/tot_cases, 2), 
 			'profit_per_case': round(tot_revenue/tot_cases - cogs, 2), 
@@ -257,6 +257,7 @@ def sku_drilldown(request, pk):
 		graph_records[len(graph_records) - 1] = (stuff[0], stuff[1] + record.cases_sold*record.price_per_case)
 		prev_week = week
 
+	graph_records.reverse()
 	context['records'] = graph_records
 	context['table'] = table
 	context['total'] = total
