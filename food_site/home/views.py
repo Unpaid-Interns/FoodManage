@@ -35,6 +35,9 @@ def help(request):
 def aboutus(request):
 	return render(request, 'home/aboutus.html', context=None)
 
+def privacy(request):
+	return render(request, 'home/hypomealsrus.html', context=None)
+
 def authout(request):
 	logout(request)
 	return redirect('/')
