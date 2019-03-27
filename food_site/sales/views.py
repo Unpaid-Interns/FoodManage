@@ -136,7 +136,7 @@ def sales_report(request):
 				ingr_cost += Decimal(sku.formula_scale) * ingrqty.ingredient.cost * Decimal(unitconvert.convert(ingrqty.quantity, ingrqty.quantity_units, ingrqty.ingredient.package_size_units)) / Decimal(ingrqty.ingredient.package_size)
 
 			# Totals Table
-			cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
+			cogs = ingr_cost + sku.mfg_setup_cost/mfg_run_size + sku.mfg_run_cost
 			sales_total = [{
 				'revenue': tot_revenue, 
 				'mfg_run_size': mfg_run_size, 
@@ -231,7 +231,7 @@ def sku_drilldown(request, pk):
 		for ingrqty in IngredientQty.objects.filter(formula=sku.formula):
 			ingr_cost += Decimal(sku.formula_scale) * ingrqty.ingredient.cost * Decimal(unitconvert.convert(ingrqty.quantity, ingrqty.quantity_units, ingrqty.ingredient.package_size_units)) / Decimal(ingrqty.ingredient.package_size)
 		# Totals Table
-		cogs = ingr_cost + (sku.mfg_setup_cost + sku.mfg_run_cost) / mfg_run_size
+		cogs = ingr_cost + sku.mfg_setup_cost/mfg_run_size + sku.mfg_run_cost
 		sales_total = [{
 			'revenue': tot_revenue, 
 			'mfg_run_size': mfg_run_size, 
