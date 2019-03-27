@@ -257,7 +257,7 @@ def sku_drilldown(request, pk):
 		graph_records[len(graph_records) - 1] = (stuff[0], stuff[1] + record.cases_sold*record.price_per_case)
 		prev_week = week
 
-	context['records'] = graph_records
+	context['records'] = graph_records.reverse()
 	context['table'] = table
 	context['total'] = total
 	return render(request, 'sales/sku_drilldown.html', context)
