@@ -110,7 +110,7 @@ def assistant(request):
 		return redirect('/cya')
 	if 'Choose' in toSend and 'adventure' in toSend:
 		return redirect('/cya')
-	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend:
+	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend or 'access' in toSend:
 		if 'sku' in toSend or 'SKU' in toSend:
 			return redirect('SKU')
 		if 'ingredient' in toSend:
@@ -131,7 +131,7 @@ def assistant(request):
 			return redirect('timeline')
 		if 'report' in toSend:
 			return redirect('reporting')
-	if 'upload' in toSend:
+	if 'upload' in toSend or 'import' in toSend:
 		return redirect('simple_upload')
 	if 'scrape' in toSend or 'Scrape' in toSend:
 		tasks.scrape()
