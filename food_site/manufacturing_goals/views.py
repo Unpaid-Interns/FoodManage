@@ -8,6 +8,7 @@ from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
 from django.views import generic
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 import json
 from django.core.exceptions import ValidationError
 from datetime import datetime
@@ -209,7 +210,7 @@ def manufdetails(request):
 	goal_calc = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc})
 
-@login_required(login_url='index')
+@staff_member_required
 def timeline(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
@@ -295,7 +296,7 @@ def timeline(request):
 	print(mfg_overlap)
 	return render(request, 'manufacturing_goals/manufscheduler.html', context)
 
-@login_required
+@staff_member_required
 def enable_menu(request):
 	context = dict()	
 	queryset = ManufacturingGoal.objects.all()
@@ -303,6 +304,7 @@ def enable_menu(request):
 	context['table'] = table
 	return render(request, 'manufacturing_goals/enable_menu.html', context)
 
+@staff_member_required
 def enable_goal(request, pk):
 	goal = ManufacturingGoal.objects.get(pk=pk)
 	context = {'goal' : goal}

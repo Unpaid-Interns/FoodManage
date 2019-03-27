@@ -4,11 +4,13 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
 from django.shortcuts import redirect
 from decimal import Decimal
+from django.contrib.admin.views.decorators import staff_member_required
 from sku_manage import models
 from django.http import HttpResponse
+from sales.tasks import scrape_sku
 import os
 
-
+@staff_member_required
 def simple_upload(request):
     try:
         if request.method == 'POST' and request.FILES['myfile']:
@@ -29,31 +31,37 @@ def simple_upload(request):
     except:
         return render(request, 'importer/index.html')
 
-
+@staff_member_required
 def message_displayer(request):
     result_message = request.session.get('result_message')
     serializable_conflict_dict = request.session.get('serializable_conflict_dict')
     importer_module = CSVImport.CSVImport()
     conflict_dict = importer_module.get_conflict_dict_from_serializable(serializable_conflict_dict)
-    #print(result_message)
+    # print(result_message)
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         messages.add_message(request, messages.INFO, " ", extra_tags="first")
     split_results_messages = result_message.split('\n')
     for message_to_display in split_results_messages:
+        remove_message = True
+        for file_prefix in conflict_dict:
+            if len(conflict_dict[file_prefix]) != 0:
+                remove_message = False
+        if remove_message and ("Conflicts exist. Please confirm how to handle them below." in message_to_display):
+            message_to_display = message_to_display.replace('Conflicts exist. Please confirm how to handle them below.', '')
         messages.add_message(request, messages.INFO, message_to_display, extra_tags="result")
     if "Conflicts exist. Please confirm how to handle them below." in result_message:
         for file_prefix in conflict_dict:
-            #print(file_prefix + " in message_displayer")
+            # print(file_prefix + " in message_displayer")
             conflict_records_list = conflict_dict[file_prefix]
             for conflict_tuple in conflict_records_list:
                 # data = conflict_tuple[0]
                 # conflict_database_model = conflict_tuple[1]
                 database_record_check_message = conflict_tuple[2]
-                #print(conflict_tuple[2] + " in message_displayer")
+                # print(conflict_tuple[2] + " in message_displayer")
                 messages.add_message(request, messages.INFO, database_record_check_message, extra_tags="conflict")
     return render(request, 'importer/messages.html')
 
-
+@staff_member_required
 def commit_to_database(request, messagenum):
     offset_for_messagenum = 4
     # print(messagenum)
@@ -94,6 +102,7 @@ def commit_to_database(request, messagenum):
                     conflict_database_model.mfg_run_cost = data.mfg_run_cost
                     conflict_database_model.comment = data.comment
                     fix_mfg_lines(conflict_database_model, shortnames_array)
+                    scrape_sku(conflict_database_model.sku_num)
                 elif data.__class__.__name__ == "Ingredient":
                     conflict_database_model.number = data.number
                     conflict_database_model.name = data.name
@@ -118,7 +127,7 @@ def commit_to_database(request, messagenum):
                 request.session['result_message'] = result_message + " Successfully overrode database entry(s)."
     return redirect("message_displayer")
 
-
+@staff_member_required
 def commit_all_to_database(request):
     # print("commit_all_to_database")
     result_message = request.session.get('result_message')
@@ -154,6 +163,7 @@ def commit_all_to_database(request):
                 conflict_database_model.comment = data.comment
                 conflict_database_model.save()
                 fix_mfg_lines(conflict_database_model, shortnames_array)
+                scrape_sku(conflict_database_model.sku_num)
             elif data.__class__.__name__ == "Ingredient":
                 conflict_database_model.number = data.number
                 conflict_database_model.name = data.name
@@ -171,10 +181,10 @@ def commit_all_to_database(request):
     request.session['result_message'] = "All entries committed to database"
     return redirect("message_displayer")
 
-
+@staff_member_required
 def fix_mfg_lines(sku, shortnames_array):
     # Delete all Sku_Mfg_Line's associated with SKU
-    models.SkuMfgLine.objects.filter(sku__sku_num=sku.sku_num).delete()
+    models.SkuMfgLine.objects.filter(sku=sku).delete()
 
     # Create all Sku_Mfg_Line's again
     sku_mfg_line_array = []
@@ -186,7 +196,7 @@ def fix_mfg_lines(sku, shortnames_array):
     if len(sku_mfg_line_array) > 0:
         models.SkuMfgLine.objects.bulk_create(sku_mfg_line_array)
 
-
+@staff_member_required
 def info(request):
     image_data = open('importer/import_instructions.pdf', 'rb').read()
     return HttpResponse(image_data, content_type='application/pdf')

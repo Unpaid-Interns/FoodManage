@@ -18,4 +18,5 @@ urlpatterns = [
     path('assistant/', views.assistant, name='assistant'),
     path('cya/', views.cya, name='cya'),
     path('cyaend/', views.cya_end, name='cyaend'),
+    path('privacy-policy/', views.privacy, name='privacy-policy'),
 ]
