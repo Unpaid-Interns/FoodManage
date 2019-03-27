@@ -34,7 +34,9 @@
 		<input class="if" type="text" placeholder="Inquire here..." name="message" required>
 		</form>
 		{% if reply %}
-		<p class="asst">{{reply}}</p>
+		<div class="asst">
+			<a>{{reply}}</a>
+		</div>
 		{% endif %}
 		<br>
 		{% if request.session.cya %}

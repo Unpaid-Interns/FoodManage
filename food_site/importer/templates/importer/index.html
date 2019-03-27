@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 {% load staticfiles %}
-{% if user.is_authenticated %}
-{% if request.user.is_staff %}
 <div class="menu-buttons">
   <h1>HypoImports<sup>&#174;</sup></h1>
   <form method="post" enctype="multipart/form-data">
@@ -13,14 +11,6 @@
   </form>
   <br>
   <a href="{% url 'info' %}">View import formatting guide</a>
-  {% else %}
-  <h1>You must be an administrator to view this page.</h1>
-
-  {% endif %}
-
-  {% else %}
-  <h1>You must be logged in to view this page.</h1>
-  {% endif %}
 </div>
 <style>
 body{ 
