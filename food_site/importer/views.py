@@ -4,13 +4,13 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
 from django.shortcuts import redirect
 from decimal import Decimal
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from sku_manage import models
 from django.http import HttpResponse
 from sales.tasks import scrape_sku
 import os
 
-@staff_member_required
+@permission_required('sku_manage.change_sku')
 def simple_upload(request):
     try:
         if request.method == 'POST' and request.FILES['myfile']:
@@ -31,7 +31,7 @@ def simple_upload(request):
     except:
         return render(request, 'importer/index.html')
 
-@staff_member_required
+@permission_required('sku_manage.change_sku')
 def message_displayer(request):
     result_message = request.session.get('result_message')
     serializable_conflict_dict = request.session.get('serializable_conflict_dict')
@@ -61,7 +61,7 @@ def message_displayer(request):
                 messages.add_message(request, messages.INFO, database_record_check_message, extra_tags="conflict")
     return render(request, 'importer/messages.html')
 
-@staff_member_required
+@permission_required('sku_manage.change_sku')
 def commit_to_database(request, messagenum):
     offset_for_messagenum = 4
     # print(messagenum)
@@ -127,7 +127,7 @@ def commit_to_database(request, messagenum):
                 request.session['result_message'] = result_message + " Successfully overrode database entry(s)."
     return redirect("message_displayer")
 
-@staff_member_required
+@permission_required('sku_manage.change_sku')
 def commit_all_to_database(request):
     # print("commit_all_to_database")
     result_message = request.session.get('result_message')
@@ -181,7 +181,7 @@ def commit_all_to_database(request):
     request.session['result_message'] = "All entries committed to database"
     return redirect("message_displayer")
 
-@staff_member_required
+@permission_required('sku_manage.change_sku')
 def fix_mfg_lines(sku, shortnames_array):
     # Delete all Sku_Mfg_Line's associated with SKU
     models.SkuMfgLine.objects.filter(sku=sku).delete()
@@ -196,7 +196,7 @@ def fix_mfg_lines(sku, shortnames_array):
     if len(sku_mfg_line_array) > 0:
         models.SkuMfgLine.objects.bulk_create(sku_mfg_line_array)
 
-@staff_member_required
+@permission_required('sku_manage.change_sku')
 def info(request):
     image_data = open('importer/import_instructions.pdf', 'rb').read()
     return HttpResponse(image_data, content_type='application/pdf')

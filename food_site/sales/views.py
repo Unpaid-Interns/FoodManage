@@ -2,7 +2,8 @@ from datetime import date, timedelta, datetime
 from decimal import Decimal
 
 from manufacturing_goals import unitconvert
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum, Q
 from django_tables2 import RequestConfig, paginators
@@ -14,7 +15,7 @@ import urllib
 import time
 from exporter import CSVExport
 
-@login_required
+@permission_required('sales.report_salesrecord')
 def pl_select(request):
 	if 'productlines' not in request.session or request.session.get('productlines') == None:
 		request.session['productlines'] = list()
@@ -70,14 +71,14 @@ def pl_select(request):
 	RequestConfig(request, paginate=paginate).configure(input_table)
 	return render(request, 'sales/data.html', context)
 
-@login_required
+@permission_required('sales.report_salesrecord')
 def product_line_add(request, pk):
 	productlines = [pk]
 	productlines.extend(request.session.get('productlines'))
 	request.session['productlines'] = productlines
 	return redirect('sales_report_select')
 
-@login_required
+@permission_required('sales.report_salesrecord')
 def product_line_remove(request, pk):
 	productlines = list()
 	productlines.extend(request.session.get('productlines'))
@@ -85,7 +86,7 @@ def product_line_remove(request, pk):
 	request.session['productlines'] = productlines
 	return redirect('sales_report_select')
 
-@login_required
+@permission_required('sales.report_salesrecord')
 def sales_report(request):
 	context = dict()
 	tables = dict()
@@ -162,7 +163,7 @@ def sales_report(request):
 	context['totals'] = totals
 	return render(request, 'sales/report.html', context)
 
-@login_required
+@permission_required('sales.report_salesrecord')
 def sku_drilldown(request, pk):
 	sku = SKU.objects.get(pk=pk)
 	context = {
@@ -263,7 +264,7 @@ def sku_drilldown(request, pk):
 	context['total'] = total
 	return render(request, 'sales/sku_drilldown.html', context)
 
-@login_required
+@staff_member_required
 def scrape(request):
 	data = list()
 	data.append('Sales records updated from remote server.')

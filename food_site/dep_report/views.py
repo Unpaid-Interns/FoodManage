@@ -2,7 +2,7 @@ import csv
 
 from django.shortcuts import render, redirect
 from django.views import generic
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 from django.db.models import Q
 from django.http import HttpResponse
@@ -16,7 +16,7 @@ from manufacturing_goals import unitconvert
 def reporting(request):
 	return render(request, 'dep_report/reporting.html', context=None)
 
-@login_required
+@permission_required('sku_manage.report_ingredient')
 def ingr_dep_menu(request):
 	if 'ingredients' not in request.session or request.session.get('ingredients') == None:
 		request.session['ingredients'] = list()
@@ -61,14 +61,14 @@ def ingr_dep_menu(request):
 	RequestConfig(request, paginate=paginate).configure(input_table)
 	return render(request, 'dep_report/data.html', context)
 
-@login_required
+@permission_required('sku_manage.report_ingredient')
 def ingr_dep_add(request, pk):
 	ingredients = [pk]
 	ingredients.extend(request.session.get('ingredients'))
 	request.session['ingredients'] = ingredients
 	return redirect('ingr_dep')
 
-@login_required
+@permission_required('sku_manage.report_ingredient')
 def ingr_dep_remove(request, pk):
 	ingredients = list()
 	ingredients.extend(request.session.get('ingredients'))
@@ -76,17 +76,17 @@ def ingr_dep_remove(request, pk):
 	request.session['ingredients'] = ingredients
 	return redirect('ingr_dep')
 
-@login_required
+@permission_required('sku_manage.report_ingredient')
 def ingr_dep_generate(request):
 	return redirect('ingr_dep_report')
 
-@login_required
+@permission_required('sku_manage.report_ingredient')
 def ingr_dep_report(request):
 	ingredients = Ingredient.objects.filter(id__in=request.session.get('ingredients'))
 	context = {'ingredients': ingredients}
 	return render(request, 'dep_report/detail.html', context)
 
-@login_required
+@permission_required('sku_manage.report_ingredient')
 def ingr_dep_download(request):
 	ingredients = Ingredient.objects.filter(id__in=request.session.get('ingredients'))
 	if request.method == 'POST' and 'download' in request.POST:
@@ -102,7 +102,7 @@ def ingr_dep_download(request):
 			writer.writerow(row)
 		return response
 
-@login_required
+@permission_required('sku_manage.report_manufacturingline')
 def mfg_sch_menu(request):
 	queryset = ManufacturingLine.objects.all()
 	context = {
@@ -144,7 +144,7 @@ def mfg_sch_menu(request):
 	RequestConfig(request, paginate=paginate).configure(table)
 	return render(request, 'dep_report/select.html', context)
 
-@login_required
+@permission_required('sku_manage.report_manufacturingline')
 def schedule_report(request, pk):
 	manufacturingline = ManufacturingLine.objects.get(pk=pk)
 	schedule_items = ScheduleItem.objects.filter(mfgline=manufacturingline, mfgqty__goal__enabled=True, start__isnull=False).order_by('start')
@@ -175,8 +175,3 @@ def schedule_report(request, pk):
 		'ingredients': ingredient_dict,
 	}
 	return render(request, 'dep_report/schedule_detail.html', context)
-
-@login_required
-def mfg_sch_print(request, pk):
-	# TODO: print the thing
-	return redirect('mfg_sch_report', pk)
