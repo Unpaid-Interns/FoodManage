@@ -7,14 +7,14 @@ from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
 from django.views import generic
 from django.forms import inlineformset_factory
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 import json
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from . import unitconvert
 
-@login_required
+@permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufacturing(request):
 	if request.method == 'POST':
 		form = GoalsForm(request.POST)
@@ -62,7 +62,7 @@ def manufacturing(request):
 		form2 = GoalsChoiceForm(user=request.user)
 	return render(request, "manufacturing_goals/manufacturing.html", {'form': form, 'form2': form2})
 
-@login_required
+@permission_required('manufacturing_goals.change_manufacturinggoal')
 def manufqty(request):
 	context = {
 		'paginated': True,
@@ -123,7 +123,7 @@ def manufqty(request):
 	RequestConfig(request, paginate=paginate).configure(input_table)
 	return render(request, 'manufacturing_goals/data.html', context)
 
-@login_required
+@permission_required('manufacturing_goals.change_manufacturinggoal')
 def goal_add(request, pk):
 	try:
 		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
@@ -135,13 +135,13 @@ def goal_add(request, pk):
 		request.session['errormsg'] = 'Include Case Quantity'
 	return redirect('manufqty')
 
-@login_required
+@permission_required('manufacturing_goals.change_manufacturinggoal')
 def goal_remove(request, pk):
 	ManufacturingQty.objects.get(pk=pk).delete()
 	request.session['errormsg'] = ''
 	return redirect('manufqty')
 
-@login_required
+@permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufcalc(request):
 	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
@@ -171,13 +171,13 @@ def manufcalc(request):
 			return redirect('calcresults')
 	return render(request, 'manufacturing_goals/manufcalc.html', {'form': form})
 
-@login_required
+@permission_required('manufacturing_goals.view_manufacturinggoal')
 def calcresults(request):
 	goal_name = request.session['goal_calc_name']
 	goal_list = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/calcresults.html', {'goal_name': goal_name, 'goal_list': goal_list})
 
-@login_required
+@permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufcsv(request):
 	form = GoalsChoiceForm(user=request.user)
 	if request.method == "POST":
@@ -197,20 +197,20 @@ def manufcsv(request):
 			return redirect('manufexport')
 	return render(request, 'manufacturing_goals/manufcsv.html', {'form': form})
 
-@login_required
+@permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufexport(request):
 	goal_name = request.session['goal_export_name']
 	goal_info = request.session['goal_export_info']
 	return render(request, 'manufacturing_goals/manufexport.html', {'goal_name': goal_name, 'goal_info': goal_info})
 
-@login_required
+@permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufdetails(request):
 	goal_name = request.session['goal_name']
 	goal_info = request.session['goal_export_info']
 	goal_calc = request.session['goal_calc_list']
 	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc})
 
-@staff_member_required
+@permission_required('manufacturing_goals.schedule_manufacturinggoal')
 def timeline(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
@@ -296,7 +296,7 @@ def timeline(request):
 	print(mfg_overlap)
 	return render(request, 'manufacturing_goals/manufscheduler.html', context)
 
-@staff_member_required
+@permission_required('manufacturing_goals.enable_manufacturinggoal')
 def enable_menu(request):
 	context = dict()	
 	queryset = ManufacturingGoal.objects.all()
@@ -304,7 +304,7 @@ def enable_menu(request):
 	context['table'] = table
 	return render(request, 'manufacturing_goals/enable_menu.html', context)
 
-@staff_member_required
+@permission_required('manufacturing_goals.enable_manufacturinggoal')
 def enable_goal(request, pk):
 	goal = ManufacturingGoal.objects.get(pk=pk)
 	context = {'goal' : goal}

@@ -15,6 +15,10 @@ class ManufacturingGoal(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	deadline = models.DateField()
 	enabled = models.BooleanField(default=False)
+
+	class Meta:
+		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),
+					   ('schedule_manufacturinggoal', 'Can edit the manufacturing schedule'),)
 	
 	def __str__(self):
 		return self.name
