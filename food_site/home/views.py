@@ -35,6 +35,9 @@ def help(request):
 def aboutus(request):
 	return render(request, 'home/aboutus.html', context=None)
 
+def privacy(request):
+	return render(request, 'home/hypomealsrus.html', context=None)
+
 def authout(request):
 	logout(request)
 	return redirect('/')
@@ -110,7 +113,7 @@ def assistant(request):
 		return redirect('/cya')
 	if 'Choose' in toSend and 'adventure' in toSend:
 		return redirect('/cya')
-	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend:
+	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend or 'access' in toSend:
 		if 'sku' in toSend or 'SKU' in toSend:
 			return redirect('SKU')
 		if 'ingredient' in toSend:
@@ -131,7 +134,7 @@ def assistant(request):
 			return redirect('timeline')
 		if 'report' in toSend:
 			return redirect('reporting')
-	if 'upload' in toSend:
+	if 'upload' in toSend or 'import' in toSend:
 		return redirect('simple_upload')
 	if 'scrape' in toSend or 'Scrape' in toSend:
 		tasks.scrape()
@@ -150,7 +153,7 @@ def assistant(request):
 			}
 			return render(request, 'home/index.html', context)
 	if 'company standards' in toSend:
-		return redirect('https://www.toysrusinc.com/corporate-responsibility/safety-practices/safety/practices')
+		return redirect('privacy-policy')
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''
