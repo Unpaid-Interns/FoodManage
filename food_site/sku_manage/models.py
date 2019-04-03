@@ -70,6 +70,9 @@ class Ingredient(models.Model):
     cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero])
     comment = models.TextField(blank=True)
 
+    class Meta:
+        permissions = (('report_ingredient', 'Can view ingredient dependency report'),)
+
     def __str__(self):
         return self.name
 
@@ -129,6 +132,9 @@ class ManufacturingLine(models.Model):
     name = models.CharField(max_length=32)
     shortname = models.CharField(max_length=5, unique=True)
     comment = models.TextField(blank=True)
+
+    class Meta:
+        permissions = (('report_manufacturingline', 'Can view manufacturing schedule reports'),)
 
     def __str__(self):
         return "{name} ({shortname})".format(name=self.name, shortname=self.shortname)

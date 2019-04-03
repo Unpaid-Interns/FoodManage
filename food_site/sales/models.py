@@ -14,3 +14,6 @@ class SalesRecord(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     cases_sold = models.IntegerField(validators=[validate_gt_zero])
     price_per_case = models.DecimalField(max_digits=12, decimal_places=2, validators=[validate_gt_zero])
+
+    class Meta:
+    	permissions = (('report_salesrecord', 'Can view sales reports'),)

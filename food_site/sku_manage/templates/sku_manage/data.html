@@ -2,7 +2,7 @@
 {% block content %}
     <div class="inline">
         <h1>{{ title }}</h1>
-        {% if user.is_staff %}
+        {% if perms.sku_manage.add_sku %}
             <a class="btn" href="/admin/sku_manage/{{ type }}/add/">Add&nbsp<i class="fa fa-plus"></i></a>
         {% endif %}
     </div>

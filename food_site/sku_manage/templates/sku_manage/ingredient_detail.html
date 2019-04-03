@@ -2,8 +2,10 @@
 {% block content %}
 	<div class="inline">
 		<h1>{{ ingredient }}</h1>
-		{% if user.is_staff %}
+		{% if perms.sku_manage.change_ingredient %}
 			<a class="btn" href="{% url 'admin:sku_manage_ingredient_change' ingredient.pk %}"><i class="fa fa-pencil"></i></a>
+		{% endif %}
+		{% if perms.sku_manage.delete_ingredient %}
 			<a class="btn" href="{% url 'admin:sku_manage_ingredient_delete' ingredient.pk %}"><i class="fa fa-trash"></i></a>
 		{% endif %}
 	</div>
