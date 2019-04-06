@@ -143,3 +143,11 @@ def print_schedule(start_time, end_time, valid_mfg_lines, new_scheduled_items, a
     for mfgqty in mfgqtys_not_scheduled:
         print()
         print("SKU#: " + str(mfgqty.sku.sku_num))
+        print("Duration: " + str(mfgqty_duration(mfgqty)))
+        print("Lines:")
+        lines = data_models.ManufacturingLine.objects.filter(skumfgline__sku=mfgqty.sku)
+        for line in lines:
+            if line in valid_mfg_lines:
+                print("line = " + line.name)
+    print("----------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------")
