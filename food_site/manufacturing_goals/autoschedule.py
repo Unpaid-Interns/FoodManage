@@ -10,7 +10,7 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
     manufacturingqtys_to_be_scheduled = check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled.order_by("goal__deadline"))
     scheduled_items = create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled,
                                       valid_manufacturing_lines, current_user)
-    print_schedule(valid_manufacturing_lines, scheduled_items)
+    print_schedule(start_time, stop_time, valid_manufacturing_lines, scheduled_items, manufacturingqtys_to_be_scheduled)
     return True, "SUCCESS: Schedule created without error.", scheduled_items
 
 
@@ -113,13 +113,33 @@ def mfgqty_duration(mfgqty):
     return timedelta(hours=(mfgqty.caseqty / mfgqty.sku.mfg_rate))
 
 
-def print_schedule(valid_mfg_lines, new_scheduled_items):
+def print_schedule(start_time, end_time, valid_mfg_lines, new_scheduled_items, all_items_to_schedule):
+    print("----------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------")
+    print("Overall start time: " + str(start_time))
+    print("  Overall end time: " + str(end_time))
     for line in valid_mfg_lines:
         print("----------------------------------------------------------------------------")
         scheduled_items = (mfg_models.ScheduleItem.objects.filter(mfgline=line) + new_scheduled_items).order_by("start")
         print("Line = " + line.name)
+        if len(scheduled_items) < 1:
+            print()
+            print("Line is empty.")
         for item in scheduled_items:
             print()
             print("SKU#: " + str(item.mfgqty.sku.sku_num))
             print("Start: " + str(item.start))
             print("End: " + str(item.end()))
+    print("----------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------")
+    mfgqtys_not_scheduled = []
+    for mfgqty in all_items_to_schedule:
+        if mfgqty not in new_scheduled_items:
+            mfgqtys_not_scheduled.append(mfgqty)
+    print("MfgQty's not scheduled:")
+    if len(mfgqtys_not_scheduled) < 1:
+        print()
+        print("All scheduled.")
+    for mfgqty in mfgqtys_not_scheduled:
+        print()
+        print("SKU#: " + str(mfgqty.sku.sku_num))
