@@ -2,7 +2,6 @@ from datetime import datetime, time, timedelta
 from sku_manage import models as data_models
 from manufacturing_goals import models as mfg_models
 
-# tie breaker needs second pass
 
 def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, current_user):
     valid_manufacturing_lines = data_models.ManufacturingLine.objects.filter(plantmanager__user=current_user)
@@ -11,6 +10,7 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
     manufacturingqtys_to_be_scheduled = check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled.order_by("goal__deadline"))
     scheduled_items = create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled,
                                       valid_manufacturing_lines, current_user)
+    print_schedule(valid_manufacturing_lines, scheduled_items)
     return True, "SUCCESS: Schedule created without error.", scheduled_items
 
 
@@ -111,3 +111,15 @@ def check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled):
 
 def mfgqty_duration(mfgqty):
     return timedelta(hours=(mfgqty.caseqty / mfgqty.sku.mfg_rate))
+
+
+def print_schedule(valid_mfg_lines, new_scheduled_items):
+    for line in valid_mfg_lines:
+        print("----------------------------------------------------------------------------")
+        scheduled_items = (mfg_models.ScheduleItem.objects.filter(mfgline=line) + new_scheduled_items).order_by("start")
+        print("Line = " + line.name)
+        for item in scheduled_items:
+            print()
+            print("SKU#: " + str(item.mfgqty.sku.sku_num))
+            print("Start: " + str(item.start))
+            print("End: " + str(item.end()))
