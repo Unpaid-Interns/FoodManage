@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Edit User Roles</h1>
+	{% include "data/filters.html" %}
+	<div class="table" style="overflow-x:auto;">
+		{% load render_table from django_tables2 %}
+		{% load bootstrap3 %}
+		{% render_table user_table %}
+	</div>
+	{% if queryset.all|length > 25 %}
+		<form class="form-inline" method="get">
+			{% if paginated %}
+				<button type="submit" name="remove_pagination">View All Records</button>
+			{% else %}
+				<button type="submit" name="add_pagination"">Paged View</button>
+			{% endif %}
+		</form>
+	{% endif %}
+{% endblock content %}
