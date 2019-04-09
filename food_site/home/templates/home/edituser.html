@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Roles: {{ user }}</h1>
+<form method="post">
+	{% csrf_token %}
+	<div class="checkbox">
+		{% for group in group_list %}
+			<input type="checkbox" name="{{ group.pk }}" value="{{ group.name }}" {% if group in user.groups.all %} checked {% endif %}>
+			{{ group.name }}
+			<br>
+		{% endfor %}
+	</div>
+	<br>
+	<div class="inline">
+		<button type="submit"><i class="fa fa-save"></i></button>
+		<a class="btn" href="{% url 'selectuser' %}"><i class="fa fa-remove"></i></a>
+	</div>
+</form>
+
+{% endblock content %}

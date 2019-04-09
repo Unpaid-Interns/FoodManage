@@ -3,13 +3,16 @@ from background_task import background
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 import requests
-from django.contrib.auth.models import User
+from django_tables2 import RequestConfig, paginators
+from django.db.models import Q
+from django.contrib.auth.models import User, Group
 from sales.models import SalesRecord, Customer
 from sales import tasks
 from manufacturing_goals import models as mfg_models
 from sku_manage import models as sku_models
+from .tables import UserTable
 
 # Create your views here.
 def index(request):
@@ -42,18 +45,56 @@ def authout(request):
 	logout(request)
 	return redirect('/')
 
-@login_required
-def clear_database(request):
-	SalesRecord.objects.all().delete()
-	Customer.objects.all().delete()
-	mfg_models.ScheduleItem.objects.all().delete()
-	mfg_models.ManufacturingGoal.objects.all().delete()
-	sku_models.SKU.objects.all().delete()
-	sku_models.Formula.objects.all().delete()
-	sku_models.ManufacturingLine.objects.all().delete()
-	sku_models.ProductLine.objects.all().delete()
-	sku_models.Ingredient.objects.all().delete()
-	return redirect('/')
+@permission_required('auth.change_user')
+def selectuser(request):
+	queryset = User.objects.all()
+	context = {
+		'paginated': True,
+		'keyword': '',
+	}
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25,
+	}
+
+	if request.method == 'GET':
+		if 'keyword' in request.GET:
+			keyword = request.GET['keyword']
+			queryset = queryset.filter(Q(username__icontains=keyword) | 
+				Q(first_name__icontains=keyword) | 
+				Q(last_name__icontains=keyword) | 
+				Q(email__icontains=keyword) | 
+				Q(groups__name__iexact=keyword))
+			context['keyword'] = keyword
+
+		if 'remove_pagination' in request.GET:
+			paginate = False
+			context['paginated'] = False
+
+	table = UserTable(queryset)
+	context['user_table'] = table
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'home/userlist.html', context)
+
+@permission_required('auth.change_user')
+def edituser(request, pk):
+	user = User.objects.get(pk=pk)
+	groups = Group.objects.all()
+
+	if request.method == "POST":
+		print(request.POST)
+		for group in groups:
+			if str(group.pk) in request.POST and group not in user.groups.all():
+				user.groups.add(group)
+			if str(group.pk) not in request.POST and group in user.groups.all():
+				user.groups.remove(group)
+		return redirect('selectuser')
+
+	context = {
+		'user': user,
+		'group_list': groups,
+	}
+	return render(request, 'home/edituser.html', context)
 
 token = None
 
