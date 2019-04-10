@@ -30,9 +30,10 @@
 	</div>
 	{% if request.user.is_staff %}
 		<div class="dropdown">
-			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' %} class="active" {% endif %}>Administration</a>
+			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' or request.path|slice:":5" == '/user' %} class="active" {% endif %}>Administration</a>
 			<div class="dropdown-content">
 				<a href="/admin/">Site Administration</a>
+				<a href="/user/">User Roles</a>
 				<a href="/importer/">CSV Data Import</a>
 				<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
 			</div>
