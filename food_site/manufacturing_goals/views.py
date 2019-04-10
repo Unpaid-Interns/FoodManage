@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 import json
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from datetime import datetime, time
 from . import unitconvert
 
 @permission_required('manufacturing_goals.view_manufacturinggoal')
@@ -259,11 +259,29 @@ def timeline(request):
 				schedItem = ScheduleItem.objects.get(pk=item['id'])
 				schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
 				if len(item['start'].split('.'))>1:
-					schedItem.start = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+					datatime = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
+					if datatime.time() < time(8,0,0):
+						datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
+					elif datatime.time() > time(18,0,0):
+						datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+					print(datatime)
+					schedItem.start = datatime
 				elif len(item['start'].split(':'))>=4:
-					schedItem.start = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+					datatime = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
+					if datatime.time() < time(8,0,0):
+						datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
+					elif datatime.time() > time(18,0,0):
+						datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+					print(datatime)
+					schedItem.start = datatime
 				else:
-					schedItem.start = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
+					datatime = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
+					if datatime.time() < time(8,0,0):
+						datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
+					elif datatime.time() > time(18,0,0):
+						datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+					print(datatime)
+					schedItem.start = datatime
 				ids_in_tl.append(item['id'])
 				schedItem.save()
 			for pk in ScheduleItem.objects.filter(start__isnull=False).values('pk'):
