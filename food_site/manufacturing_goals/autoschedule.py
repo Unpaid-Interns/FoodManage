@@ -6,16 +6,21 @@ from manufacturing_goals import models as mfg_models
 def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, current_user):
     valid_manufacturing_lines = data_models.ManufacturingLine.objects.filter(plantmanager__user=current_user)
     if len(valid_manufacturing_lines) > 1:
-        return False, "ERROR: Plant Manager user does not have any Manufacturing Lines associated with them.", None
+        return False, "ERROR: Plant Manager user does not have any Manufacturing Lines associated with them.", \
+               None, None
     manufacturingqtys_to_be_scheduled = check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled.order_by("goal__deadline"))
-    scheduled_items = create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled,
+    scheduled_items, unscheduled_items = create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled,
                                       valid_manufacturing_lines, current_user)
     print_schedule(start_time, stop_time, valid_manufacturing_lines, scheduled_items, manufacturingqtys_to_be_scheduled)
-    return True, "SUCCESS: Schedule created without error.", scheduled_items
+    if len(unscheduled_items) < 1:
+        return True, "SUCCESS: Schedule created without error.", scheduled_items, None
+    else:
+        return True, "WARNING: Schedule created but not all items were scheduled.", scheduled_items, unscheduled_items
 
 
 def create_schedule(start_time,stop_time, manufacturingqtys_to_be_scheduled, valid_manufacturing_lines, current_user):
     new_scheduled_items = []
+    unscheduled_items = []
     mfgqty_to_available_lines = {}
 
     # get available lines for each mfgQty
@@ -64,10 +69,11 @@ def create_schedule(start_time,stop_time, manufacturingqtys_to_be_scheduled, val
                     chosen_line = line
 
         if chosen_line is None:
+            unscheduled_items.append(mfgqty)
             continue
         new_schedule_item = create_schedule_item(mfgqty, chosen_line, earliest_start_time, current_user)
         new_scheduled_items.append(new_schedule_item)
-    return new_scheduled_items
+    return new_scheduled_items, unscheduled_items
 
 
 def get_mfglines_for_sku(sku, valid_manufacturing_lines):

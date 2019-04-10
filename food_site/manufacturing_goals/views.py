@@ -320,7 +320,12 @@ def enable_goal(request, pk):
 	return render(request, 'manufacturing_goals/enable_goal.html', context)
 
 @permission_required('manufacturing_goals.schedule_manufacturinggoal')
-def auto_schedule(request, start_time, stop_time, manufacturingQtys_to_be_scheduled):
+# def auto_schedule(request, start_time, stop_time, manufacturingQtys_to_be_scheduled):
+def auto_schedule(request):
+	start_time = datetime.today()
+	stop_time = start_time + (datetime.timedelta(days=3)).date()
+	manufacturingQtys_to_be_scheduled = []
+	
 	current_user = request.user
 	autoschedule(start_time, stop_time, manufacturingQtys_to_be_scheduled, current_user)
 
