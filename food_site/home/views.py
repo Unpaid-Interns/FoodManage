@@ -13,6 +13,7 @@ from sales import tasks
 from manufacturing_goals import models as mfg_models
 from sku_manage import models as sku_models
 from .tables import UserTable
+from .models import PlantManager
 
 # Create your views here.
 def index(request):
@@ -79,20 +80,43 @@ def selectuser(request):
 @permission_required('auth.change_user')
 def edituser(request, pk):
 	user = User.objects.get(pk=pk)
-	groups = Group.objects.all()
+	groups = Group.objects.all().exclude(name="Plant Manager")
+	plantmanager_group = Group.objects.get(name="Plant Manager")
+
+	mfglines = sku_models.ManufacturingLine.objects.all()
+	mfglines_managed = sku_models.ManufacturingLine.objects.filter(plantmanager__isnull=False, plantmanager__user=request.user)
 
 	if request.method == "POST":
-		print(request.POST)
+		is_plantmanager = False
 		for group in groups:
 			if str(group.pk) in request.POST and group not in user.groups.all():
 				user.groups.add(group)
 			if str(group.pk) not in request.POST and group in user.groups.all():
 				user.groups.remove(group)
+		for mfgline in mfglines:
+			if mfgline.shortname in request.POST:
+				is_plantmanager = True
+			if mfgline.shortname in request.POST and mfgline not in mfglines_managed:
+				print('adding ' + str(mfgline))
+				pm = PlantManager(user=request.user, mfgline=mfgline)
+				pm.full_clean()
+				pm.save()
+			if mfgline.shortname not in request.POST and mfgline in mfglines_managed:
+				print('removing ' + str(mfgline))
+				PlantManager.objects.filter(user=request.user, mfgline=mfgline).delete()
+			if is_plantmanager and plantmanager_group not in user.groups.all():
+				user.groups.add(plantmanager_group)
+			if not is_plantmanager and plantmanager_group in user.groups.all():
+				user.groups.remove(plantmanager_group)
+
+
 		return redirect('selectuser')
 
 	context = {
 		'user': user,
 		'group_list': groups,
+		'mfgline_list': mfglines,
+		'selected_mfglines': mfglines_managed,
 	}
 	return render(request, 'home/edituser.html', context)
 
