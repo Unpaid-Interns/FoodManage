@@ -1,6 +1,6 @@
 <form class="form-inline" action="{% url 'enable_goal' record.pk %}" method="post">
 	{% csrf_token %}
-	<button type="submit">
+	<button type="submit" {% if not perms.manufacturing_goals.enable_goal %} disabled {% endif %}>
 		{% if record.enabled %}
 			Disable
 		{% else %}

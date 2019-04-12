@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django.contrib.auth.models import User, Group
 
 class UserTable(tables.Table):
-	edit = tables.TemplateColumn('<div class="inline"><a class="btn" href="{% url "edituser" record.pk %}"><i class="fa fa-pencil"></i></a></div>')
+	edit = tables.TemplateColumn('<div class="inline"><a class="btn" href="{% url "edituser" record.pk %}"><i class="fa fa-pencil"></i></a></div>', orderable=False)
 	email = tables.TemplateColumn('{{ record.email }}')
 	class Meta:
 		model = User

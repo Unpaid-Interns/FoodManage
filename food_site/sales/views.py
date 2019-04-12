@@ -69,6 +69,7 @@ def pl_select(request):
 	context['selected_table'] = selected_table
 	context['queryset'] = queryset
 	RequestConfig(request, paginate=paginate).configure(input_table)
+	RequestConfig(request, paginate=paginate).configure(selected_table)
 	return render(request, 'sales/data.html', context)
 
 @permission_required('sales.report_salesrecord')
@@ -151,8 +152,12 @@ def sales_report(request):
 			}]
 
 		tables[sku] = SkuSummaryTable(sales_computed)
+		RequestConfig(request, paginate=False).configure(tables[sku])
 		totals[sku] = SkuTotalTable(sales_total)
 		export_data[sku] = (sales_computed, sales_total)
+
+	for prodline in product_lines:
+		pass
 
 	# CSV Export
 	if request.method == 'POST' and 'export_data' in request.POST:
@@ -210,6 +215,7 @@ def sku_drilldown(request, pk):
 	
 	# Main Table
 	table = SkuSalesTable(queryset)
+	RequestConfig(request, paginate=False).configure(table)
 
 	# Totals Table
 	tot_revenue = 0
