@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
+	<script type="text/javascript" src="{% static 'manufacturing_goals/vis.min.js' %}"></script>
+	<style>
+		li.item::before {
+			content: "+";
+			padding-right: 8px;
+			color: blue;
+		}
+		.column {
+			float: left;
+			width: 50%;
+		}
+		.row:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+	</style>
+	<div class="row">
+		<div id="visualization" style="padding:10px;float:left;width:80%;"></div>
+		<div id="colorkey" style="float:left;font-size:12px;">
+			<p>Timeline Key:</p>
+			<p><div style="background-color:#D5DDF6;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Unselected Item</p>
+			<p><div style="background-color:#FFC200;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Selected Item</p>
+			<p><div style="background-color:red;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item completes after deadline</p>
+			<p><div style="background-color:silver;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's goal has been deactivated</p>
+			<p><div style="background-color:green;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's duration has been modified</p>
+		</div>
+	</div>
+	<!--<div class="items-panel row">
+		<div class="side column">
+			This should pull from the db
+			<h3>Unscheduled Manufacturing Activities:</h3>
+			<ul class="items" style="list-style: none;">-->
+				<!-- there should be a way to change the coloration here -->
+				<!-- as well as a second change if deleted on timeline -->
+				<!-- literally cannot get drag&drop working. I think it's busted on visjs' side -->
+				<!--<li class="item" id="activity-2" onclick="addToTimeline('item 2')">item 2</li>
+				<li class="item" id="activity-3" onclick="addToTimeline('item 3')">item 3</li>-->
+				{% for item in unscheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
+				{% if item in visible_unscheduled_items %}
+				<!--<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})">{{ item }}</li>-->
+				{% endif %}
+				{% endif %}
+				{% endfor %}
+				{% for item in scheduled_items %}
+				{% if item in visible_scheduled_items %}
+				<!--<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})" style="display:none;">{{ item }}</li>-->
+				{% endif %}
+				{% endfor %}
+			<!--</ul>
+		</div>
+		<div class="column">
+			<h3>Scheduled Manufacturing Activities:</h3>
+			<ul>-->
+				{% for item in unscheduled_items %}
+				{% if item.mfgqty.goal.enabled %}
+				{% if item in visible_unscheduled_items %}
+				<!--<li class="item" id="s-{{ item.id }}" style="display:none;">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>-->
+				{% endif %}
+				{% endif %}
+				{% endfor %}
+				{% for item in scheduled_items %}
+				{% if item in visible_scheduled_items %}
+				<!--<li class="item" id="s-{{ item.id }}">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>-->
+				{% endif %}
+				{% endfor %}
+			<!--</ul>
+		</div>
+	</div>-->
+	<!--<button onclick="saveTLData()">Save Timeline</button>-->
+	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
+		{% csrf_token %}
+		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
+		<input value="{{ overrides }}" type="text" name="overrides" id="overrides" required="required" placeholder="[]" style="display:none;">
+		<button type="submit" onclick="saveTLData()">Save Timeline</button>
+	</form>
+	<div class="warnings">
+		<h2>Warnings</h2>
+		<h3>Not Included in Schedule:</h3>
+		{% for item in unscheduled_items %}
+			{% if item.mfgqty.goal.enabled %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Orphaned from Disabled Goals:</h3>
+		{% for item in scheduled_items %}
+			{% if not item.mfgqty.goal.enabled %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Finishing after Goal Deadline:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.too_late %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Overlapping production on a manufacturing line:</h3>
+		{% for item in mfg_overlap %}
+			<p>{{ item }}</p>
+		{% endfor %}
+		<h3>Manually Adjusted Duration:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.endoverride %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+	</div>
+	<div class="inline">
+		<button class="btn" onclick="showHelp()">Help</button>
+	</div>
+	<div id="help" style="display:none;">
+		<ul>
+			<li>Click the items under "Unscheduled Manufacturing Activities" to add the selected activity to the manufacturing schedule.</li>
+			<li>Click the items in the schedule to select them.</li>
+			<li>You can drag a selected item in the schedule to a different location to change it's placement in time.</li>
+			<li>You can drag a selected item across manufacturing lines to change its associated manufacturing line.</li>
+			<li>You can select an item, then click the "x" next to it to remove the item from the schedule. This returns it to the list of unscheduled manufacturing activities.</li>
+			<li>Click the items under "Scheduled Manufacturing Activities" to increase the selected activity's duration in the manufacturing schedule, manually overriding the calculated duration.</li>
+		</ul>
+	</div>
+	<script type="text/javascript">
+		var container = document.getElementById('visualization');
+		// Pulled from the database of manufacturing lines
+		var groups = new vis.DataSet();
+		{% for mfg_line in mfg_lines %}
+			groups.add([{id: {{ mfg_line.id }}, content: '{{ mfg_line }}'}]);
+		{% endfor %}
+		// Pulled from manufacturing schedules
+		var items = new vis.DataSet();
+		{% for item in scheduled_items %}
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		{% endfor %}
+		var nextItem = 2;
+		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
+		// also may want to consider hiding non-business hours?
+		var today = new Date();
+		var dd = today.getDate();
+		var d2 = today.getDate() +1;
+		var mm = today.getMonth() + 1;
+		var yyyy = today.getFullYear();
+		if (dd < 10){dd='0'+dd;}
+		if (d2 < 10){d2='0'+d2;}
+		if (mm < 10){mm='0'+mm;}
+		today = mm+'/'+dd+'/'+yyyy;
+		tomorrow = mm+'/'+d2+'/'+yyyy;
+		var options = {
+			stack: true,
+			selectable: true,
+			editable: {
+				add: false,
+				remove: true,
+				updateGroup: true,
+				updateTime: true,
+				overrideItems: false
+			},
+			hiddenDates: [
+				{start: '1970-01-01 18:00:00', end: '1970-01-02 8:00:00', repeat: 'daily'}
+			],
+			//timeAxis: {
+			//	scale: 'hour',
+			//	step: 1
+			//},
+			snap: function(date, scale, step){
+				var hour = 60 * 60 * 1000
+				return Math.round(date / hour) * hour;
+			},
+			type: 'range',
+			start: today,
+			end: tomorrow,
+			onDropObjectOnItem: function(objectData, item, callback) {
+				if (!item){ return; }
+				alert('dropped object: "' + objectData.content + '" on item: "' + item.content + '"');
+			},
+			onRemove: function(item, callback) {
+				document.getElementById(item.id).style.display = "block";
+				document.getElementById('s-'+item.id).style.display = "none";
+				callback(item);
+			}
+		};
+		var overridden = [];
+		/*items.on('update', function(event, properties){
+			console.log(properties);
+			tdeltaOld = properties.oldData.start - properties.oldData.end;
+			tdeltaNew = properties.data.start - properties.data.end;
+			if(tdeltaOld != tdeltaNew){
+				console.log("Overriden, seeing if changed before. ID: ");
+				console.log(properties.id);
+				if(!(overridden.includes(properties.data.id))){
+					overridden.push(properties.data.id);
+					if(items.get(properties.data.id) != null){
+						//items.get(properties.data.id).style = "color: orange;";
+					}
+				}
+			}
+			an attempted solution:
+			onUpdate: function(item, callback) {
+				console.log(item);
+				callback(item);
+			}
+		});*/
+
+		var timeline = new vis.Timeline(container, items, groups, options);
+		var now = new Date();
+		var visibleStart = new Date(now.getFullYear(),now.getMonth(),now.getDate(), 0, 0, 0, 0);
+		timeline.on('rangechange', function(properties) {
+			visibleStart = properties.start;
+		});
+		//timeline.on('mouseOver', function(properties) {
+		//	visibleStart = properties.start;
+		//});
+
+		//var modal = document.getElementById('addActivityModal');
+		//var closer = document.getElementsByClassName("close")[0];
+		function addToTimeline(id){
+			// actual ids on the timeline should be generated on the fly
+			//document.getElementById('activityID').innerHTML = id;
+			//modal.style.display = "block";
+			// presumably group will also be determined by db
+			//console.log(visibleStart);
+			var dur = 1;
+			var mfline = 1;
+			{% for md in mfdurations %}
+			if({{ md.id }} == id){
+			dur = {{ md.duration }};	
+			mfline = {{ md.mfline }};
+			}	
+			{% endfor %}
+			items.add([{id: id, content: document.getElementById(id).innerHTML, start: visibleStart, end: new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate(), visibleStart.getHours() + dur, visibleStart.getMinutes(), 0, 0), type: 'range', group: mfline}]);
+			//nextItem++;
+			document.getElementById(id).style.display = "none";
+			document.getElementById('s-'+id).style.display = "block";
+		}
+
+		function saveTLData() {
+			var data = items.get({
+				type: {
+					start: 'ISODate',
+					end: 'ISODate'
+				}
+			});
+			document.getElementById("data").value = JSON.stringify(data, null, 2);
+			document.getElementById("overrides").value = JSON.stringify(overridden, null, 2);
+			//console.log(JSON.stringify(data, null, 2));
+		}
+		// also need to load data from db
+		var shown = false;
+		function showHelp() {
+			if(!shown) {
+				document.getElementById("help").style.display = "block";
+				shown = true;
+			} else {
+				document.getElementById("help").style.display = "none";
+				shown = false;
+			}
+		}
+
+		function increaseDuration(id){
+			oldItem = items.get(id);
+			//console.log(overrides);
+			var deltat = 1;
+			var endtime = new Date();
+			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
+				endtime = new Date(oldItem.end);
+			} else {
+				endtime = oldItem.end;
+			}
+			var starttime = new Date();
+			if(typeof oldItem.start === 'string' || oldItem.start instanceof String){
+				starttime = new Date(oldItem.start);
+			} else {
+				starttime = oldItem.start;
+			}
+			console.log(endtime);
+			if((endtime.getHours()+1)>18){ deltat=17; }
+			items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() + deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+			if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
+		}
+		function decreaseDuration(id){
+			oldItem = items.get(id);
+			//console.log(overrides);
+			var deltat = 1;
+			var endtime = new Date();
+			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
+				endtime = new Date(oldItem.end);
+			} else {
+				endtime = oldItem.end;
+			}
+			var starttime = new Date();
+			if(typeof oldItem.start === 'string' || oldItem.start instanceof String){
+				starttime = new Date(oldItem.start);
+			} else {
+				starttime = oldItem.start;
+			}
+			console.log(endtime);
+			if(!(endtime.getHours()==starttime.getHours()+1)){
+				if((endtime.getHours()-1)<10){ deltat=17; }
+				items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() - deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+				if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
+			}
+		}
+	</script>
+{% endblock content %}
