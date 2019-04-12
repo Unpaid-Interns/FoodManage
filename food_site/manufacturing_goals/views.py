@@ -5,6 +5,7 @@ from django_tables2 import RequestConfig, paginators
 from .tables import SKUTable, MfgQtyTable, EnableTable
 from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
+from home.models import PlantManager
 from django.views import generic
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required, permission_required
@@ -214,10 +215,18 @@ def manufdetails(request):
 def timeline(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
+	manager = PlantManager.objects.filter(user=request.user)
+	accessible_lines = list()
+	for mgr in manager:
+		accessible_lines = mgr.mfgline.objects.all()
+	if request.user.is_superuser:
+		accessible_lines = ManufacturingLine.objects.all()
+		#accessible_lines = list() #for testing purposes only
+	print(accessible_lines)
 	for mfg_qty in mfg_qtys:
 		sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
 		mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
-		if len(mfg_lines) > 0 and len(sched_items) == 0:
+		if len(mfg_lines) > 0 and len(sched_items) == 0 and mfg_lines[0]:
 			ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
 	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
 	form = ManufacturingSchedForm()
@@ -232,11 +241,11 @@ def timeline(request):
 			duration['id'] = s.pk
 			# raw, how many hours it takes via calculated time
 			ttl_hrs = s.duration().seconds / 3600.0
-			# 8 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
-			ttl_wrkd = ttl_hrs // 8
+			# 10 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
+			ttl_wrkd = ttl_hrs // 10
 			hrs = (ttl_wrkd * 24) # gives the appearance of multiple days on the timeline
 			# and the remainder is the additional hours needed to add on
-			hrs = hrs + (ttl_hrs % 8)
+			hrs = hrs + (ttl_hrs % 10)
 			duration['duration'] = hrs
 			duration['mfline'] = s.mfgline.pk
 			mfdurations.append(duration)
@@ -252,7 +261,10 @@ def timeline(request):
 			overrides = form.cleaned_data['overrides']
 			json_data = json.loads(data)
 			ovr = json.loads(overrides)
-			#print(ovr)
+			print("Data:\n")
+			print(data)
+			print("Overrides:\n")
+			print(ovr)
 			ids_in_tl = list()
 			for item in json_data:
 				# actually store the information
@@ -308,7 +320,20 @@ def timeline(request):
 	context['form'] = form, 
 	context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
 	context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
-	context['mfg_lines'] = ManufacturingLine.objects.all()
+	visible_unsch_item = list()
+	visible_sch_item = list()
+	for ui in context['unscheduled_items']:
+		if ui.mfgline in accessible_lines:
+			visible_unsch_item.append(ui)
+	for si in context['scheduled_items']:
+		if si.mfgline in accessible_lines:
+			visible_sch_item.append(si)
+		print("Start Time:\n")		
+		print(si.start)
+	context['visible_scheduled_items'] = visible_sch_item
+	context['visible_unscheduled_items'] = visible_unsch_item
+	#context['mfg_lines'] = ManufacturingLine.objects.all()
+	context['mfg_lines'] = accessible_lines
 	context['mfdurations'] = mfdurations
 	context['mfg_overlap'] = mfg_overlap
 	print(mfg_overlap)
