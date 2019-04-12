@@ -5,13 +5,13 @@ class EmailSender:
 
     def __init__(self, subject, body):
         self.gmail_user = 'unpaidinterns.hypomeals@gmail.com'
-        self.gmail_password = 'brandonsdick'
+        self.gmail_password = ''
         if self.gmail_password == '':
             print("WARNING: GMAIL PASSWORD IS BLANK.")
         self.attempts = 0
         self.attempt_limit = 3
         self.sent_from = self.gmail_user
-        self.to = ['marcusoertle@gmail.com']#, 'nathaniel.e.brooke@gmail.com']
+        self.to = ['marcusoertle@gmail.com', 'nathaniel.e.brooke@gmail.com']
         self.subject = subject
         self.body = body
         self.email_text = """ 
@@ -21,7 +21,6 @@ Subject: %s
 """ % (subject, body)
 
     def send_email(self):
-        return
         self.attempts += 1
         try:
             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
