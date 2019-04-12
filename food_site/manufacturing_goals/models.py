@@ -17,8 +17,7 @@ class ManufacturingGoal(models.Model):
 	enabled = models.BooleanField(default=False)
 
 	class Meta:
-		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),
-					   ('schedule_manufacturinggoal', 'Can edit the manufacturing schedule'),)
+		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),)
 	
 	def __str__(self):
 		return self.name

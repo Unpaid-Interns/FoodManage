@@ -67,7 +67,7 @@ def manufacturing(request):
 	}
 	return render(request, "manufacturing_goals/manufacturing.html", context)
 
-@permission_required('manufacturing_goals.change_manufacturinggoal')
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def manufqty(request):
 	context = {
 		'paginated': True,
@@ -84,6 +84,8 @@ def manufqty(request):
 		'per_page': 25,
 	}
 	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+	if request.user != goal.user and not user.has_perm('manufacturing_goals.change_manufacturinggoal'):
+		return redirect('manufacturing')
 	mfgqtys = ManufacturingQty.objects.filter(goal=goal)
 	sku_list = mfgqtys.values_list('sku__id', flat=True)
 	queryset = SKU.objects.exclude(id__in=sku_list)
@@ -118,7 +120,11 @@ def manufqty(request):
 			paginate = False
 			context['paginated'] = False
 
-		if 'done' in request.GET:
+	if request.method == 'POST':
+		if 'done' in request.POST:
+			return redirect('manufacturing')
+		if 'delete' in request.POST:
+			goal.delete()
 			return redirect('manufacturing')
 
 	input_table = SKUTable(queryset)
@@ -129,7 +135,7 @@ def manufqty(request):
 	RequestConfig(request, paginate=paginate).configure(mfgqty_table)
 	return render(request, 'manufacturing_goals/data.html', context)
 
-@permission_required('manufacturing_goals.change_manufacturinggoal')
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_add(request, pk):
 	try:
 		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
@@ -141,7 +147,7 @@ def goal_add(request, pk):
 		request.session['errormsg'] = 'Include Case Quantity'
 	return redirect('manufqty')
 
-@permission_required('manufacturing_goals.change_manufacturinggoal')
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_remove(request, pk):
 	ManufacturingQty.objects.get(pk=pk).delete()
 	request.session['errormsg'] = ''
@@ -214,9 +220,11 @@ def manufdetails(request):
 	goal_name = request.session['goal_name']
 	goal_info = request.session['goal_export_info']
 	goal_calc = request.session['goal_calc_list']
-	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc})
+	sched_dep = len(ScheduleItem.objects.filter(mfgqty__goal__pk=request.session['goal_id']))
+	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc, 'schedule_dep': sched_dep, 'goal': goal})
 
-@permission_required('manufacturing_goals.schedule_manufacturinggoal')
+@permission_required('manufacturing_goals.change_scheduleitem')
 def timeline(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)

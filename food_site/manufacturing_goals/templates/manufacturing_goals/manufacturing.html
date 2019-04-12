@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 	<h1>Manufacturing Goals</h1>
-	{% if perms.manufacturing_goals.add_goal %}
+	{% if perms.manufacturing_goals.add_manufacturinggoal %}
 		<h2>Create a New Manufacturing Goal</h2>
 		<form class="form-inline" method="POST">
 			{% csrf_token %}
@@ -19,7 +19,7 @@
 		{% render_table enable_table %}
 	</div>
 	<br>
-	{% if perms.manufacturing_goals.view_ScheduleItem %}
+	{% if perms.manufacturing_goals.view_scheduleitem %}
 	<div class="menu-buttons" style="text-align: left">
 		<a class="btn" href="{% url 'timeline' %}">Manufacturing Timeline</a>
 	</div>
