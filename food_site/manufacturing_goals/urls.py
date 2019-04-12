@@ -11,4 +11,5 @@ urlpatterns = [
 	path('remove/<int:pk>', views.goal_remove, name='mfg_goal_remove'),
 	path('enable/', views.enable_menu, name='enable_menu'),
 	path('enable/<int:pk>', views.enable_goal, name='enable_goal'),
+	path('timeline/autoschedule', views.auto_schedule, name='auto_schedule'),
 ]
