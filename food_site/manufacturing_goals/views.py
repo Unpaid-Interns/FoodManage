@@ -11,7 +11,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 import json
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from datetime import datetime, timedelta
+from manufacturing_goals.autoschedule import autoschedule
 from . import unitconvert
 
 @permission_required('manufacturing_goals.view_manufacturinggoal')
@@ -317,4 +318,15 @@ def enable_goal(request, pk):
 		if 'no' in request.POST:
 			return redirect('enable_menu')
 	return render(request, 'manufacturing_goals/enable_goal.html', context)
+
+@permission_required('manufacturing_goals.schedule_manufacturinggoal')
+def auto_schedule(request):
+	start_time = datetime.today()
+	stop_time = start_time + (timedelta(days=3))
+	manufacturingQtys_to_be_scheduled = ManufacturingQty.objects.filter(goal__enabled=True)
+	current_user = request.user
+	success, message, scheduled_items, unscheduled_items = \
+		autoschedule(start_time, stop_time, manufacturingQtys_to_be_scheduled, current_user)
+	print(message)
+	return redirect("timeline")
 
