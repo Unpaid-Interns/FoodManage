@@ -297,12 +297,17 @@ def timeline(request):
 					schedItem.start = datatime
 				ids_in_tl.append(item['id'])
 				schedItem.save()
-			for pk in ScheduleItem.objects.filter(start__isnull=False).values('pk'):
+			print(ids_in_tl)
+			print(ScheduleItem.objects.all().values('pk'))
+			for pk in ScheduleItem.objects.all().values('pk'):
 				# if it WAS in the TL, and now its not, remove info
+				# as of yet, doesn't delete anything
+				# I believe that it recreates the ScheduleItem b/c of the POST
+				print(pk['pk'])
 				if pk['pk'] not in ids_in_tl:
 					removed_item = ScheduleItem.objects.get(pk=pk['pk'])
 					removed_item.start = None
-					removed_item.save()
+					removed_item.delete()
 			for ovr_item in ovr:
 				# if the duration was manually overridden, reflect that here
 				#print(
@@ -337,8 +342,72 @@ def timeline(request):
 	context['mfg_lines'] = accessible_lines
 	context['mfdurations'] = mfdurations
 	context['mfg_overlap'] = mfg_overlap
+	#context['provisional_items'] = ScheduleItem.objects.filter(provisional_user__isnull=False) needs a stricter criteria?
 	print(mfg_overlap)
 	return render(request, 'manufacturing_goals/manufscheduler.html', context)
+
+@permission_required('manufacturing_goals.view_manufacturinggoal')
+def timeline_viewer(request):
+	context = dict()
+	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
+	manager = PlantManager.objects.filter(user=request.user)
+	accessible_lines = list()
+	for mgr in manager:
+		accessible_lines = mgr.mfgline.objects.all()
+	if request.user.is_superuser:
+		accessible_lines = ManufacturingLine.objects.all()
+		#accessible_lines = list() #for testing purposes only
+	print(accessible_lines)
+	for mfg_qty in mfg_qtys:
+		sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
+		mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
+		if len(mfg_lines) > 0 and len(sched_items) == 0 and mfg_lines[0]:
+			ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
+	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
+	form = ManufacturingSchedForm()
+	scheditems = ScheduleItem.objects.all()
+	mfdurations = list()
+	mfg_overlap = list()
+	if not scheditems:
+		pass
+	else:
+		for s in scheditems:
+			duration = dict()
+			duration['id'] = s.pk
+			# raw, how many hours it takes via calculated time
+			ttl_hrs = s.duration().seconds / 3600.0
+			# 10 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
+			ttl_wrkd = ttl_hrs // 10
+			hrs = (ttl_wrkd * 24) # gives the appearance of multiple days on the timeline
+			# and the remainder is the additional hours needed to add on
+			hrs = hrs + (ttl_hrs % 10)
+			duration['duration'] = hrs
+			duration['mfline'] = s.mfgline.pk
+			mfdurations.append(duration)
+			for s2 in scheditems:
+				if s.start is not None and s2.start is not None and s != s2 and s.mfgline == s2.mfgline and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
+					mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
+	context['form'] = form, 
+	context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
+	context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
+	visible_unsch_item = list()
+	visible_sch_item = list()
+	for ui in context['unscheduled_items']:
+		if ui.mfgline in accessible_lines:
+			visible_unsch_item.append(ui)
+	for si in context['scheduled_items']:
+		if si.mfgline in accessible_lines:
+			visible_sch_item.append(si)
+		print("Start Time:\n")		
+		print(si.start)
+	context['visible_scheduled_items'] = visible_sch_item
+	context['visible_unscheduled_items'] = visible_unsch_item
+	context['mfg_lines'] = ManufacturingLine.objects.all()
+	#context['mfg_lines'] = accessible_lines
+	context['mfdurations'] = mfdurations
+	context['mfg_overlap'] = mfg_overlap
+	print(mfg_overlap)
+	return render(request, 'manufacturing_goals/manufsched_view.html', context)
 
 @permission_required('manufacturing_goals.enable_manufacturinggoal')
 def enable_menu(request):

@@ -18,10 +18,10 @@
 		<button type="submit" id="submit" name="submit">Go</button>
 	</form>
 	<br>
-	{% if request.user.is_staff %}
+	{% if perms.manufacturing_goals.view_manufacturinggoal %}
 	<div class="menu-buttons" style="text-align: left">
 		<a class="btn" href="{% url 'enable_menu' %}">Enable/Disable Goals</a>
-		<a class="btn" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
+		<a class="btn" href='/manufacturing/timeline/viewer/'>Manufacturing Timeline</a>
 	</div>
 	{% endif %}
 {% endblock content %}

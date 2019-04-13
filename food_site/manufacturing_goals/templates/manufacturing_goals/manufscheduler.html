@@ -77,8 +77,14 @@
 		{% csrf_token %}
 		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
 		<input value="{{ overrides }}" type="text" name="overrides" id="overrides" required="required" placeholder="[]" style="display:none;">
+		{% comment %}{% if provisional_items %}
+		<button type="submit" onclick="saveTLData()">Commit Provisionals and Save</button>
+		{% endif %}{% endcomment %}
 		<button type="submit" onclick="saveTLData()">Save Timeline</button>
 	</form>
+	<div class="menu-buttons" style="text-align: left">
+		<a class="btn" href='/manufacturing/timeline/viewer/'>View Manufacturing Timeline</a>
+	</div>
 	<div class="warnings">
 		<h2>Warnings</h2>
 		<h3>Not Included in Schedule:</h3>
@@ -133,7 +139,7 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% comment %}{% elif item.provisional_user %}, style: 'background-color: orange;'{% endcomment %}{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
