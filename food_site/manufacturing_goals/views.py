@@ -321,9 +321,13 @@ def enable_goal(request, pk):
 
 @permission_required('manufacturing_goals.schedule_manufacturinggoal')
 def auto_schedule(request):
-	start_time = datetime.today()
-	stop_time = start_time + (timedelta(days=3))
-	manufacturingQtys_to_be_scheduled = ManufacturingQty.objects.filter(goal__enabled=True)
+	debug = False
+	if debug:
+		start_time = datetime.today()
+		stop_time = start_time + (timedelta(days=3))
+		manufacturingQtys_to_be_scheduled = ManufacturingQty.objects.filter(goal__enabled=True)
+	else:
+		pass
 	current_user = request.user
 	success, message, scheduled_items, unscheduled_items = \
 		autoschedule(start_time, stop_time, manufacturingQtys_to_be_scheduled, current_user)
