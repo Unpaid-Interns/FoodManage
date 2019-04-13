@@ -13,7 +13,7 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
     tz = start_time.tzinfo
     valid_manufacturing_lines = data_models.ManufacturingLine.objects.filter(plantmanager__user=current_user)
     if current_user.is_superuser:
-        print("USER IS ADMIN")
+        # print("USER IS ADMIN")
         valid_manufacturing_lines = data_models.ManufacturingLine.objects.all()
     if len(valid_manufacturing_lines) < 1:
         return False, "ERROR: Plant Manager user does not have any Manufacturing Lines associated with them.", \
@@ -23,9 +23,13 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
                                       valid_manufacturing_lines, current_user, tz)
     # print_schedule(start_time, stop_time, valid_manufacturing_lines, scheduled_items, unscheduled_items)
     if len(unscheduled_items) < 1:
-        return True, "SUCCESS: Schedule created without error.", scheduled_items, None
+        return True, "SUCCESS: Schedule created without error. All items scheduled.", scheduled_items, None
     else:
-        return True, "WARNING: Schedule created but not all items were scheduled.", scheduled_items, unscheduled_items
+        message_string = "WARNING: Schedule created but not all items were scheduled. See unscheduled items below:\n"
+        for item in unscheduled_items:
+            message_string += "SKU#: " + str(item.mfgqty.sku.sku_num) + ", SKU Name: " + str(item.mfgqty.sku.name) \
+                              + ", Goal: "+ str(item.mfgqty.goal.name) + "\n"
+        return True, message_string, scheduled_items, unscheduled_items
 
 
 def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, valid_manufacturing_lines, current_user,

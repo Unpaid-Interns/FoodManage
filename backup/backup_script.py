@@ -42,19 +42,20 @@ def create_backup():
 
 def move_backups_as_needed():
     daily_num, weekly_num, monthly_num = get_directory_lengths()
-    if daily_num > daily_limit:
+    if daily_num >= daily_limit:
         if not move_daily_to_weekly():
             os.remove(path + "/hypo_backups/daily/" + get_oldest_daily())
 
     daily_num, weekly_num, monthly_num = get_directory_lengths()
-    if weekly_num > weekly_limit:
-        move_weekly_to_monthly()
-        if not move_daily_to_weekly():
-            print("deleting from weekly: " + get_weekly("oldest"))
+    if weekly_num >= weekly_limit:
+        # move_weekly_to_monthly()
+        # if not move_daily_to_weekly():
+        if not move_weekly_to_monthly():
+            # print("deleting from weekly: " + get_weekly("oldest"))
             os.remove(path + "/hypo_backups/weekly/" + get_weekly("oldest"))
 
     daily_num, weekly_num, monthly_num = get_directory_lengths()
-    if monthly_num > monthly_limit:
+    if monthly_num >= monthly_limit:
         remove_oldest_monthly()
 
 
@@ -186,7 +187,7 @@ def get_date_from_filename(filename):
 
 def test():
     today = datetime.datetime.today()
-    for i in range(0, 15):
+    for i in range(0, 800):
         f = open(path + "/backup-" + str((today + datetime.timedelta(days=i)).date()), "w+")
         f.close()
         # print("calling backup for: " + str("backup-" + str((today + datetime.timedelta(days=i)).date())))
@@ -211,5 +212,5 @@ def send_email(subject, body):
     sender.send_email()
 
 
-test()
-#create_backup()
+# test()
+create_backup()
