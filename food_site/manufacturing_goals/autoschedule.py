@@ -26,9 +26,9 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
         return True, "SUCCESS: Schedule created without error. All items scheduled.", scheduled_items, None
     else:
         message_string = "WARNING: Schedule created but not all items were scheduled. See unscheduled items below:\n"
-        for item in unscheduled_items:
-            message_string += "SKU#: " + str(item.mfgqty.sku.sku_num) + ", SKU Name: " + str(item.mfgqty.sku.name) \
-                              + ", Goal: "+ str(item.mfgqty.goal.name) + "\n"
+        for mfgqty in unscheduled_items:
+            message_string += "SKU#: " + str(mfgqty.sku.sku_num) + ", SKU Name: " + str(mfgqty.sku.name) \
+                              + ", Goal: "+ str(mfgqty.goal.name) + "\n"
         return True, message_string, scheduled_items, unscheduled_items
 
 
