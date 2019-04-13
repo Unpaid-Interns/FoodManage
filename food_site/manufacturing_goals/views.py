@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.db.models import Q
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, IngredientQty, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
-from .tables import SKUTable, MfgQtyTable, EnableTable
+from .tables import SKUTable, MfgQtyTable, EnableTable, AutoAddTable, AutoRemoveTable
 from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from home.models import PlantManager
 from .forms import GoalsForm, ManufacturingSchedForm
@@ -447,71 +447,35 @@ def enable_goal(request, pk):
 
 @permission_required('manufacturing_goals.change_scheduleitem')
 def auto_schedule_select(request):
+	if 'mfgqtys' not in request.session or request.session.get('mfgqtys') == None:
+		request.session['mfgqtys'] = list()
+	queryset = ManufacturingQty.objects.filter(scheduleitem__start__isnull=True)
+	selected_set = ManufacturingQty.objects.filter(id__in=request.session.get('mfgqtys'))
+	queryset = queryset.exclude(id__in=request.session.get('mfgqtys'))
+	input_table = AutoAddTable(queryset)
+	selected_table = AutoRemoveTable(selected_set)
 	context = {
-		'paginated': True,
-		'keyword': '',
-		'mfg_lines': ManufacturingLine.objects.all(),
-		'all_ingredients': Ingredient.objects.all(),
-		'selected_ingredient': None,
-		'all_product_lines': ProductLine.objects.all(),
-		'selected_product_line': None,
-		'errormsg': request.session.get('errormsg'),
-	}	
-	paginate = {
-		'paginator_class': paginators.LazyPaginator,
-		'per_page': 25,
+		'input_table': input_table,
+		'selected_table': selected_table,
 	}
-	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
-	if request.user != goal.user and not user.has_perm('manufacturing_goals.change_manufacturinggoal'):
-		return redirect('manufacturing')
-	mfgqtys = ManufacturingQty.objects.filter(goal=goal)
-	sku_list = mfgqtys.values_list('sku__id', flat=True)
-	queryset = SKU.objects.exclude(id__in=sku_list)
-	if request.method == 'GET':
-		if 'keyword' in request.GET:
-			keyword = request.GET['keyword']
-			queryset = queryset.filter(Q(name__icontains=keyword) | 
-				Q(sku_num__iexact=keyword) |
-				Q(case_upc__iexact=keyword) |
-				Q(unit_upc__iexact=keyword) |
-				Q(unit_size__icontains=keyword) | 
-				Q(units_per_case__iexact=keyword) | 
-				Q(mfg_rate__iexact=keyword) |
-				Q(mfg_setup_cost__iexact=keyword) |
-				Q(mfg_run_cost__iexact=keyword) |
-				Q(comment__icontains=keyword))
-			context['keyword'] = keyword
+	RequestConfig(request, paginate=None).configure(input_table)
+	RequestConfig(request, paginate=None).configure(selected_table)
+	return render(request, 'manufacturing_goals/autoscheduleselect.html', context)
 
-		if 'ingredientfilter' in request.GET:
-			ingr_num = request.GET['ingredientfilter']
-			if ingr_num != 'all':
-				queryset = queryset.filter(formula__ingredientqty__ingredient__number=ingr_num)
-				context['selected_ingredient'] = int(ingr_num)
+@permission_required('manufacturing_goals.change_scheduleitem')
+def auto_schedule_add(request, pk):
+	mfgqtys = [pk]
+	mfgqtys.extend(request.session.get('mfgqtys'))
+	request.session['mfgqtys'] = mfgqtys
+	return redirect('auto_schedule_select')
 
-		if 'productlinefilter' in request.GET:
-			pl_name = request.GET['productlinefilter']
-			if pl_name != 'all':
-				queryset = queryset.filter(product_line__name=pl_name)
-				context['selected_product_line'] = pl_name
-
-		if 'remove_pagination' in request.GET:
-			paginate = False
-			context['paginated'] = False
-
-	if request.method == 'POST':
-		if 'done' in request.POST:
-			return redirect('manufacturing')
-		if 'delete' in request.POST:
-			goal.delete()
-			return redirect('manufacturing')
-
-	input_table = SKUTable(queryset)
-	mfgqty_table = MfgQtyTable(mfgqtys)
-	context['input_table'] = input_table
-	context['selected_table'] = mfgqty_table
-	RequestConfig(request, paginate=paginate).configure(input_table)
-	RequestConfig(request, paginate=paginate).configure(mfgqty_table)
-	return render(request, 'manufacturing_goals/data.html', context)
+@permission_required('manufacturing_goals.change_scheduleitem')
+def auto_schedule_remove(request, pk):
+	mfgqtys = list()
+	mfgqtys.extend(request.session.get('mfgqtys'))
+	mfgqtys.remove(pk)
+	request.session['mfgqtys'] = mfgqtys
+	return redirect('auto_schedule_select')
 
 @permission_required('manufacturing_goals.change_scheduleitem')
 def auto_schedule(request):
@@ -521,7 +485,9 @@ def auto_schedule(request):
 		stop_time = start_time + (timedelta(days=3))
 		manufacturingQtys_to_be_scheduled = ManufacturingQty.objects.filter(goal__enabled=True)
 	else:
-		pass
+		start_time = datetime.today()
+		stop_time = start_time + (timedelta(days=3))
+		manufacturingQtys_to_be_scheduled = ManufacturingQty.objects.filter(id__in=request.session.get('mfgqtys'))
 	current_user = request.user
 	success, message, scheduled_items, unscheduled_items = \
 		autoschedule(start_time, stop_time, manufacturingQtys_to_be_scheduled, current_user)

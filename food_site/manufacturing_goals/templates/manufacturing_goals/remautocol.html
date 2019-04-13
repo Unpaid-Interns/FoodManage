@@ -1,0 +1,4 @@
+<form class="form-inline thin" action="{% url 'autoschedule_remove' record.pk %}" method="post">
+	{% csrf_token %}
+	<button type="submit"><i class="fa fa-close"></i></button>
+</form>

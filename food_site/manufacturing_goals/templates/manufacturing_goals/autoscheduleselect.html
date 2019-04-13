@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Select Items to Auto Schedule:</h1>
+	<div class="inline">
+		{% csrf_token %}
+		<a class="btn" href="{% url 'auto_schedule' %}"><i class="fa fa-arrow-right"></i></a>	
+		<a class="btn" href="{% url 'timeline' %}"><i class="fa fa-close"></i></a>
+	</div>
+	<br>
+	<div class="row">
+		<div class="column">
+			<div class="table" style="overflow-x:auto;">
+				{% load render_table from django_tables2 %}
+				{% load bootstrap3 %}
+				{% render_table input_table %}
+			</div>
+		</div>
+		<div class="column">
+			<div class="table" style="overflow-x:auto;">
+				{% render_table selected_table %}
+			</div>
+		</div>
+	</div>
+{% endblock content %}
