@@ -230,10 +230,8 @@ def manufdetails(request):
 def timeline(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
-	manager = PlantManager.objects.filter(user=request.user)
 	accessible_lines = list()
-	for mgr in manager:
-		accessible_lines = mgr.mfgline.objects.all()
+	accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
 	if request.user.is_superuser:
 		accessible_lines = ManufacturingLine.objects.all()
 		#accessible_lines = list() #for testing purposes only
@@ -241,6 +239,9 @@ def timeline(request):
 	for mfg_qty in mfg_qtys:
 		sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
 		mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
+		#print("Length of list of mfg_lines: " + len(mfg_lines))
+		#print("Length of list of sched_items: " + len(sched_items))
+		#print("First mfg_line: " + mfg_lines[0])
 		if len(mfg_lines) > 0 and len(sched_items) == 0 and mfg_lines[0]:
 			ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
 	# add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
@@ -364,10 +365,8 @@ def timeline(request):
 def timeline_viewer(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
-	manager = PlantManager.objects.filter(user=request.user)
 	accessible_lines = list()
-	for mgr in manager:
-		accessible_lines = mgr.mfgline.objects.all()
+	accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
 	if request.user.is_superuser:
 		accessible_lines = ManufacturingLine.objects.all()
 		#accessible_lines = list() #for testing purposes only
