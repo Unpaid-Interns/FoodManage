@@ -228,6 +228,7 @@ def manufdetails(request):
 
 @permission_required('manufacturing_goals.change_scheduleitem')
 def timeline(request):
+	request.session['mfgqtys'] = list()
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
 	accessible_lines = list()
@@ -449,8 +450,8 @@ def enable_goal(request, pk):
 def auto_schedule_select(request):
 	if 'mfgqtys' not in request.session or request.session.get('mfgqtys') == None:
 		request.session['mfgqtys'] = list()
-	queryset = ManufacturingQty.objects.filter(scheduleitem__start__isnull=True)
-	selected_set = ManufacturingQty.objects.filter(id__in=request.session.get('mfgqtys'))
+	queryset = ManufacturingQty.objects.filter(scheduleitem__start__isnull=True, goal__enabled=True)
+	selected_set = queryset.filter(id__in=request.session.get('mfgqtys'))
 	queryset = queryset.exclude(id__in=request.session.get('mfgqtys'))
 	input_table = AutoAddTable(queryset)
 	selected_table = AutoRemoveTable(selected_set)

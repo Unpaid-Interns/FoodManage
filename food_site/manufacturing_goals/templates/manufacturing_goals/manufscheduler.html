@@ -83,7 +83,8 @@
 		<button type="submit" onclick="saveTLData()">Save Timeline</button>
 	</form>
 	<div class="menu-buttons" style="text-align: left">
-		<a class="btn" href='/manufacturing/timeline/viewer/'>View Manufacturing Timeline</a>
+		<a class="btn" href="{% url 'timeline_viewer' %}">Return to View</a>
+		<a class="btn" href="{% url 'auto_schedule_select' %}">Auto Scheduler</a>
 	</div>
 	<div class="warnings">
 		<h2>Warnings</h2>
