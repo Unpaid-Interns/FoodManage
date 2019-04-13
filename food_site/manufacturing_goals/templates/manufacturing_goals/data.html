@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-	<h1>Filter SKUs for Mapping:</h1>
+	<h1>Edit Manufacturing Goal:</h1>
 	<h2>{{ errormsg }}</h2>
 	{% include "data/filters.html" %}
 	<br>
 	
-	<form class="form-inline" method="get">
-		<button type="submit" name="done" {% if not selected_table.rows %} disabled {% endif %}>Done</button>
+	<form class="inline" method="post">
+		{% csrf_token %}
+		<button type="submit" name="done" {% if not selected_table.rows %} disabled {% endif %}><i class="fa fa-save"></i></button>	
+		<button type="submit" name="delete"><i class="fa fa-trash"></i></button>
 	</form>
+	<br>
 	<div class="row">
 		<div class="column">
 			<div class="table" style="overflow-x:auto;">

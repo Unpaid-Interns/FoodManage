@@ -320,7 +320,7 @@ body {
   background-color: royalblue;
 }
 
-.form-inline button:disabled {
+.inline button:disabled, .form-inline button:disabled {
   background-color: lightgray;
 }
 
