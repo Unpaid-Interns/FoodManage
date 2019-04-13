@@ -16,7 +16,8 @@ class MfgQtyTable(tables.Table):
 		fields = ['sku', 'caseqty', 'remove']
 
 class EnableTable(tables.Table):
+	name = tables.TemplateColumn(template_name='manufacturing_goals/goalnamecolumn.html')
 	enable = tables.TemplateColumn(orderable=False, verbose_name="Action", template_name='manufacturing_goals/enablecolumn.html')
 	class Meta:
 		model = ManufacturingGoal
-		fields = [ 'name', 'user.name', 'deadline']
+		fields = [ 'name', 'user', 'deadline', 'enable']

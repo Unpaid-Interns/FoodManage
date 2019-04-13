@@ -1,0 +1,7 @@
+<div class="inline">
+	<form method="post" action="{% url 'manufacturing' %}">
+		{% csrf_token %}
+		<button class="btn" type="submit" name="goal" value="{{ record.pk }}"><i class="fa fa-eye"></i></button>
+	</form>
+	&nbsp {{ record.name }}
+</div>

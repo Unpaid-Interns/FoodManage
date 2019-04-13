@@ -20,22 +20,29 @@
 	</div>
 	<div class="dropdown">
 		<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>
-		{% if request.user.is_staff %}
+			{% if perms.manufacturing_goals.view_scheduleitem %}
 			<div class="dropdown-content">
 				<a href="/manufacturing/">Manufacturing Goals</a>
-				<a href="/manufacturing/enable/">Goal Enable</a>
 				<a href="/manufacturing/timeline/">Manufacturing Schedule</a>
 			</div>			
 		{% endif %}
 	</div>
-	{% if request.user.is_staff %}
+	{% if request.user.is_staff or perms.sku_manage.add_sku or perms.auth.change_user or perms.sku_manage.change_manufacturingline %}
 		<div class="dropdown">
 			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' or request.path|slice:":5" == '/user' %} class="active" {% endif %}>Administration</a>
 			<div class="dropdown-content">
-				<a href="/admin/">Site Administration</a>
-				<a href="/user/">User Roles</a>
-				<a href="/importer/">CSV Data Import</a>
-				<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
+				{% if request.user.is_staff %}
+					<a href="/admin/">Site Administration</a>
+				{% endif %}
+				{% if perms.auth.change_user %}
+					<a href="/user/">User Roles</a>
+				{% endif %}
+				{% if perms.sku_manage.add_sku %}
+					<a href="/importer/">CSV Data Import</a>
+				{% endif %}
+				{% if perms.sku_manage.change_manufacturingline %}
+					<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
+				{% endif %}
 			</div>
 		</div>
 	{% endif %}

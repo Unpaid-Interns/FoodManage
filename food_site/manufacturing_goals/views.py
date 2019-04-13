@@ -4,7 +4,7 @@ from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, I
 from django_tables2 import RequestConfig, paginators
 from .tables import SKUTable, MfgQtyTable, EnableTable
 from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
-from .forms import GoalsForm, GoalsChoiceForm, ManufacturingSchedForm
+from .forms import GoalsForm, ManufacturingSchedForm
 from django.views import generic
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required, permission_required
@@ -26,9 +26,8 @@ def manufacturing(request):
 			goal_obj.save()
 			request.session['goal_id'] = goal_obj.id
 			return redirect('manufqty')
-		form2 = GoalsChoiceForm(request.POST, user=request.user)
-		if form2.is_valid():
-			goal = form2.cleaned_data['goal']
+		if 'goal' in request.POST:
+			goal = ManufacturingGoal.objects.get(pk=request.POST['goal'])
 			goal_qty = goal.manufacturingqty_set.all()
 			goal_list = list()
 			goalcalc_list = list()
@@ -58,12 +57,18 @@ def manufacturing(request):
 			request.session['goal_calc_list'] = goalcalc_list
 			request.session['goal_id'] = goal.id
 			return redirect('manufdetails')
-	else:
-		form = GoalsForm()
-		form2 = GoalsChoiceForm(user=request.user)
-	return render(request, "manufacturing_goals/manufacturing.html", {'form': form, 'form2': form2})
 
-@permission_required('manufacturing_goals.change_manufacturinggoal')
+	form = GoalsForm()
+	queryset = ManufacturingGoal.objects.all()
+	table = EnableTable(queryset)
+	RequestConfig(request, paginate=False).configure(table)
+	context = {
+		'enable_table': table,
+		'form': form,
+	}
+	return render(request, "manufacturing_goals/manufacturing.html", context)
+
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def manufqty(request):
 	context = {
 		'paginated': True,
@@ -80,6 +85,8 @@ def manufqty(request):
 		'per_page': 25,
 	}
 	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+	if request.user != goal.user and not user.has_perm('manufacturing_goals.change_manufacturinggoal'):
+		return redirect('manufacturing')
 	mfgqtys = ManufacturingQty.objects.filter(goal=goal)
 	sku_list = mfgqtys.values_list('sku__id', flat=True)
 	queryset = SKU.objects.exclude(id__in=sku_list)
@@ -114,7 +121,11 @@ def manufqty(request):
 			paginate = False
 			context['paginated'] = False
 
-		if 'done' in request.GET:
+	if request.method == 'POST':
+		if 'done' in request.POST:
+			return redirect('manufacturing')
+		if 'delete' in request.POST:
+			goal.delete()
 			return redirect('manufacturing')
 
 	input_table = SKUTable(queryset)
@@ -122,9 +133,10 @@ def manufqty(request):
 	context['input_table'] = input_table
 	context['selected_table'] = mfgqty_table
 	RequestConfig(request, paginate=paginate).configure(input_table)
+	RequestConfig(request, paginate=paginate).configure(mfgqty_table)
 	return render(request, 'manufacturing_goals/data.html', context)
 
-@permission_required('manufacturing_goals.change_manufacturinggoal')
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_add(request, pk):
 	try:
 		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
@@ -136,7 +148,7 @@ def goal_add(request, pk):
 		request.session['errormsg'] = 'Include Case Quantity'
 	return redirect('manufqty')
 
-@permission_required('manufacturing_goals.change_manufacturinggoal')
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_remove(request, pk):
 	ManufacturingQty.objects.get(pk=pk).delete()
 	request.session['errormsg'] = ''
@@ -209,9 +221,11 @@ def manufdetails(request):
 	goal_name = request.session['goal_name']
 	goal_info = request.session['goal_export_info']
 	goal_calc = request.session['goal_calc_list']
-	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc})
+	sched_dep = len(ScheduleItem.objects.filter(mfgqty__goal__pk=request.session['goal_id']))
+	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+	return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc, 'schedule_dep': sched_dep, 'goal': goal})
 
-@permission_required('manufacturing_goals.schedule_manufacturinggoal')
+@permission_required('manufacturing_goals.change_scheduleitem')
 def timeline(request):
 	context = dict()
 	mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
@@ -303,6 +317,7 @@ def enable_menu(request):
 	queryset = ManufacturingGoal.objects.all()
 	table = EnableTable(queryset)
 	context['table'] = table
+	RequestConfig(request, paginate=False).configure(table)
 	return render(request, 'manufacturing_goals/enable_menu.html', context)
 
 @permission_required('manufacturing_goals.enable_manufacturinggoal')
@@ -314,9 +329,9 @@ def enable_goal(request, pk):
 			goal.enabled = not goal.enabled;
 			goal.full_clean()
 			goal.save()
-			return redirect('enable_menu')
+			return redirect('manufacturing')
 		if 'no' in request.POST:
-			return redirect('enable_menu')
+			return redirect('manufacturing')
 	return render(request, 'manufacturing_goals/enable_goal.html', context)
 
 @permission_required('manufacturing_goals.schedule_manufacturinggoal')

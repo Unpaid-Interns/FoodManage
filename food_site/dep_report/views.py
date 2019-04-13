@@ -59,6 +59,7 @@ def ingr_dep_menu(request):
 	context['input_table'] = input_table
 	context['selected_table'] = selected_table
 	RequestConfig(request, paginate=paginate).configure(input_table)
+	RequestConfig(request, paginate=paginate).configure(selected_table)
 	return render(request, 'dep_report/data.html', context)
 
 @permission_required('sku_manage.report_ingredient')
