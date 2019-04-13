@@ -28,8 +28,8 @@ class ManufacturingQty(models.Model):
 	goal = models.ForeignKey(ManufacturingGoal, on_delete=models.CASCADE)
 
 class ScheduleItem(models.Model):
-	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
-	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
+	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.CASCADE)
+	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.CASCADE)
 	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 	endoverride = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 	provisional_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
@@ -39,6 +39,8 @@ class ScheduleItem(models.Model):
 			raise ValidationError('Cannot produce selected SKU on manufacturing line')
 
 	def duration(self):
+		if (self.mfgqty.caseqty/self.mfgqty.sku.mfg_rate) < 1:
+			return timedelta(hours=1)
 		return timedelta(hours=(self.mfgqty.caseqty/self.mfgqty.sku.mfg_rate))
 
 	def end_calc(self):

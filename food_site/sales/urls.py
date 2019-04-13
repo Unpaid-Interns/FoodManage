@@ -5,7 +5,7 @@ from . import views
 from . import tasks
 from django.utils import timezone
 from datetime import timedelta
-from background_task.models import Task
+#from background_task.models import Task
 
 urlpatterns = [
 	path('sales/report/<int:pk>/', views.sku_drilldown, name='sku_drilldown'),
@@ -17,5 +17,5 @@ urlpatterns = [
 ]
 
 # Initialize Scraping
-Task.objects.filter(repeat=86400).delete()
-tasks.scrape_year(repeat=86400, schedule=timezone.now().replace(hour=7, minute=0, second=0) + timedelta(days=1))
+#Task.objects.filter(repeat=86400).delete()
+#tasks.scrape_year(repeat=86400, schedule=timezone.now().replace(hour=7, minute=0, second=0) + timedelta(days=1))
