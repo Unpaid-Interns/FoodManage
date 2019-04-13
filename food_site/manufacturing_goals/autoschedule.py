@@ -59,8 +59,13 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
             # previously_scheduled_items = \
             #     (mfg_models.ScheduleItem.objects.filter(mfgline=line) + new_scheduled_items).order_by("start")
 
-            # test for ability to do this
+            # get already scheduled items
             previously_scheduled_items = mfg_models.ScheduleItem.objects.filter(mfgline=line).order_by("start")
+            temp_prev_schuled_items = []
+            for item in previously_scheduled_items:
+                if item.start is not None:
+                    temp_prev_schuled_items.append(item)
+            previously_scheduled_items = temp_prev_schuled_items
 
             # if nothing scheduled on this line, check if it fits in given time
             if len(previously_scheduled_items) < 1:
