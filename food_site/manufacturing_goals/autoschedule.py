@@ -120,7 +120,7 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
         # print("CHOSEN LINE:")
         # print(chosen_line)
 
-        if add_to_schedule:
+        if add_to_schedule and (chosen_line is not None):
             new_schedule_item = create_schedule_item(mfgqty, chosen_line, earliest_start_time, current_user)
             new_scheduled_items.append(new_schedule_item)
             # test for ability to do this
