@@ -14,7 +14,7 @@ def validate_workday(value):
 class ManufacturingGoal(models.Model):
 	name = models.CharField(max_length=500)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
-	last_edit = models.FloatField(default=sys_time.time(), verbose_name='Last Edit Timestamp')
+	last_edit = models.DateTimeField(default=timezone.now, verbose_name='Last Edit Timestamp')
 	deadline = models.DateField()
 	enabled = models.BooleanField(default=False)
 
@@ -22,7 +22,7 @@ class ManufacturingGoal(models.Model):
 		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),)
 	
 	def save(self, *args, **kwargs):
-		self.last_edit = sys_time.time()
+		self.last_edit = timezone.now()
 		super().save(*args, **kwargs)
 
 	def __str__(self):
