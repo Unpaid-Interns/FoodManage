@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+import time as sys_time
 
 from django.utils import timezone
 from django.db import models
@@ -13,12 +14,17 @@ def validate_workday(value):
 class ManufacturingGoal(models.Model):
 	name = models.CharField(max_length=500)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	last_edit = models.FloatField(default=sys_time.time(), verbose_name='Last Edit Timestamp')
 	deadline = models.DateField()
 	enabled = models.BooleanField(default=False)
 
 	class Meta:
 		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),)
 	
+	def save(self, *args, **kwargs):
+		self.last_edit = sys_time.time()
+		super().save(*args, **kwargs)
+
 	def __str__(self):
 		return self.name
 
