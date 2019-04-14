@@ -34,4 +34,4 @@ class EnableTable(tables.Table):
 	enable = tables.TemplateColumn(orderable=False, verbose_name="Action", template_name='manufacturing_goals/enablecolumn.html')
 	class Meta:
 		model = ManufacturingGoal
-		fields = [ 'name', 'user', 'deadline', 'enable']
+		fields = [ 'name', 'user', 'last_edit', 'deadline', 'enable']

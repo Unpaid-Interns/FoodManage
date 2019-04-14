@@ -139,21 +139,24 @@ def manufqty(request):
 
 @permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_add(request, pk):
-    try:
-        goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
-        sku = SKU.objects.get(pk=pk)
-        caseqty = request.POST['case_qty']
-        ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
-        request.session['errormsg'] = ''
-    except (ValueError, ValidationError):
-        request.session['errormsg'] = 'Include Case Quantity'
-    return redirect('manufqty')
+	try:
+		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+		sku = SKU.objects.get(pk=pk)
+		caseqty = request.POST['case_qty']
+		ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
+		goal.save()
+		request.session['errormsg'] = ''
+	except (ValueError, ValidationError):
+		request.session['errormsg'] = 'Include Case Quantity'
+	return redirect('manufqty')
 
 @permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_remove(request, pk):
-    ManufacturingQty.objects.get(pk=pk).delete()
-    request.session['errormsg'] = ''
-    return redirect('manufqty')
+	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+	ManufacturingQty.objects.get(pk=pk).delete()
+	goal.save()
+	request.session['errormsg'] = ''
+	return redirect('manufqty')
 
 @permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufcalc(request):
