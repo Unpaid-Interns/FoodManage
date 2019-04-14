@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Sales projection data for {{ sku }} can be seen below:</h1>
+	<br>
+		<div class="table" style="overflow-x:auto;">
+			{% for key, value in data_table.items %}
+			<p> {{ key }} : {{ value }} </p>
+			{% endfor %}
+		</div>
+	<div class="inline">
+		<form method="post">
+		{% csrf_token %}
+			<button type="submit">Autofill Average Value</button>
+		</form>
+		<a class="btn" href="{% url 'manufqty' %}">Return</a>
+	</div>
+{% endblock content %}
