@@ -475,9 +475,9 @@ def auto_schedule_select(request):
         'input_table': input_table,
         'selected_table': selected_table,
         'start_date': (date.today() + timedelta(days=1)).isoformat(),
-        'start_time': time(hour=8).isoformat(),
+        'start_time': time(hour=8).isoformat()[0:-3],
         'end_date': (date.today() + timedelta(days=61)).isoformat(),
-        'end_time': time(hour=18).isoformat(),
+        'end_time': time(hour=18).isoformat()[0:-3],
     }
 
     if request.method == 'GET':
