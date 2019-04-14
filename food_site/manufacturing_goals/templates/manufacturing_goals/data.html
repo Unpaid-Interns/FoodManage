@@ -6,7 +6,7 @@
 	<br>
 	<p>Sales projection date range can be set below:</p>
 	<br>
-	<form class="form-inline" method="POST" action="/manufacturing/dateset">
+	<form class="form-inline" method="POST" action="{% url 'dateset' %}">
 		{% csrf_token %}
 		<p>Start Day</p>
 		<input value="{{ startday }}" type="number" name="sday" required="required">

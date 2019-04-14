@@ -74,42 +74,42 @@ def manufacturing(request):
 
 @permission_required('manufacturing_goals.add_manufacturinggoal')
 def manufqty(request):
-	context = {
-		'paginated': True,
-		'keyword': '',
-		'mfg_lines': ManufacturingLine.objects.all(),
-		'all_ingredients': Ingredient.objects.all(),
-		'selected_ingredient': None,
-		'all_product_lines': ProductLine.objects.all(),
-		'selected_product_line': None,
-		'errormsg': request.session.get('errormsg'),
-		'startday': '',
-		'startmonth': '',
-		'endday': '',
-		'endmonth': '',
-	}	
-	paginate = {
-		'paginator_class': paginators.LazyPaginator,
-		'per_page': 25,
-	}
-	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
-	mfgqtys = ManufacturingQty.objects.filter(goal=goal)
-	sku_list = mfgqtys.values_list('sku__id', flat=True)
-	queryset = SKU.objects.exclude(id__in=sku_list)
-	if request.method == 'GET':
-		if 'keyword' in request.GET:
-			keyword = request.GET['keyword']
-			queryset = queryset.filter(Q(name__icontains=keyword) | 
-				Q(sku_num__iexact=keyword) |
-				Q(case_upc__iexact=keyword) |
-				Q(unit_upc__iexact=keyword) |
-				Q(unit_size__icontains=keyword) | 
-				Q(units_per_case__iexact=keyword) | 
-				Q(mfg_rate__iexact=keyword) |
-				Q(mfg_setup_cost__iexact=keyword) |
-				Q(mfg_run_cost__iexact=keyword) |
-				Q(comment__icontains=keyword))
-			context['keyword'] = keyword
+    context = {
+        'paginated': True,
+        'keyword': '',
+        'mfg_lines': ManufacturingLine.objects.all(),
+        'all_ingredients': Ingredient.objects.all(),
+        'selected_ingredient': None,
+        'all_product_lines': ProductLine.objects.all(),
+        'selected_product_line': None,
+        'errormsg': request.session.get('errormsg'),
+        'startday': '',
+        'startmonth': '',
+        'endday': '',
+        'endmonth': '',
+    }   
+    paginate = {
+        'paginator_class': paginators.LazyPaginator,
+        'per_page': 25,
+    }
+    goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+    mfgqtys = ManufacturingQty.objects.filter(goal=goal)
+    sku_list = mfgqtys.values_list('sku__id', flat=True)
+    queryset = SKU.objects.exclude(id__in=sku_list)
+    if request.method == 'GET':
+        if 'keyword' in request.GET:
+            keyword = request.GET['keyword']
+            queryset = queryset.filter(Q(name__icontains=keyword) | 
+                Q(sku_num__iexact=keyword) |
+                Q(case_upc__iexact=keyword) |
+                Q(unit_upc__iexact=keyword) |
+                Q(unit_size__icontains=keyword) | 
+                Q(units_per_case__iexact=keyword) | 
+                Q(mfg_rate__iexact=keyword) |
+                Q(mfg_setup_cost__iexact=keyword) |
+                Q(mfg_run_cost__iexact=keyword) |
+                Q(comment__icontains=keyword))
+            context['keyword'] = keyword
 
         if 'ingredientfilter' in request.GET:
             ingr_num = request.GET['ingredientfilter']
@@ -134,42 +134,42 @@ def manufqty(request):
             goal.delete()
             return redirect('manufacturing')
 
-	input_table = SKUTable(queryset)
-	mfgqty_table = MfgQtyTable(mfgqtys)
-	context['input_table'] = input_table
-	context['selected_table'] = mfgqty_table
-	sday = request.session.get('start_day', '')
-	smonth = request.session.get('start_month', '')
-	eday = request.session.get('end_day', '')
-	emonth = request.session.get('end_month', '')
-	context['startday'] = sday
-	context['startmonth'] = smonth
-	context['endday'] = eday
-	context['endmonth'] = emonth
-	RequestConfig(request, paginate=paginate).configure(input_table)
-  RequestConfig(request, paginate=paginate).configure(mfgqty_table)
-return render(request, 'manufacturing_goals/data.html', context)
+    input_table = SKUTable(queryset)
+    mfgqty_table = MfgQtyTable(mfgqtys)
+    context['input_table'] = input_table
+    context['selected_table'] = mfgqty_table
+    sday = request.session.get('start_day', '')
+    smonth = request.session.get('start_month', '')
+    eday = request.session.get('end_day', '')
+    emonth = request.session.get('end_month', '')
+    context['startday'] = sday
+    context['startmonth'] = smonth
+    context['endday'] = eday
+    context['endmonth'] = emonth
+    RequestConfig(request, paginate=paginate).configure(input_table)
+    RequestConfig(request, paginate=paginate).configure(mfgqty_table)
+    return render(request, 'manufacturing_goals/data.html', context)
 
 @permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_add(request, pk):
-	try:
-		goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
-		sku = SKU.objects.get(pk=pk)
-		caseqty = request.POST['case_qty']
-		ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
-		goal.save()
-		request.session['errormsg'] = ''
-	except (ValueError, ValidationError):
-		request.session['errormsg'] = 'Include Case Quantity'
-	return redirect('manufqty')
+    try:
+        goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+        sku = SKU.objects.get(pk=pk)
+        caseqty = request.POST['case_qty']
+        ManufacturingQty(sku=sku, goal=goal, caseqty=caseqty).save()
+        goal.save()
+        request.session['errormsg'] = ''
+    except (ValueError, ValidationError):
+        request.session['errormsg'] = 'Include Case Quantity'
+    return redirect('manufqty')
 
 @permission_required('manufacturing_goals.add_manufacturinggoal')
 def goal_remove(request, pk):
-	goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
-	ManufacturingQty.objects.get(pk=pk).delete()
-	goal.save()
-	request.session['errormsg'] = ''
-	return redirect('manufqty')
+    goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
+    ManufacturingQty.objects.get(pk=pk).delete()
+    goal.save()
+    request.session['errormsg'] = ''
+    return redirect('manufqty')
 
 @permission_required('manufacturing_goals.view_manufacturinggoal')
 def manufcalc(request):
@@ -499,6 +499,11 @@ def auto_schedule_select(request):
     if 'auto_end_time' in request.session and request.session['auto_end_time'] != '':
         context['end_time'] = request.session['auto_end_time']
 
+    request.session['auto_start_date'] = context['start_date']
+    request.session['auto_start_time'] = context['start_time']
+    request.session['auto_end_date'] = context['end_date']
+    request.session['auto_end_time'] = context['end_time']
+
     RequestConfig(request, paginate=None).configure(input_table)
     RequestConfig(request, paginate=None).configure(selected_table)
     return render(request, 'manufacturing_goals/autoscheduleselect.html', context)
@@ -537,85 +542,85 @@ def auto_schedule(request):
 
 @permission_required('manufacturing_goals.change_manufacturinggoal')
 def project(request, pk):
-	sku = SKU.objects.get(pk=pk)	
-	yearstart = date(2000,1,1)
-	yearend = date(2000,12,31)
-	sday = request.session.get('start_day', '')
-	smonth = request.session.get('start_month', '')
-	eday = request.session.get('end_day', '')
-	emonth = request.session.get('end_month', '')
-	numbersold1 = 0;
-	numbersold2 = 0;
-	numbersold3 = 0;
-	numbersold4 = 0;
-	if sday == '' or eday == '' or smonth == '' or emonth == '':
-		request.session['errormsg'] = 'Projection dates are not set correctly'
-		return redirect('manufqty')
-	sdate = date(2000,int(smonth),int(sday))
-	edate = date(2000,int(emonth),int(eday))
-	for record in SalesRecord.objects.all():
-		if sdate > edate:
-			sdate = sdate.replace(year=timezone.now().year-2)
-			edate = edate.replace(year=timezone.now().year-1)
-			if record.date > sdate and record.date < edate:
-				numbersold1 = numbersold1 + record.cases_sold
-			sdate = sdate.replace(year=timezone.now().year-3)
-			edate = edate.replace(year=timezone.now().year-2)
-			if record.date > sdate and record.date < edate:
-				numbersold2 = numbersold2 + record.cases_sold
-			sdate = sdate.replace(year=timezone.now().year-4)
-			edate = edate.replace(year=timezone.now().year-3)
-			if record.date > sdate and record.date < edate:
-				numbersold3 = numbersold3 + record.cases_sold
-			sdate = sdate.replace(year=timezone.now().year-5)
-			edate = edate.replace(year=timezone.now().year-4)
-			if record.date > sdate and record.date < edate:
-				numbersold4 = numbersold4 + record.cases_sold
-		else:
-			if timezone.now().year-1 == record.date.year:
-				sdate = sdate.replace(year=timezone.now().year-1)
-				edate = edate.replace(year=timezone.now().year-1)
-				if record.date > sdate and record.date < edate:
-					numbersold1 = numbersold1 + record.cases_sold
-			if timezone.now().year-2 == record.date.year:
-				sdate = sdate.replace(year=timezone.now().year-2)
-				edate = edate.replace(year=timezone.now().year-2)
-				if record.date > sdate and record.date < edate:
-					numbersold2 = numbersold2 + record.cases_sold
-			if timezone.now().year-3 == record.date.year:
-				sdate = sdate.replace(year=timezone.now().year-3)
-				edate = edate.replace(year=timezone.now().year-3)
-				if record.date > sdate and record.date < edate:
-					numbersold3 = numbersold3 + record.cases_sold
-			if timezone.now().year-4 == record.date.year:
-				sdate = sdate.replace(year=timezone.now().year-4)
-				edate = edate.replace(year=timezone.now().year-4)
-				if record.date > sdate and record.date < edate:
-					numbersold4 = numbersold4 + record.cases_sold
-	data = dict()
-	data['1 Year Ago'] = numbersold1
-	data['2 Years Ago'] = numbersold2
-	data['3 Years Ago'] = numbersold3
-	data['4 Years Ago'] = numbersold4
-	dave = (numbersold1+numbersold2+numbersold3+numbersold4)/4
-	stdev = math.sqrt(((numbersold1-dave)**2 + (numbersold2-dave)**2 + (numbersold3-dave)**2 + (numbersold4-dave)**2)/4)
-	dave = int(round(dave,0))
-	stdev = round(stdev,1)
-	data['Average'] = dave
-	data['Std Dev'] = stdev
-	if request.method == 'POST':	
-		request.session['projection_autofill_value'] = dave
-		request.session['projection_autofill_pk'] = pk
-		return redirect('manufqty')
-	context = {
-		'data_table': data,
-		'sku': sku.name
-	}
-	return render(request, 'manufacturing_goals/projection.html', context)
+    sku = SKU.objects.get(pk=pk)    
+    yearstart = date(2000,1,1)
+    yearend = date(2000,12,31)
+    sday = request.session.get('start_day', '')
+    smonth = request.session.get('start_month', '')
+    eday = request.session.get('end_day', '')
+    emonth = request.session.get('end_month', '')
+    numbersold1 = 0;
+    numbersold2 = 0;
+    numbersold3 = 0;
+    numbersold4 = 0;
+    if sday == '' or eday == '' or smonth == '' or emonth == '':
+        request.session['errormsg'] = 'Projection dates are not set correctly'
+        return redirect('manufqty')
+    sdate = date(2000,int(smonth),int(sday))
+    edate = date(2000,int(emonth),int(eday))
+    for record in SalesRecord.objects.all():
+        if sdate > edate:
+            sdate = sdate.replace(year=timezone.now().year-2)
+            edate = edate.replace(year=timezone.now().year-1)
+            if record.date > sdate and record.date < edate:
+                numbersold1 = numbersold1 + record.cases_sold
+            sdate = sdate.replace(year=timezone.now().year-3)
+            edate = edate.replace(year=timezone.now().year-2)
+            if record.date > sdate and record.date < edate:
+                numbersold2 = numbersold2 + record.cases_sold
+            sdate = sdate.replace(year=timezone.now().year-4)
+            edate = edate.replace(year=timezone.now().year-3)
+            if record.date > sdate and record.date < edate:
+                numbersold3 = numbersold3 + record.cases_sold
+            sdate = sdate.replace(year=timezone.now().year-5)
+            edate = edate.replace(year=timezone.now().year-4)
+            if record.date > sdate and record.date < edate:
+                numbersold4 = numbersold4 + record.cases_sold
+        else:
+            if timezone.now().year-1 == record.date.year:
+                sdate = sdate.replace(year=timezone.now().year-1)
+                edate = edate.replace(year=timezone.now().year-1)
+                if record.date > sdate and record.date < edate:
+                    numbersold1 = numbersold1 + record.cases_sold
+            if timezone.now().year-2 == record.date.year:
+                sdate = sdate.replace(year=timezone.now().year-2)
+                edate = edate.replace(year=timezone.now().year-2)
+                if record.date > sdate and record.date < edate:
+                    numbersold2 = numbersold2 + record.cases_sold
+            if timezone.now().year-3 == record.date.year:
+                sdate = sdate.replace(year=timezone.now().year-3)
+                edate = edate.replace(year=timezone.now().year-3)
+                if record.date > sdate and record.date < edate:
+                    numbersold3 = numbersold3 + record.cases_sold
+            if timezone.now().year-4 == record.date.year:
+                sdate = sdate.replace(year=timezone.now().year-4)
+                edate = edate.replace(year=timezone.now().year-4)
+                if record.date > sdate and record.date < edate:
+                    numbersold4 = numbersold4 + record.cases_sold
+    data = dict()
+    data['1 Year Ago'] = numbersold1
+    data['2 Years Ago'] = numbersold2
+    data['3 Years Ago'] = numbersold3
+    data['4 Years Ago'] = numbersold4
+    dave = (numbersold1+numbersold2+numbersold3+numbersold4)/4
+    stdev = math.sqrt(((numbersold1-dave)**2 + (numbersold2-dave)**2 + (numbersold3-dave)**2 + (numbersold4-dave)**2)/4)
+    dave = int(round(dave,0))
+    stdev = round(stdev,1)
+    data['Average'] = dave
+    data['Std Dev'] = stdev
+    if request.method == 'POST':    
+        request.session['projection_autofill_value'] = dave
+        request.session['projection_autofill_pk'] = pk
+        return redirect('manufqty')
+    context = {
+        'data_table': data,
+        'sku': sku.name
+    }
+    return render(request, 'manufacturing_goals/projection.html', context)
 
 def set_project_date(request):
-	request.session['start_day'] = request.POST['sday']
-	request.session['start_month'] = request.POST['smonth']
-	request.session['end_day'] = request.POST['eday']
-	request.session['end_month'] = request.POST['emonth']
-	return redirect('manufqty')
+    request.session['start_day'] = request.POST['sday']
+    request.session['start_month'] = request.POST['smonth']
+    request.session['end_day'] = request.POST['eday']
+    request.session['end_month'] = request.POST['emonth']
+    return redirect('manufqty')
