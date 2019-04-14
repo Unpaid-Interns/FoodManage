@@ -120,7 +120,7 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
         # print("CHOSEN LINE:")
         # print(chosen_line)
 
-        if add_to_schedule and (chosen_line is not None):
+        if add_to_schedule and (chosen_line is not None) and finishes_before_deadline(mfgqty, earliest_start_time):
             new_schedule_item = create_schedule_item(mfgqty, chosen_line, earliest_start_time, current_user)
             new_scheduled_items.append(new_schedule_item)
             # test for ability to do this
@@ -181,6 +181,12 @@ def check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled):
 
 def mfgqty_duration(mfgqty):
     return timedelta(hours=(mfgqty.caseqty / mfgqty.sku.mfg_rate))
+
+
+def finishes_before_deadline(mfgqty, start_time):
+    duration = mfgqty_duration(mfgqty)
+    deadline = mfgqty.goal.deadline
+    return start_time + duration <= deadline
 
 
 def print_schedule(start_time, end_time, valid_mfg_lines, new_scheduled_items, unscheduled_items):
