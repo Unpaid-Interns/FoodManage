@@ -247,28 +247,26 @@ def timeline(request):
     request.session['mfgqtys'] = list()
     context = dict()
     mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
-    accessible_lines = list()
+    
+    # Get scheduled and unscheduled items on these manufacturing lines
+    unscheduled_items = list()
     accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
     if request.user.is_superuser:
         accessible_lines = ManufacturingLine.objects.all()
-        #accessible_lines = list() #for testing purposes only
-    print(accessible_lines)
     for mfg_qty in mfg_qtys:
         sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
         mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
-        #print("Length of list of mfg_lines: " + len(mfg_lines))
-        #print("Length of list of sched_items: " + len(sched_items))
-        #print("First mfg_line: " + mfg_lines[0])
         if len(mfg_lines) > 0 and len(sched_items) == 0 and mfg_lines[0]:
-            ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
-    # add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
+            unscheduled_items.append(ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]))
     form = ManufacturingSchedForm()
-    scheditems = ScheduleItem.objects.all()
+    scheditems = list()
+    scheditems.extend(ScheduleItem.objects.all())
+    scheditems.extend(unscheduled_items)
+
+    # Check for overlaps on manufacturing lines in the schedule
     mfdurations = list()
     mfg_overlap = list()
-    if not scheditems:
-        pass
-    else:
+    if scheditems:
         for s in scheditems:
             duration = dict()
             duration['id'] = s.pk
@@ -286,7 +284,7 @@ def timeline(request):
                 if s.start is not None and s2.start is not None and s != s2 and s.mfgline == s2.mfgline and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
                     mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
 
-    
+    # Deal with information from the javascript schedule
     if request.method == "POST":
         form = ManufacturingSchedForm(request.POST)
         if form.is_valid():
@@ -294,14 +292,12 @@ def timeline(request):
             overrides = form.cleaned_data['overrides']
             json_data = json.loads(data)
             ovr = json.loads(overrides)
-            print("Data:\n")
-            print(data)
-            print("Overrides:\n")
-            print(ovr)
             ids_in_tl = list()
             for item in json_data:
                 # actually store the information
-                schedItem = ScheduleItem.objects.get(pk=item['id'])
+                for s_item in scheditems:
+                    if s_item.pk == item['id']:
+                        schedItem = s_item
                 schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
                 if len(item['start'].split('.'))>1:
                     datatime = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
@@ -309,7 +305,6 @@ def timeline(request):
                         datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
                     elif datatime.time() > time(18,0,0):
                         datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
-                    print(datatime)
                     schedItem.start = datatime
                 elif len(item['start'].split(':'))>=4:
                     datatime = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
@@ -317,7 +312,6 @@ def timeline(request):
                         datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
                     elif datatime.time() > time(18,0,0):
                         datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
-                    print(datatime)
                     schedItem.start = datatime
                 else:
                     datatime = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
@@ -325,24 +319,18 @@ def timeline(request):
                         datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
                     elif datatime.time() > time(18,0,0):
                         datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
-                    print(datatime)
                     schedItem.start = datatime
                 ids_in_tl.append(item['id'])
                 schedItem.save()
-            print(ids_in_tl)
-            print(ScheduleItem.objects.all().values('pk'))
             for pk in ScheduleItem.objects.all().values('pk'):
                 # if it WAS in the TL, and now its not, remove info
                 # as of yet, doesn't delete anything
                 # I believe that it recreates the ScheduleItem b/c of the POST
-                print(pk['pk'])
                 if pk['pk'] not in ids_in_tl:
                     removed_item = ScheduleItem.objects.get(pk=pk['pk'])
-                    removed_item.start = None
                     removed_item.delete()
             for ovr_item in ovr:
                 # if the duration was manually overridden, reflect that here
-                #print(
                 end_override_item = ScheduleItem.objects.get(pk=ovr_item)
                 for item in json_data:
                     if item['id'] == ovr_item:
@@ -353,11 +341,12 @@ def timeline(request):
                         else:
                             end_override_item.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
                         end_override_item.save()
-
             return redirect('timeline')
+
+    # Create the schedule context
     context['form'] = form, 
-    context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
-    context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
+    context['unscheduled_items'] = unscheduled_items
+    context['scheduled_items'] = ScheduleItem.objects.all()
     visible_unsch_item = list()
     visible_sch_item = list()
     for ui in context['unscheduled_items']:
@@ -370,11 +359,9 @@ def timeline(request):
         print(si.start)
     context['visible_scheduled_items'] = visible_sch_item
     context['visible_unscheduled_items'] = visible_unsch_item
-    #context['mfg_lines'] = ManufacturingLine.objects.all()
     context['mfg_lines'] = accessible_lines
     context['mfdurations'] = mfdurations
     context['mfg_overlap'] = mfg_overlap
-    #context['provisional_items'] = ScheduleItem.objects.filter(provisional_user__isnull=False) needs a stricter criteria?
     print(mfg_overlap)
     return render(request, 'manufacturing_goals/manufscheduler.html', context)
 
@@ -382,25 +369,26 @@ def timeline(request):
 def timeline_viewer(request):
     context = dict()
     mfg_qtys = ManufacturingQty.objects.filter(goal__enabled=True)
-    accessible_lines = list()
+
+    # Get scheduled and unscheduled items on these manufacturing lines
+    unscheduled_items = list()
     accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
     if request.user.is_superuser:
         accessible_lines = ManufacturingLine.objects.all()
-        #accessible_lines = list() #for testing purposes only
-    print(accessible_lines)
     for mfg_qty in mfg_qtys:
         sched_items = ScheduleItem.objects.filter(mfgqty=mfg_qty)
         mfg_lines = ManufacturingLine.objects.filter(skumfgline__sku__manufacturingqty=mfg_qty)
         if len(mfg_lines) > 0 and len(sched_items) == 0 and mfg_lines[0]:
-            ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]).save()
-    # add in code to send db stored timeline as JSON and recieve timeline as JSON and place in db
+            unscheduled_items.append(ScheduleItem(mfgqty=mfg_qty, mfgline=mfg_lines[0]))
     form = ManufacturingSchedForm()
-    scheditems = ScheduleItem.objects.all()
+    scheditems = list()
+    scheditems.extend(ScheduleItem.objects.all())
+    scheditems.extend(unscheduled_items)
+
+    # Check for overlaps on manufacturing lines in the schedule
     mfdurations = list()
     mfg_overlap = list()
-    if not scheditems:
-        pass
-    else:
+    if scheditems:
         for s in scheditems:
             duration = dict()
             duration['id'] = s.pk
@@ -417,9 +405,11 @@ def timeline_viewer(request):
             for s2 in scheditems:
                 if s.start is not None and s2.start is not None and s != s2 and s.mfgline == s2.mfgline and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
                     mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
+    
+    # Create the schedule context
     context['form'] = form, 
-    context['unscheduled_items'] = ScheduleItem.objects.filter(start__isnull=True)
-    context['scheduled_items'] = ScheduleItem.objects.filter(start__isnull=False)
+    context['unscheduled_items'] = unscheduled_items
+    context['scheduled_items'] = ScheduleItem.objects.all()
     visible_unsch_item = list()
     visible_sch_item = list()
     for ui in context['unscheduled_items']:
@@ -433,7 +423,6 @@ def timeline_viewer(request):
     context['visible_scheduled_items'] = visible_sch_item
     context['visible_unscheduled_items'] = visible_unsch_item
     context['mfg_lines'] = ManufacturingLine.objects.all()
-    #context['mfg_lines'] = accessible_lines
     context['mfdurations'] = mfdurations
     context['mfg_overlap'] = mfg_overlap
     print(mfg_overlap)

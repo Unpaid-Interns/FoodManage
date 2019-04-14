@@ -34,9 +34,9 @@ class ManufacturingQty(models.Model):
 	goal = models.ForeignKey(ManufacturingGoal, on_delete=models.CASCADE)
 
 class ScheduleItem(models.Model):
-	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.CASCADE)
+	mfgqty = models.OneToOneField(ManufacturingQty, on_delete=models.CASCADE)
 	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.CASCADE)
-	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
+	start = models.DateTimeField(validators=[validate_workday])
 	endoverride = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 	provisional_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
