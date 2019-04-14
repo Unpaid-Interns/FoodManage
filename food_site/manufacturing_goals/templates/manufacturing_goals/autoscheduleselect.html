@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-	<h1>Select Items to Auto Schedule:</h1>
+	<h1>HypoScheduler<sup>&#174;</sup></h1>
 	<div class="inline">
-		{% csrf_token %}
+		<form class="form-inline" method="get">
+	        <p>Start:</p>
+	        <input class="narrow" name="startdate" type="date" value="{{ start_date }}" onchange='this.form.submit()'>
+	        <input class="narrow" name="starttime" type="time" value="{{ start_time }}" onchange='this.form.submit()'>
+	        <p>End:</p>
+	        <input class="narrow" name="enddate" type="date" value = "{{ end_date }}" onchange='this.form.submit()'>
+	        <input class="narrow" name="endtime" type="time" value = "{{ end_time }}" onchange='this.form.submit()'>
+	    </form>
 		<a class="btn" href="{% url 'auto_schedule' %}"><i class="fa fa-arrow-right"></i></a>	
 		<a class="btn" href="{% url 'timeline' %}"><i class="fa fa-close"></i></a>
 	</div>
