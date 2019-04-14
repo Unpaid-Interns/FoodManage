@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>HypoScheduler<sup>&#174;</sup></h1>
+	<div class="inline">
+		<form class="form-inline" method="get">
+	        <p>Start:</p>
+	        <input class="narrow" name="startdate" type="date" value="{{ start_date }}" onchange='this.form.submit()'>
+	        <input class="narrow" name="starttime" type="time" value="{{ start_time }}" onchange='this.form.submit()'>
+	        <p>End:</p>
+	        <input class="narrow" name="enddate" type="date" value = "{{ end_date }}" onchange='this.form.submit()'>
+	        <input class="narrow" name="endtime" type="time" value = "{{ end_time }}" onchange='this.form.submit()'>
+	    </form>
+		<a class="btn" href="{% url 'auto_schedule' %}"><i class="fa fa-arrow-right"></i></a>	
+		<a class="btn" href="{% url 'timeline' %}"><i class="fa fa-close"></i></a>
+	</div>
+	<br>
+	<div class="row">
+		<div class="column">
+			<div class="table" style="overflow-x:auto;">
+				{% load render_table from django_tables2 %}
+				{% load bootstrap3 %}
+				{% render_table input_table %}
+			</div>
+		</div>
+		<div class="column">
+			<div class="table" style="overflow-x:auto;">
+				{% render_table selected_table %}
+			</div>
+		</div>
+	</div>
+{% endblock content %}
