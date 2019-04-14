@@ -19,16 +19,19 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
         return False, "ERROR: Plant Manager user does not have any Manufacturing Lines associated with them.", \
                None, None
     manufacturingqtys_to_be_scheduled = check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled.order_by("goal__deadline"))
-    scheduled_items, unscheduled_items = create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled,
-                                      valid_manufacturing_lines, current_user, tz)
-    # print_schedule(start_time, stop_time, valid_manufacturing_lines, scheduled_items, unscheduled_items)
+    scheduled_items, unscheduled_items, unscheduled_items_dict = create_schedule(start_time, stop_time,
+                                                                                 manufacturingqtys_to_be_scheduled,
+                                                                                 valid_manufacturing_lines,
+                                                                                 current_user, tz)
+    print_schedule(start_time, stop_time, valid_manufacturing_lines, scheduled_items, unscheduled_items)
     if len(unscheduled_items) < 1:
         return True, "SUCCESS: Schedule created without error. All items scheduled.", scheduled_items, None
     else:
         message_string = "WARNING: Schedule created but not all items were scheduled. See unscheduled items below:\n"
         for mfgqty in unscheduled_items:
-            message_string += "SKU#: " + str(mfgqty.sku.sku_num) + ", SKU Name: " + str(mfgqty.sku.name) \
-                              + ", Goal: "+ str(mfgqty.goal.name) + "\n"
+            message_string += "SKU#: " + str(mfgqty.sku.sku_num) + ",  SKU Name: " + str(mfgqty.sku.name) \
+                              + ",  Goal: " + str(mfgqty.goal.name) + ",  Reason: " + unscheduled_items_dict[mfgqty] \
+                              + "\n"
         return True, message_string, scheduled_items, unscheduled_items
 
 
@@ -36,6 +39,7 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
                     tz):
     new_scheduled_items = []
     unscheduled_items = []
+    unscheduled_items_dict = {}
     mfgqty_to_available_lines = {}
 
     # get available lines for each mfgQty
@@ -45,7 +49,7 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
 
     # pick line
     for mfgqty in manufacturingqtys_to_be_scheduled:
-        print(mfgqty.sku.name)
+        # print(mfgqty.sku.name)
         duration = mfgqty_duration(mfgqty)
         chosen_line = None
         earliest_start_time = None
@@ -123,18 +127,38 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
         if add_to_schedule and (chosen_line is not None) and finishes_before_deadline(mfgqty, earliest_start_time):
             new_schedule_item = create_schedule_item(mfgqty, chosen_line, earliest_start_time, current_user)
             new_scheduled_items.append(new_schedule_item)
-            # test for ability to do this
             # print("Scheduled:")
             # print(new_schedule_item.mfgqty.sku.sku_num)
             # print(new_schedule_item.start)
             new_schedule_item.save()
+            # save_schedule_item(new_schedule_item) # deprecated
         else:
             # print("Unscheduled")
             # print(mfgqty.sku.name)
+            reason_message= ""
+            if not add_to_schedule:
+                reason_message = "There is not enough time between start and end time."
+            elif chosen_line is None:
+                reason_message = "There is no manufacturing line that this can be scheduled on available."
+            elif not finishes_before_deadline(mfgqty, earliest_start_time):
+                reason_message = "Will not finish before goal deadline."
+            else:
+                reason_message = "Does not fit into existing schedule."
             unscheduled_items.append(mfgqty)
-        print()
+            unscheduled_items_dict[mfgqty] = reason_message
+        # print()
 
-    return new_scheduled_items, unscheduled_items
+    return new_scheduled_items, unscheduled_items, unscheduled_items_dict
+
+
+# DEPRECATED
+def save_schedule_item(schedule_item):
+    # replacing: new_schedule_item.save()
+    schedule_item_list = mfg_models.ScheduleItem.objects.filter(mfgqty=schedule_item.mfgqty)
+    if len(schedule_item_list) > 0:
+        schedule_item_list[0].start = schedule_item.start
+        schedule_item_list[0].mfgline = schedule_item.mfgline
+        schedule_item_list[0].provisional_user = schedule_item.provisional_user
 
 
 def get_mfglines_for_sku(sku, valid_manufacturing_lines):
@@ -186,7 +210,7 @@ def mfgqty_duration(mfgqty):
 def finishes_before_deadline(mfgqty, start_time):
     duration = mfgqty_duration(mfgqty)
     deadline = mfgqty.goal.deadline
-    return start_time + duration <= deadline
+    return (start_time + duration).date() <= deadline
 
 
 def print_schedule(start_time, end_time, valid_mfg_lines, new_scheduled_items, unscheduled_items):
@@ -199,6 +223,11 @@ def print_schedule(start_time, end_time, valid_mfg_lines, new_scheduled_items, u
         print("----------------------------------------------------------------------------")
         # scheduled_items = (mfg_models.ScheduleItem.objects.filter(mfgline=line) + new_scheduled_items).order_by("start")
         scheduled_items = mfg_models.ScheduleItem.objects.filter(mfgline=line).order_by("start")
+        temp_prev_schuled_items = []
+        for item in scheduled_items:
+            if item.start is not None:
+                temp_prev_schuled_items.append(item)
+        scheduled_items = temp_prev_schuled_items
         print("Line = " + line.name)
         if len(scheduled_items) < 1:
             print()
