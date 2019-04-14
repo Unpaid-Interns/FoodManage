@@ -41,4 +41,8 @@ class SkuTotalTable(tables.Table):
 	profit_per_case = tables.Column(verbose_name="Avg Profit / Case")
 	profit_margin = tables.Column(verbose_name="Profit Margin")
 
+class PLSummaryTable(tables.Table):
+	year = tables.Column(verbose_name='Year')
+	revenue = tables.Column(verbose_name='Total Revenue')
+
 
