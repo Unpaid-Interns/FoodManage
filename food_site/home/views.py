@@ -3,13 +3,17 @@ from background_task import background
 from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 import requests
-from django.contrib.auth.models import User
+from django_tables2 import RequestConfig, paginators
+from django.db.models import Q
+from django.contrib.auth.models import User, Group
 from sales.models import SalesRecord, Customer
 from sales import tasks
 from manufacturing_goals import models as mfg_models
 from sku_manage import models as sku_models
+from .tables import UserTable
+from .models import PlantManager
 
 # Create your views here.
 def index(request):
@@ -35,22 +39,86 @@ def help(request):
 def aboutus(request):
 	return render(request, 'home/aboutus.html', context=None)
 
+def privacy(request):
+	return render(request, 'home/hypomealsrus.html', context=None)
+
 def authout(request):
 	logout(request)
 	return redirect('/')
 
-@login_required
-def clear_database(request):
-	SalesRecord.objects.all().delete()
-	Customer.objects.all().delete()
-	mfg_models.ScheduleItem.objects.all().delete()
-	mfg_models.ManufacturingGoal.objects.all().delete()
-	sku_models.SKU.objects.all().delete()
-	sku_models.Formula.objects.all().delete()
-	sku_models.ManufacturingLine.objects.all().delete()
-	sku_models.ProductLine.objects.all().delete()
-	sku_models.Ingredient.objects.all().delete()
-	return redirect('/')
+@permission_required('auth.change_user')
+def selectuser(request):
+	queryset = User.objects.all()
+	context = {
+		'paginated': True,
+		'keyword': '',
+	}
+	paginate = {
+		'paginator_class': paginators.LazyPaginator,
+		'per_page': 25,
+	}
+
+	if request.method == 'GET':
+		if 'keyword' in request.GET:
+			keyword = request.GET['keyword']
+			queryset = queryset.filter(Q(username__icontains=keyword) | 
+				Q(first_name__icontains=keyword) | 
+				Q(last_name__icontains=keyword) | 
+				Q(email__icontains=keyword) | 
+				Q(groups__name__iexact=keyword))
+			context['keyword'] = keyword
+
+		if 'remove_pagination' in request.GET:
+			paginate = False
+			context['paginated'] = False
+
+	table = UserTable(queryset)
+	context['user_table'] = table
+	RequestConfig(request, paginate=paginate).configure(table)
+	return render(request, 'home/userlist.html', context)
+
+@permission_required('auth.change_user')
+def edituser(request, pk):
+	user = User.objects.get(pk=pk)
+	groups = Group.objects.all().exclude(name="Plant Manager")
+	plantmanager_group = Group.objects.get(name="Plant Manager")
+
+	mfglines = sku_models.ManufacturingLine.objects.all()
+	mfglines_managed = sku_models.ManufacturingLine.objects.filter(plantmanager__isnull=False, plantmanager__user=request.user)
+
+	if request.method == "POST":
+		is_plantmanager = False
+		for group in groups:
+			if str(group.pk) in request.POST and group not in user.groups.all():
+				user.groups.add(group)
+			if str(group.pk) not in request.POST and group in user.groups.all():
+				user.groups.remove(group)
+		for mfgline in mfglines:
+			if mfgline.shortname in request.POST:
+				is_plantmanager = True
+			if mfgline.shortname in request.POST and mfgline not in mfglines_managed:
+				print('adding ' + str(mfgline))
+				pm = PlantManager(user=request.user, mfgline=mfgline)
+				pm.full_clean()
+				pm.save()
+			if mfgline.shortname not in request.POST and mfgline in mfglines_managed:
+				print('removing ' + str(mfgline))
+				PlantManager.objects.filter(user=request.user, mfgline=mfgline).delete()
+			if is_plantmanager and plantmanager_group not in user.groups.all():
+				user.groups.add(plantmanager_group)
+			if not is_plantmanager and plantmanager_group in user.groups.all():
+				user.groups.remove(plantmanager_group)
+
+
+		return redirect('selectuser')
+
+	context = {
+		'user': user,
+		'group_list': groups,
+		'mfgline_list': mfglines,
+		'selected_mfglines': mfglines_managed,
+	}
+	return render(request, 'home/edituser.html', context)
 
 token = None
 
@@ -110,7 +178,7 @@ def assistant(request):
 		return redirect('/cya')
 	if 'Choose' in toSend and 'adventure' in toSend:
 		return redirect('/cya')
-	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend:
+	if 'find' in toSend or 'see' in toSend or 'view' in toSend or 'show' in toSend or 'Show' in toSend or 'where' in toSend or 'Where' in toSend or 'access' in toSend:
 		if 'sku' in toSend or 'SKU' in toSend:
 			return redirect('SKU')
 		if 'ingredient' in toSend:
@@ -131,7 +199,7 @@ def assistant(request):
 			return redirect('timeline')
 		if 'report' in toSend:
 			return redirect('reporting')
-	if 'upload' in toSend:
+	if 'upload' in toSend or 'import' in toSend:
 		return redirect('simple_upload')
 	if 'scrape' in toSend or 'Scrape' in toSend:
 		tasks.scrape()
@@ -150,7 +218,7 @@ def assistant(request):
 			}
 			return render(request, 'home/index.html', context)
 	if 'company standards' in toSend:
-		return redirect('https://www.toysrusinc.com/corporate-responsibility/safety-practices/safety/practices')
+		return redirect('privacy-policy')
 	toSend.replace(' ','_')
 	r = requests.get("https://assistant-food.herokuapp.com/?message="+toSend)
 	reply = ''

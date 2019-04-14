@@ -126,7 +126,7 @@ a {
   background-color: #254040;
 }
 
-.form-inline button:disabled {
+.inline button:disabled, .form-inline button:disabled {
   background-color: #284848;
   border: 1px solid #254040;
   color: #a17a52;

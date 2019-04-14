@@ -4,9 +4,9 @@ from sku_manage.models import Ingredient, ManufacturingLine, ProductLine
 
 class SkuSalesTable(tables.Table):
 	year = tables.TemplateColumn('{% load ex_tags %}{{ record.date|year }}', order_by='date')
-	week = tables.TemplateColumn('{% load ex_tags %}{{ record.date|week }}', orderable=False)
-	customer_name = tables.TemplateColumn('{{ record.customer.name }}', orderable=False)
-	customer_number = tables.TemplateColumn('{{ record.customer.number }}', orderable=False, verbose_name="Cust#")
+	week = tables.TemplateColumn('{% load ex_tags %}{{ record.date|week }}', order_by='date')
+	customer_name = tables.TemplateColumn('{{ record.customer.name }}', order_by='customer__name')
+	customer_number = tables.TemplateColumn('{{ record.customer.number }}', order_by='customer__number', verbose_name="Cust#")
 	revenue = tables.TemplateColumn('{% load ex_tags %}{{ record.cases_sold|mult:record.price_per_case }}', orderable=False)
 	class Meta:
 		model = SalesRecord
@@ -40,5 +40,9 @@ class SkuTotalTable(tables.Table):
 	revenue_per_case = tables.Column(verbose_name="Avg Revenue / Case")
 	profit_per_case = tables.Column(verbose_name="Avg Profit / Case")
 	profit_margin = tables.Column(verbose_name="Profit Margin")
+
+class PLSummaryTable(tables.Table):
+	year = tables.Column(verbose_name='Year')
+	revenue = tables.Column(verbose_name='Total Revenue')
 
 

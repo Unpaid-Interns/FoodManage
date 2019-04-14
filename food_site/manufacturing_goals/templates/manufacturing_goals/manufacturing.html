@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
 	<h1>Manufacturing Goals</h1>
-	<h2>Create a new manufacturing goal</h2>
-	<form class="form-inline" method="POST" action="/manufacturing/">
-		{% csrf_token %}
-		<p>Name:</p>
-		<input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Goal Name">
-		<p>Deadline:</p>
-		<input value="{{ deadline }}" type="date" name="deadline" required="required">
-		<button type="submit" id="submit" name="submit">Create New Goal</button>
-	</form>
-	<p><strong>OR</strong></p>
-	<h2>View a Manufacturing Goal and Calculations</h2> 
-	<form class="form-inline" method="post">
-		{% csrf_token %}
-		{{ form2 }}
-		<button type="submit" id="submit" name="submit">Go</button>
-	</form>
+	{% if perms.manufacturing_goals.add_manufacturinggoal %}
+		<h2>Create a New Manufacturing Goal</h2>
+		<form class="form-inline" method="POST">
+			{% csrf_token %}
+			<p>Name:</p>
+			<input value="{{ name }}" type="text" name="name" maxlength="500" id="name" required="required" placeholder="Goal Name">
+			<p>Deadline:</p>
+			<input value="{{ deadline }}" type="date" name="deadline" required="required">
+			<button type="submit" id="submit" name="submit">Create New Goal</button>
+		</form>
+		<h2>Existing Manufacturing Goals</h2> 
+	{% endif %}
+	<div class="table" style="overflow-x:auto;">
+		{% load render_table from django_tables2 %}
+		{% load bootstrap3 %}
+		{% render_table enable_table %}
+	</div>
 	<br>
-	{% if request.user.is_staff %}
+	{% if perms.manufacturing_goals.view_scheduleitem %}
 	<div class="menu-buttons" style="text-align: left">
-		<a class="btn" href="{% url 'enable_menu' %}">Enable/Disable Goals</a>
-		<a class="btn" href='/manufacturing/timeline/'>Manufacturing Timeline</a>
+		<a class="btn" href="{% url 'timeline_viewer' %}">Manufacturing Timeline</a>
 	</div>
 	{% endif %}
 {% endblock content %}

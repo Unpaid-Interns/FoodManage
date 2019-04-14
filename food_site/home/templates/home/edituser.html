@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Roles: {{ user }}</h1>
+<form method="post">
+	{% csrf_token %}
+	<div class="checkbox">
+		<h3>Roles</h3>
+		{% for group in group_list %}
+			<input type="checkbox" name="{{ group.pk }}" value="{{ group.name }}" {% if group in user.groups.all %} checked {% endif %}>
+			{{ group.name }}
+			<br>
+		{% endfor %}
+	</div>
+	<div class="checkbox">
+		<h3>Plant Manager Roles</h3>
+		{% for mfgline in mfgline_list %}
+			<input type="checkbox" name="{{ mfgline.shortname }}" value="{{ mfgline.name }}" {% if mfgline in selected_mfglines %} checked {% endif %}>
+			Plant Manager: {{ mfgline }}
+			<br>
+		{% endfor %}
+	</div>
+	<br>
+	<div class="inline">
+		<button type="submit"><i class="fa fa-save"></i></button>
+		<a class="btn" href="{% url 'selectuser' %}"><i class="fa fa-remove"></i></a>
+	</div>
+</form>
+
+{% endblock content %}

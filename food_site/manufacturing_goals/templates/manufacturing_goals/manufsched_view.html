@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
+	<script type="text/javascript" src="{% static 'manufacturing_goals/vis.min.js' %}"></script>
+	<style>
+		li.item::before {
+			content: "+";
+			padding-right: 8px;
+			color: blue;
+		}
+		.column {
+			float: left;
+			width: 50%;
+		}
+		.row:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+	</style>
+	<div class="row">
+		<div id="visualization" style="padding:10px;float:left;width:80%;"></div>
+		<div id="colorkey" style="float:left;font-size:12px;">
+			<p>Timeline Key:</p>
+			<p><div style="background-color:#D5DDF6;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Unselected Item</p>
+			<p><div style="background-color:#FFC200;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Selected Item</p>
+			<p><div style="background-color:red;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item completes after deadline</p>
+			<p><div style="background-color:silver;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's goal has been deactivated</p>
+			<p><div style="background-color:green;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's duration has been modified</p>
+		</div>
+	</div>
+	{% if perms.manufacturing_goals.edit_manufacturinggoal %}
+	<div class="menu-buttons" style="text-align: left">
+		<a class="btn" href='/manufacturing/timeline/'>Edit Manufacturing Timeline</a>
+	</div>
+	{% endif %}
+	<div class="warnings">
+		<h2>Warnings</h2>
+		<h3>Not Included in Schedule:</h3>
+		{% for item in unscheduled_items %}
+			{% if item.mfgqty.goal.enabled %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Orphaned from Disabled Goals:</h3>
+		{% for item in scheduled_items %}
+			{% if not item.mfgqty.goal.enabled %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Finishing after Goal Deadline:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.too_late %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+		<h3>Overlapping production on a manufacturing line:</h3>
+		{% for item in mfg_overlap %}
+			<p>{{ item }}</p>
+		{% endfor %}
+		<h3>Manually Adjusted Duration:</h3>
+		{% for item in scheduled_items %}
+			{% if item.mfgqty.goal.enabled and item.endoverride %}
+				<p>{{ item.mfgqty.goal }}: {{ item.mfgqty.sku }}</p>
+			{% endif %}
+		{% endfor %}
+	</div>
+	<script type="text/javascript">
+		var container = document.getElementById('visualization');
+		// Pulled from the database of manufacturing lines
+		var groups = new vis.DataSet();
+		{% for mfg_line in mfg_lines %}
+			groups.add([{id: {{ mfg_line.id }}, content: '{{ mfg_line }}'}]);
+		{% endfor %}
+		// Pulled from manufacturing schedules
+		var items = new vis.DataSet();
+		{% for item in scheduled_items %}
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		{% endfor %}
+		var nextItem = 2;
+		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
+		// also may want to consider hiding non-business hours?
+		var today = new Date();
+		var dd = today.getDate();
+		var d2 = today.getDate() +1;
+		var mm = today.getMonth() + 1;
+		var yyyy = today.getFullYear();
+		if (dd < 10){dd='0'+dd;}
+		if (d2 < 10){d2='0'+d2;}
+		if (mm < 10){mm='0'+mm;}
+		today = mm+'/'+dd+'/'+yyyy;
+		tomorrow = mm+'/'+d2+'/'+yyyy;
+		var options = {
+			stack: true,
+			selectable: true,
+			editable: false,
+			hiddenDates: [
+				{start: '1970-01-01 18:00:00', end: '1970-01-02 8:00:00', repeat: 'daily'}
+			],
+			snap: function(date, scale, step){
+				var hour = 60 * 60 * 1000
+				return Math.round(date / hour) * hour;
+			},
+			type: 'range',
+			start: today,
+			end: tomorrow
+		};
+		var overridden = [];
+
+		var timeline = new vis.Timeline(container, items, groups, options);
+		var now = new Date();
+		var visibleStart = new Date(now.getFullYear(),now.getMonth(),now.getDate(), 0, 0, 0, 0);
+		timeline.on('rangechange', function(properties) {
+			visibleStart = properties.start;
+		});
+	</script>
+{% endblock content %}

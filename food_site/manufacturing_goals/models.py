@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+import time as sys_time
 
 from django.utils import timezone
 from django.db import models
@@ -13,13 +14,17 @@ def validate_workday(value):
 class ManufacturingGoal(models.Model):
 	name = models.CharField(max_length=500)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	last_edit = models.FloatField(default=sys_time.time(), verbose_name='Last Edit Timestamp')
 	deadline = models.DateField()
 	enabled = models.BooleanField(default=False)
 
 	class Meta:
-		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),
-					   ('schedule_manufacturinggoal', 'Can edit the manufacturing schedule'),)
+		permissions = (('enable_manufacturinggoal', 'Can enable/disable manufacturing goals'),)
 	
+	def save(self, *args, **kwargs):
+		self.last_edit = sys_time.time()
+		super().save(*args, **kwargs)
+
 	def __str__(self):
 		return self.name
 
@@ -29,16 +34,19 @@ class ManufacturingQty(models.Model):
 	goal = models.ForeignKey(ManufacturingGoal, on_delete=models.CASCADE)
 
 class ScheduleItem(models.Model):
-	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.PROTECT)
-	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.PROTECT)
+	mfgqty = models.ForeignKey(ManufacturingQty, on_delete=models.CASCADE)
+	mfgline = models.ForeignKey(ManufacturingLine, on_delete=models.CASCADE)
 	start = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
 	endoverride = models.DateTimeField(validators=[validate_workday], blank=True, null=True)
+	provisional_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
 	def clean(self):
 		if SkuMfgLine.objects.filter(sku=self.mfgqty.sku, mfg_line=self.mfgline).count() == 0:
 			raise ValidationError('Cannot produce selected SKU on manufacturing line')
 
 	def duration(self):
+		if (self.mfgqty.caseqty/self.mfgqty.sku.mfg_rate) < 1:
+			return timedelta(hours=1)
 		return timedelta(hours=(self.mfgqty.caseqty/self.mfgqty.sku.mfg_rate))
 
 	def end_calc(self):

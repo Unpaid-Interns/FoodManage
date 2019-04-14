@@ -5,6 +5,13 @@
 	<div class="inline">
 		<h2>{{ goal_name }}</h2>
 		<a href="#" id="xx" class="btn"><i class="fa fa-download"></i></a><br>
+		{% if request.user.pk == goal.user.pk or perms.manufacturing_goals.change_manufacuringgoal %}
+			{% if schedule_dep == 0 %}
+				<a href="{% url 'manufqty' %}" class="btn"><i class="fa fa-pencil"></i></a><br>
+			{% else %}
+				<button disabled><i class="fa fa-pencil"></i></a></button>
+			{% endif %}
+		{% endif %}
 	</div>
 	<table class="sku_table table" style="margin-bottom:10px;">
 		<tr>
