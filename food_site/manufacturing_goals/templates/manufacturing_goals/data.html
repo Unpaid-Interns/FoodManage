@@ -4,7 +4,21 @@
 	<h2>{{ errormsg }}</h2>
 	{% include "data/filters.html" %}
 	<br>
-	
+	<p>Sales projection date range can be set below:</p>
+	<br>
+	<form class="form-inline" method="POST" action="/manufacturing/dateset">
+		{% csrf_token %}
+		<p>Start Day</p>
+		<input value="{{ startday }}" type="number" name="sday" required="required">
+		<p>Start Month</p>
+		<input value="{{ startmonth }}" type="number" name="smonth" required="required">
+		<p>End Date</p>
+		<input value="{{ endday }}" type="number" name="eday" required="required">
+		<p>End Month</p>
+		<input value="{{ endmonth }}" type="number" name="emonth" required="required">
+		<button type="submit" id="submit" name="submit">Set</button>
+	</form>
+	<br>		
 	<form class="inline" method="post">
 		{% csrf_token %}
 		<button type="submit" name="done" {% if not selected_table.rows %} disabled {% endif %}><i class="fa fa-save"></i></button>	

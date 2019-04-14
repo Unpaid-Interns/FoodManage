@@ -97,3 +97,4 @@ def edit_mapping(request):
 			SkuMfgLine.objects.filter(sku__in=skus, mfg_line__pk=line_pk).delete()
 	return redirect('map_view')
 
+

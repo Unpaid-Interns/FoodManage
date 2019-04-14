@@ -35,3 +35,10 @@ class EnableTable(tables.Table):
 	class Meta:
 		model = ManufacturingGoal
 		fields = [ 'name', 'user', 'last_edit', 'deadline', 'enable']
+  
+class SKUTable2(tables.Table):
+	add = tables.TemplateColumn(orderable=False, verbose_name="Add", template_name='manufacturing_goals/addcolumn.html')
+	proj = tables.TemplateColumn(orderable=False, verbose_name="Project", template_name='manufacturing_goals/projection.html')
+	class Meta:
+		model = SKU
+		fields = ['name', 'sku_num', 'add', 'proj']
