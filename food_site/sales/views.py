@@ -10,7 +10,7 @@ from django_tables2 import RequestConfig, paginators
 from sku_manage.models import SKU, ProductLine, IngredientQty
 from manufacturing_goals.models import ManufacturingQty
 from .models import SalesRecord, Customer
-from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable, SkuSummaryTable, SkuTotalTable
+from .tables import SkuSalesTable, ProductLineTable, SelectedPLTable, SkuSummaryTable, SkuTotalTable, PLSummaryTable
 import urllib
 import time
 from exporter import CSVExport
@@ -92,6 +92,8 @@ def sales_report(request):
 	context = dict()
 	tables = dict()
 	totals = dict()
+	all_sales = dict()
+	plsummaries = dict()
 	export_data = dict()
 	product_lines = ProductLine.objects.filter(pk__in=request.session.get('productlines'))
 	for sku in SKU.objects.filter(product_line__in=product_lines):
@@ -155,9 +157,26 @@ def sales_report(request):
 		RequestConfig(request, paginate=False).configure(tables[sku])
 		totals[sku] = SkuTotalTable(sales_total)
 		export_data[sku] = (sales_computed, sales_total)
+		all_sales[sku] = sales_computed
 
+	# Product Line Summary
 	for prodline in product_lines:
-		pass
+		revenue_totals = dict()
+		total_revenue = 0
+		for sku in SKU.objects.filter(product_line=prodline):
+			for sales_data in all_sales[sku]:
+				year_total_revenue = sales_data['revenue']
+				total_revenue += sales_data['revenue']
+				if str(sales_data['year']) in revenue_totals:
+					year_total_revenue += revenue_totals[str(sales_data['year'])]
+				revenue_totals[str(sales_data['year'])] = year_total_revenue
+		if revenue_totals:
+			revenue_totals['Full Decade'] = total_revenue
+		plsummary = list()
+		for year, revenue in revenue_totals.items():
+			plsummary.append({'year': year, 'revenue': revenue})
+		plsummaries[prodline] = PLSummaryTable(plsummary)
+		RequestConfig(request, paginate=False).configure(plsummaries[prodline])
 
 	# CSV Export
 	if request.method == 'POST' and 'export_data' in request.POST:
@@ -166,6 +185,7 @@ def sales_report(request):
 	context['product_lines'] = product_lines
 	context['tables'] = tables
 	context['totals'] = totals
+	context['plsummaries'] = plsummaries
 	return render(request, 'sales/report.html', context)
 
 @permission_required('sales.report_salesrecord')
