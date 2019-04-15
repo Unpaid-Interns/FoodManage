@@ -558,7 +558,7 @@ def project(request, pk):
         return redirect('manufqty')
     sdate = date(2000,int(smonth),int(sday))
     edate = date(2000,int(emonth),int(eday))
-    ttest = timezone.now()
+    ttest = timezone.now().date()
     ttest = ttest.replace(year=2000)
     taco = timezone.now().year
     if edate < ttest:
@@ -642,6 +642,7 @@ def project(request, pk):
                 if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold4 = numbersold4 + record.cases_sold
     data = dict()
+    data['Time Range'] = 'Total Sold'
     data[range1] = numbersold1
     data[range2] = numbersold2
     data[range3] = numbersold3
