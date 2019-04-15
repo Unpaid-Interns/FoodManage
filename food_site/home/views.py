@@ -98,12 +98,12 @@ def edituser(request, pk):
 				is_plantmanager = True
 			if mfgline.shortname in request.POST and mfgline not in mfglines_managed:
 				print('adding ' + str(mfgline))
-				pm = PlantManager(user=request.user, mfgline=mfgline)
+				pm = PlantManager(user=user, mfgline=mfgline)
 				pm.full_clean()
 				pm.save()
 			if mfgline.shortname not in request.POST and mfgline in mfglines_managed:
 				print('removing ' + str(mfgline))
-				PlantManager.objects.filter(user=request.user, mfgline=mfgline).delete()
+				PlantManager.objects.filter(user=user, mfgline=mfgline).delete()
 			if is_plantmanager and plantmanager_group not in user.groups.all():
 				user.groups.add(plantmanager_group)
 			if not is_plantmanager and plantmanager_group in user.groups.all():
