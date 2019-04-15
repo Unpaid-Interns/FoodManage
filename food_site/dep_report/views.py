@@ -148,7 +148,7 @@ def mfg_sch_menu(request):
 @permission_required('sku_manage.report_manufacturingline')
 def schedule_report(request, pk):
 	manufacturingline = ManufacturingLine.objects.get(pk=pk)
-	schedule_items = ScheduleItem.objects.filter(mfgline=manufacturingline, mfgqty__goal__enabled=True, start__isnull=False).order_by('start')
+	schedule_items = ScheduleItem.objects.filter(mfgline=manufacturingline, mfgqty__goal__enabled=True, provisional_user__isnull=True).order_by('start')
 	if request.method == 'GET':
 		if 'starttime' in request.GET and request.GET['starttime'] != '':
 			start_time = request.GET['starttime']
