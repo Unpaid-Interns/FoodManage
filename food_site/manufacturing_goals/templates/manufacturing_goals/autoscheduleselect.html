@@ -14,6 +14,11 @@
 		<a class="btn" href="{% url 'timeline' %}"><i class="fa fa-close"></i></a>
 	</div>
 	<br>
+	<form class="form-inline" method="post">
+		{% csrf_token %}
+		<button type="submit" name="add_all">Add All</button>
+		<button type="submit" name="remove_all">Remove All</button>
+	</form>
 	<div class="row">
 		<div class="column">
 			<div class="table" style="overflow-x:auto;">

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block content %}
+{% block styling %}
 	<link rel="stylesheet" type="text/css" href="{% static 'manufacturing_goals/vis.min.css' %}">
 	<script type="text/javascript" src="{% static 'manufacturing_goals/vis.min.js' %}"></script>
 	<style>
@@ -19,22 +19,28 @@
 			clear: both;
 		}
 	</style>
+{% endblock styling %}
+
+{% block content %}
+	<div class="inline">
+		<h1>HypoSchedule<sup>&#174;</sup></h1>
+		{% if perms.manufacturing_goals.change_scheduleitem %}
+			<a class="btn" href="{% url 'timeline' %}"><i class="fa fa-pencil"></i></a>
+		{% endif %}
+	</div>
 	<div class="row">
 		<div id="visualization" style="padding:10px;float:left;width:80%;"></div>
 		<div id="colorkey" style="float:left;font-size:12px;">
 			<p>Timeline Key:</p>
 			<p><div style="background-color:#D5DDF6;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Unselected Item</p>
-			<p><div style="background-color:#FFC200;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Selected Item</p>
-			<p><div style="background-color:red;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item completes after deadline</p>
-			<p><div style="background-color:silver;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's goal has been deactivated</p>
-			<p><div style="background-color:green;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's duration has been modified</p>
+			<p><div style="background-color:#FFF68C;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Selected Item</p>
+			<p><div style="background-color:darkorange;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item completes after deadline</p>
+			<p><div style="background-color:silver;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Orphaned Item</p>
+			<p><div style="background-color:gold;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Item's duration was modified</p>
+			<p><div style="background-color:lightpink;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Provisional, pending review</p>
 		</div>
 	</div>
-	{% if perms.manufacturing_goals.edit_manufacturinggoal %}
-	<div class="menu-buttons" style="text-align: left">
-		<a class="btn" href='/manufacturing/timeline/'>Edit Manufacturing Timeline</a>
-	</div>
-	{% endif %}
+
 	<div class="warnings">
 		<h2>Warnings</h2>
 		<h3>Not Included in Schedule:</h3>
@@ -66,6 +72,7 @@
 			{% endif %}
 		{% endfor %}
 	</div>
+
 	<script type="text/javascript">
 		var container = document.getElementById('visualization');
 		// Pulled from the database of manufacturing lines
@@ -76,7 +83,9 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% endif %}}]);
+		{% if not item.provisional_user %}
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver; border: 0px;'{% elif item.too_late %}, style: 'background-color: darkorange; border: 0px;'{% elif item.endoverride %}, style: 'background-color: gold; border: 0px;'{% elif item.provisional_user %}, style: 'background-color: lightpink; border: 0px;'{% endif %}}]);
+		{% endif %}
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
@@ -92,7 +101,7 @@
 		today = mm+'/'+dd+'/'+yyyy;
 		tomorrow = mm+'/'+d2+'/'+yyyy;
 		var options = {
-			stack: true,
+			stack: false,
 			selectable: true,
 			editable: false,
 			hiddenDates: [

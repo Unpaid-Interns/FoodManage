@@ -284,8 +284,9 @@ def timeline(request):
                 if s.start is not None and s2.start is not None and s != s2 and s.mfgline == s2.mfgline and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
                     mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
 
-    # Deal with information from the javascript schedule
     if request.method == "POST":
+        
+        # Deal with information from the javascript schedule
         form = ManufacturingSchedForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data['data']
@@ -341,9 +342,22 @@ def timeline(request):
                         else:
                             end_override_item.endoverride = datetime.strptime(item['end'], '%Y-%m-%dT%H:%M:%S%z')
                         end_override_item.save()
+            
+            # Approve/Reject Provisionals
+            if 'save_provisional' in request.POST:
+                print('SAVING')
+                for sch_item in ScheduleItem.objects.filter(provisional_user=request.user):
+                    sch_item.provisional_user = None
+                    sch_item.save()
+            elif 'discard_provisional' in request.POST:
+                print('DISCARDING')
+                ScheduleItem.objects.filter(provisional_user=request.user).delete()
+        
             return redirect('timeline')
 
     # Create the schedule context
+    if ScheduleItem.objects.filter(provisional_user=request.user):
+        context['has_provisional'] = True
     context['form'] = form, 
     context['unscheduled_items'] = unscheduled_items
     context['scheduled_items'] = ScheduleItem.objects.all()
@@ -355,14 +369,11 @@ def timeline(request):
     for si in context['scheduled_items']:
         if si.mfgline in accessible_lines:
             visible_sch_item.append(si)
-        print("Start Time:\n")      
-        print(si.start)
     context['visible_scheduled_items'] = visible_sch_item
     context['visible_unscheduled_items'] = visible_unsch_item
     context['mfg_lines'] = accessible_lines
     context['mfdurations'] = mfdurations
     context['mfg_overlap'] = mfg_overlap
-    print(mfg_overlap)
     return render(request, 'manufacturing_goals/manufscheduler.html', context)
 
 @permission_required('manufacturing_goals.view_manufacturinggoal')
@@ -468,6 +479,18 @@ def auto_schedule_select(request):
         'end_date': (date.today() + timedelta(days=61)).isoformat(),
         'end_time': time(hour=18).isoformat()[0:-3],
     }
+
+    if request.method == 'POST':
+        if 'add_all' in request.POST:
+            mfgqtys = list()
+            mfgqtys.extend(request.session.get('mfgqtys'))
+            for mfgqty in queryset:
+                mfgqtys.append(mfgqty.pk)
+            request.session['mfgqtys'] = mfgqtys
+            return redirect('auto_schedule_select')
+        if 'remove_all' in request.POST:
+            request.session['mfgqtys'] = list()
+            return redirect('auto_schedule_select')
 
     if request.method == 'GET':
         if 'startdate' in request.GET and request.GET['startdate'] != '':
