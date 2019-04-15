@@ -84,7 +84,8 @@
 	</form>
 	<div class="menu-buttons" style="text-align: left">
 		<a class="btn" href="{% url 'timeline_viewer' %}">Return to View</a>
-		<a class="btn" href="{% url 'auto_schedule_select' %}">Auto Scheduler</a>
+		<!--<a class="btn" id="autosched_btn" href="{% url 'auto_schedule_select' %}">Auto Scheduler</a>-->
+		<button id="autosched_btn" onclick="window.location='{% url 'auto_schedule_select' %}';">Auto Scheduler</button>
 	</div>
 	<div class="warnings">
 		<h2>Warnings</h2>
@@ -140,7 +141,7 @@
 		// Pulled from manufacturing schedules
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% comment %}{% elif item.provisional_user %}, style: 'background-color: orange;'{% endcomment %}{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver;'{% elif item.too_late %}, style: 'background-color:red;'{% elif item.endoverride %}, style: 'background-color: green;'{% elif item.provisional_user %}, style: 'background-color: orange;'{% endif %}}]);
 		{% endfor %}
 		var nextItem = 2;
 		// want moveable, clickable, extendable, removeable and replaceable, but not changeable
@@ -186,6 +187,8 @@
 			onRemove: function(item, callback) {
 				document.getElementById(item.id).style.display = "block";
 				document.getElementById('s-'+item.id).style.display = "none";
+				document.getElementById('autosched_btn').disabled = true;
+				document.getElementById('autosched_btn').style.backgroundColor = "grey";
 				callback(item);
 			}
 		};
@@ -241,6 +244,8 @@
 			//nextItem++;
 			document.getElementById(id).style.display = "none";
 			document.getElementById('s-'+id).style.display = "block";
+			document.getElementById('autosched_btn').disabled = true;
+			document.getElementById('autosched_btn').style.backgroundColor = "grey";
 		}
 
 		function saveTLData() {
@@ -252,6 +257,8 @@
 			});
 			document.getElementById("data").value = JSON.stringify(data, null, 2);
 			document.getElementById("overrides").value = JSON.stringify(overridden, null, 2);
+			document.getElementById('autosched_btn').disabled = false;
+			//document.getElementById('autosched_btn').style.backgroundColor = "blue";
 			//console.log(JSON.stringify(data, null, 2));
 		}
 		// also need to load data from db
@@ -269,6 +276,8 @@
 		function increaseDuration(id){
 			oldItem = items.get(id);
 			//console.log(overrides);
+			document.getElementById('autosched_btn').disabled = true;
+			document.getElementById('autosched_btn').style.backgroundColor = "grey";
 			var deltat = 1;
 			var endtime = new Date();
 			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
@@ -290,6 +299,8 @@
 		function decreaseDuration(id){
 			oldItem = items.get(id);
 			//console.log(overrides);
+			document.getElementById('autosched_btn').disabled = true;
+			document.getElementById('autosched_btn').style.backgroundColor = "grey";
 			var deltat = 1;
 			var endtime = new Date();
 			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
