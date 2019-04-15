@@ -251,6 +251,9 @@ def timeline(request):
     # Get scheduled and unscheduled items on these manufacturing lines
     unscheduled_items = list()
     accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
+    print(accessible_lines)
+    print(PlantManager.objects.all())
+    print(PlantManager.objects.filter(user=request.user))
     if request.user.is_superuser:
         accessible_lines = ManufacturingLine.objects.all()
     for mfg_qty in mfg_qtys:
