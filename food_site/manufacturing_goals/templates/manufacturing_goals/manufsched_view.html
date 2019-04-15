@@ -84,7 +84,7 @@
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
 		{% if not item.provisional_user %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver; border: 0px;'{% elif item.too_late %}, style: 'background-color: darkorange; border: 0px;'{% elif item.endoverride %}, style: 'background-color: gold; border: 0px;'{% elif item.provisional_user %}, style: 'background-color: lightpink; border: 0px;'{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver; border-color: darkgray;'{% elif item.too_late %}, style: 'background-color: darkorange; border-color: orangered;'{% elif item.endoverride %}, style: 'background-color: gold; border-color: goldenrod;'{% elif item.provisional_user %}, style: 'background-color: lightpink; border-color: hotpink;'{% endif %}}]);
 		{% endif %}
 		{% endfor %}
 		var nextItem = 2;

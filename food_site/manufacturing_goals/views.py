@@ -272,7 +272,7 @@ def timeline(request):
     if scheditems:
         for s in scheditems:
             duration = dict()
-            duration['id'] = s.pk
+            duration['id'] = s.mfgqty.pk
             # raw, how many hours it takes via calculated time
             ttl_hrs = s.duration().seconds / 3600.0
             # 10 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
@@ -300,7 +300,8 @@ def timeline(request):
             for item in json_data:
                 # actually store the information
                 for s_item in scheditems:
-                    if s_item.pk == item['id']:
+                    print("Check: " + str(s_item.pk) + " " + str(s_item.mfgqty.pk) + " " + str(item['id']))
+                    if s_item.mfgqty.pk == item['id']:
                         schedItem = s_item
                 schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
                 if len(item['start'].split('.'))>1:
@@ -326,16 +327,11 @@ def timeline(request):
                     schedItem.start = datatime
                 ids_in_tl.append(item['id'])
                 schedItem.save()
-            for pk in ScheduleItem.objects.all().values('pk'):
-                # if it WAS in the TL, and now its not, remove info
-                # as of yet, doesn't delete anything
-                # I believe that it recreates the ScheduleItem b/c of the POST
-                if pk['pk'] not in ids_in_tl:
-                    removed_item = ScheduleItem.objects.get(pk=pk['pk'])
-                    removed_item.delete()
+            # if it WAS in the TL, and now its not, remove info
+            ScheduleItem.objects.all().exclude(mfgqty__pk__in=ids_in_tl).delete()
             for ovr_item in ovr:
                 # if the duration was manually overridden, reflect that here
-                end_override_item = ScheduleItem.objects.get(pk=ovr_item)
+                end_override_item = ScheduleItem.objects.get(mfgqty__pk=ovr_item)
                 for item in json_data:
                     if item['id'] == ovr_item:
                         if len(item['end'].split('.'))>1:
@@ -400,22 +396,9 @@ def timeline_viewer(request):
     scheditems.extend(unscheduled_items)
 
     # Check for overlaps on manufacturing lines in the schedule
-    mfdurations = list()
     mfg_overlap = list()
     if scheditems:
         for s in scheditems:
-            duration = dict()
-            duration['id'] = s.pk
-            # raw, how many hours it takes via calculated time
-            ttl_hrs = s.duration().seconds / 3600.0
-            # 10 hours per day of work can be done, so the number of times 8 goes into a duration is how many work days it takes
-            ttl_wrkd = ttl_hrs // 10
-            hrs = (ttl_wrkd * 24) # gives the appearance of multiple days on the timeline
-            # and the remainder is the additional hours needed to add on
-            hrs = hrs + (ttl_hrs % 10)
-            duration['duration'] = hrs
-            duration['mfline'] = s.mfgline.pk
-            mfdurations.append(duration)
             for s2 in scheditems:
                 if s.start is not None and s2.start is not None and s != s2 and s.mfgline == s2.mfgline and s.mfgqty.sku.sku_num < s2.mfgqty.sku.sku_num and not (s.start >= s2.end() or s.end() <= s2.start):
                     mfg_overlap.append(str(s.mfgline) + ': ' + str(s.mfgqty.goal) + ': ' + str(s.mfgqty.sku) + ' ----- ' + str(s2.mfgqty.goal) + ': ' + str(s2.mfgqty.sku))
@@ -437,7 +420,6 @@ def timeline_viewer(request):
     context['visible_scheduled_items'] = visible_sch_item
     context['visible_unscheduled_items'] = visible_unsch_item
     context['mfg_lines'] = ManufacturingLine.objects.all()
-    context['mfdurations'] = mfdurations
     context['mfg_overlap'] = mfg_overlap
     print(mfg_overlap)
     return render(request, 'manufacturing_goals/manufsched_view.html', context)

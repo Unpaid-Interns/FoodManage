@@ -35,7 +35,7 @@
 			<p><div style="background-color:lightpink;width:10px;height:10px;display:inline-block;left:5px;top:5px;margin-right:3px;"></div>Provisional, pending review</p>
 		</div>
 	</div>
-	<form class="form-inline" method="POST" action="/manufacturing/timeline/">
+	<form class="form-inline" method="post">
 		{% csrf_token %}
 		<input value="{{ data }}" type="text" name="data" id="data" required="required" placeholder="[]" style="display:none;">
 		<input value="{{ overrides }}" type="text" name="overrides" id="overrides" required="required" placeholder="[]" style="display:none;">
@@ -59,12 +59,12 @@
 				<li class="item" id="activity-3" onclick="addToTimeline('item 3')">item 3</li>-->
 				{% for item in unscheduled_items %}
 					{% if item.mfgqty.goal.enabled and item in visible_unscheduled_items %}
-						<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})">{{ item }}</li>
+						<li class="item" id="{{ item.mfgqty.id }}" onclick="addToTimeline({{ item.mfgqty.id }})">{{ item }}</li>
 					{% endif %}
 				{% endfor %}
 				{% for item in scheduled_items %}
 					{% if item in visible_scheduled_items %}
-						<li class="item" id="{{ item.id }}" onclick="addToTimeline({{ item.id }})" style="display:none;">{{ item }}</li>
+						<li class="item" id="{{ item.mfgqty.id }}" onclick="addToTimeline({{ item.mfgqty.id }})" style="display:none;">{{ item }}</li>
 					{% endif %}
 				{% endfor %}
 			</ul>
@@ -74,21 +74,21 @@
 			<ul>
 				{% for item in unscheduled_items %}
 					{% if item.mfgqty.goal.enabled and item in visible_unscheduled_items %}
-						<li class="item" id="s-{{ item.id }}" style="display:none;">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
+						<li class="item" id="s-{{ item.mfgqty.id }}" style="display:none;">{{ item }} <button onclick="increaseDuration({{ item.mfgqty.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.mfgqty.id }})">-1 hour</button></li>
 					{% endif %}
 				{% endfor %}
 				{% for item in scheduled_items %}
 					{% if item in visible_scheduled_items %}
-						<li class="item" id="s-{{ item.id }}">{{ item }} <button onclick="increaseDuration({{ item.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.id }})">-1 hour</button></li>
+						<li class="item" id="s-{{ item.mfgqty.id }}">{{ item }} <button onclick="increaseDuration({{ item.mfgqty.id }})">+1 hour</button><button onclick="decreaseDuration({{ item.mfgqty.id }})">-1 hour</button></li>
 					{% endif %}
 				{% endfor %}
 			</ul>
 		</div>
 	</div>
-	<div class="menu-buttons" style="text-align: left">
-		<a class="btn" href="{% url 'timeline_viewer' %}">Return to View</a>
+	<div class="inline">
+		<a class="btn" href="{% url 'timeline_viewer' %}" style="font-size: 12px;">Return to View</a>
 		<!--<a class="btn" id="autosched_btn" href="{% url 'auto_schedule_select' %}">Auto Scheduler</a>-->
-		<button id="autosched_btn" onclick="window.location='{% url 'auto_schedule_select' %}';">Auto Scheduler</button>
+		<button id="autosched_btn" onclick="window.location='{% url 'auto_schedule_select' %}';" style="font-size: 12px;">Auto Scheduler</button>
 	</div>
 	<div class="warnings">
 		<h2>Warnings</h2>
@@ -145,7 +145,7 @@
 		var items = new vis.DataSet();
 		{% for item in scheduled_items %}
 		{% if not item.provisional_user or item.provisional_user == request.user %}
-		items.add([{content: '{{ item }}', id: {{ item.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver; border-color: darkgray;'{% elif item.too_late %}, style: 'background-color: darkorange; border-color: orangered;'{% elif item.endoverride %}, style: 'background-color: gold; border-color: goldenrod;'{% elif item.provisional_user %}, style: 'background-color: lightpink; border-color: hotpink;'{% endif %}}]);
+		items.add([{content: '{{ item }}', id: {{ item.mfgqty.id }}, group: {{ item.mfgline.id }}, type: 'range', start: '{{ item.start_time }}', end: '{{ item.end_time }}'{% if not item.mfgqty.goal.enabled %}, style: 'background-color: silver; border-color: darkgray;'{% elif item.too_late %}, style: 'background-color: darkorange; border-color: orangered;'{% elif item.endoverride %}, style: 'background-color: gold; border-color: goldenrod;'{% elif item.provisional_user %}, style: 'background-color: lightpink; border-color: hotpink;'{% endif %}}]);
 		{% endif %}
 		{% endfor %}
 		var nextItem = 2;
@@ -193,7 +193,6 @@
 				document.getElementById(item.id).style.display = "block";
 				document.getElementById('s-'+item.id).style.display = "none";
 				document.getElementById('autosched_btn').disabled = true;
-				document.getElementById('autosched_btn').style.backgroundColor = "grey";
 				callback(item);
 			}
 		};
@@ -250,7 +249,6 @@
 			document.getElementById(id).style.display = "none";
 			document.getElementById('s-'+id).style.display = "block";
 			document.getElementById('autosched_btn').disabled = true;
-			document.getElementById('autosched_btn').style.backgroundColor = "grey";
 		}
 
 		function saveTLData() {
@@ -263,7 +261,6 @@
 			document.getElementById("data").value = JSON.stringify(data, null, 2);
 			document.getElementById("overrides").value = JSON.stringify(overridden, null, 2);
 			document.getElementById('autosched_btn').disabled = false;
-			//document.getElementById('autosched_btn').style.backgroundColor = "blue";
 			//console.log(JSON.stringify(data, null, 2));
 		}
 		// also need to load data from db
@@ -282,7 +279,6 @@
 			oldItem = items.get(id);
 			//console.log(overrides);
 			document.getElementById('autosched_btn').disabled = true;
-			document.getElementById('autosched_btn').style.backgroundColor = "grey";
 			var deltat = 1;
 			var endtime = new Date();
 			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
@@ -305,7 +301,6 @@
 			oldItem = items.get(id);
 			//console.log(overrides);
 			document.getElementById('autosched_btn').disabled = true;
-			document.getElementById('autosched_btn').style.backgroundColor = "grey";
 			var deltat = 1;
 			var endtime = new Date();
 			if(typeof oldItem.end === 'string' || oldItem.end instanceof String){
@@ -322,7 +317,7 @@
 			console.log(endtime);
 			if(!(endtime.getHours()==starttime.getHours()+1)){
 				if((endtime.getHours()-1)<10){ deltat=17; }
-				items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() - deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: green;'}]);
+				items.update([{id: id, content: oldItem.content, start: starttime, end: new Date(endtime.getFullYear(), endtime.getMonth(), endtime.getDate(), endtime.getHours() - deltat, endtime.getMinutes(), 0, 0), type: 'range', group: oldItem.group, style: 'background-color: gold; border-color: goldenrod;'}]);
 				if(!(overridden.indexOf(id)>=0)){ overridden.push(id); }
 			}
 		}
