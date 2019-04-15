@@ -10,26 +10,36 @@
 			<a href="/search/manufacturingline/">Manufacturing Lines</a>
 		</div>
 	</div>
-	<div class="dropdown">
-		<a {% if request.path|slice:":10" == '/reporting' %} class="active" {% endif %} href="/reporting/">Reporting</a>
-		<div class="dropdown-content">
-			<a href="/reporting/ingredient/">Ingredient Dependency</a>
-			<a href="/reporting/manufacturing/">Manufacturing Schedule</a>
-			<a href="/reporting/sales/">Sales</a>
-		</div>
-	</div>
-	<div class="dropdown">
-		<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>
-			{% if perms.manufacturing_goals.view_scheduleitem %}
+	{% if perms.sku_manage.report_ingredient or perms.sku_manage.report_manufacturingline or perms.sales.report_salesrecord %}
+		<div class="dropdown">
+			<a {% if request.path|slice:":10" == '/reporting' %} class="active" {% endif %} href="/reporting/">Reporting</a>
 			<div class="dropdown-content">
-				<a href="/manufacturing/">Manufacturing Goals</a>
-				<a href="/manufacturing/timeline/">Manufacturing Timeline</a>
-			</div>			
-		{% endif %}
-	</div>
+				{% if perms.sku_manage.report_ingredient %}
+					<a href="/reporting/ingredient/">Ingredient Dependency</a>
+				{% endif %}
+				{% if perms.sku_manage.report_manufacturingline %}
+					<a href="/reporting/manufacturing/">Manufacturing Schedule</a>
+				{% endif %}
+				{% if perms.sales.report_salesrecord %}
+					<a href="/reporting/sales/">Sales</a>
+				{% endif %}
+			</div>
+		</div>
+	{% endif %}
+	{% if perms.manufacturing_goals.view_manufacturinggoal %}
+		<div class="dropdown">
+			<a {% if request.path|slice:":14" == '/manufacturing' %} class="active" {% endif %} href="/manufacturing/">Manufacturing</a>
+				{% if perms.manufacturing_goals.view_scheduleitem %}
+				<div class="dropdown-content">
+					<a href="/manufacturing/">Manufacturing Goals</a>
+					<a href="/manufacturing/timeline/">Manufacturing Timeline</a>
+				</div>			
+			{% endif %}
+		</div>
+	{% endif %}
 	{% if request.user.is_staff or perms.sku_manage.add_sku or perms.auth.change_user or perms.sku_manage.change_manufacturingline %}
 		<div class="dropdown">
-			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' or request.path|slice:":5" == '/user' %} class="active" {% endif %}>Administration</a>
+			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' or request.path|slice:":21" == '/manufacturinglinemap' or request.path|slice:":5" == '/user' %} class="active" {% endif %}>Administration</a>
 			<div class="dropdown-content">
 				{% if request.user.is_staff %}
 					<a href="/admin/">Site Administration</a>
@@ -41,7 +51,7 @@
 					<a href="/importer/">CSV Data Import</a>
 				{% endif %}
 				{% if perms.sku_manage.change_manufacturingline %}
-					<a href="/admin/manufacturinglinemap/">Manufacturing Line Mapping</a>
+					<a href="/manufacturinglinemap/">Manufacturing Line Mapping</a>
 				{% endif %}
 			</div>
 		</div>
