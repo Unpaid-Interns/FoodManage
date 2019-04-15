@@ -678,9 +678,14 @@ def project(request, pk):
     }
     return render(request, 'manufacturing_goals/projection.html', context)
 
+@permission_required('manufacturing_goals.add_manufacturinggoal')
 def set_project_date(request):
     request.session['start_day'] = request.POST['sday']
     request.session['start_month'] = request.POST['smonth']
     request.session['end_day'] = request.POST['eday']
     request.session['end_month'] = request.POST['emonth']
+    return redirect('manufqty')
+
+@permission_required('manufacturing_goals.add_manufacturinggoal')
+def stupid(request):
     return redirect('manufqty')
