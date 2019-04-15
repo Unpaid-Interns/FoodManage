@@ -573,50 +573,95 @@ def project(request, pk):
         return redirect('manufqty')
     sdate = date(2000,int(smonth),int(sday))
     edate = date(2000,int(emonth),int(eday))
+    ttest = timezone.now().date()
+    ttest = ttest.replace(year=2000)
+    taco = timezone.now().year
+    if edate < ttest:
+        taco = taco+1
+    comp = (sdate > edate)
+    if comp:
+        sdate = sdate.replace(year=taco-2)
+        edate = edate.replace(year=taco-1)
+    else:
+        sdate = sdate.replace(year=taco-1)
+        edate = edate.replace(year=taco-1)
+    range1 = sdate.strftime("%m/%d/%Y - ")+edate.strftime("%m/%d/%Y")
+    if comp:
+        sdate = sdate.replace(year=taco-3)
+        edate = edate.replace(year=taco-2)
+    else:
+        sdate = sdate.replace(year=taco-2)
+        edate = edate.replace(year=taco-2)
+    range2 = sdate.strftime("%m/%d/%Y - ")+edate.strftime("%m/%d/%Y")
+    if comp:
+        sdate = sdate.replace(year=taco-4)
+        edate = edate.replace(year=taco-3)
+    else:
+        sdate = sdate.replace(year=taco-3)
+        edate = edate.replace(year=taco-3)
+    range3 = sdate.strftime("%m/%d/%Y - ")+edate.strftime("%m/%d/%Y")
+    if comp:
+        sdate = sdate.replace(year=taco-5)
+        edate = edate.replace(year=taco-4)
+    else:
+        sdate = sdate.replace(year=taco-4)
+        edate = edate.replace(year=taco-4)
+    range4 = sdate.strftime("%m/%d/%Y - ")+edate.strftime("%m/%d/%Y")
     for record in SalesRecord.objects.all():
+        sdate = sdate.replace(year=2000)
+        edate = edate.replace(year=2000)
         if sdate > edate:
-            sdate = sdate.replace(year=timezone.now().year-2)
-            edate = edate.replace(year=timezone.now().year-1)
-            if record.date > sdate and record.date < edate:
+            sdate = sdate.replace(year=taco-2)
+            sdate = sdate-timedelta(days=sdate.isocalendar()[2])
+            edate = edate.replace(year=taco-1)
+            edate = edate-timedelta(days=edate.isocalendar()[2])
+            if record.date >= sdate and record.date <= edate:
                 numbersold1 = numbersold1 + record.cases_sold
-            sdate = sdate.replace(year=timezone.now().year-3)
-            edate = edate.replace(year=timezone.now().year-2)
-            if record.date > sdate and record.date < edate:
+            sdate = sdate.replace(year=taco-3)
+            sdate = sdate-timedelta(days=sdate.isocalendar()[2])
+            edate = edate.replace(year=taco-2)
+            edate = edate-timedelta(days=edate.isocalendar()[2])
+            if record.date >= sdate and record.date <= edate:
                 numbersold2 = numbersold2 + record.cases_sold
-            sdate = sdate.replace(year=timezone.now().year-4)
-            edate = edate.replace(year=timezone.now().year-3)
-            if record.date > sdate and record.date < edate:
+            sdate = sdate.replace(year=taco-4)
+            sdate = sdate-timedelta(days=sdate.isocalendar()[2])
+            edate = edate.replace(year=taco-3)
+            edate = edate-timedelta(days=edate.isocalendar()[2])
+            if record.date >= sdate and record.date <= edate:
                 numbersold3 = numbersold3 + record.cases_sold
-            sdate = sdate.replace(year=timezone.now().year-5)
-            edate = edate.replace(year=timezone.now().year-4)
-            if record.date > sdate and record.date < edate:
+            sdate = sdate.replace(year=taco-5)
+            sdate = sdate-timedelta(days=sdate.isocalendar()[2])
+            edate = edate.replace(year=taco-4)
+            edate = edate-timedelta(days=edate.isocalendar()[2])
+            if record.date >= sdate and record.date <= edate:
                 numbersold4 = numbersold4 + record.cases_sold
         else:
-            if timezone.now().year-1 == record.date.year:
-                sdate = sdate.replace(year=timezone.now().year-1)
-                edate = edate.replace(year=timezone.now().year-1)
-                if record.date > sdate and record.date < edate:
+            if taco-1 == record.date.year:
+                sdate = sdate.replace(year=taco-1)
+                edate = edate.replace(year=taco-1)
+                if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold1 = numbersold1 + record.cases_sold
-            if timezone.now().year-2 == record.date.year:
-                sdate = sdate.replace(year=timezone.now().year-2)
-                edate = edate.replace(year=timezone.now().year-2)
-                if record.date > sdate and record.date < edate:
+            if taco-2 == record.date.year:
+                sdate = sdate.replace(year=taco-2)
+                edate = edate.replace(year=taco-2)
+                if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold2 = numbersold2 + record.cases_sold
-            if timezone.now().year-3 == record.date.year:
-                sdate = sdate.replace(year=timezone.now().year-3)
-                edate = edate.replace(year=timezone.now().year-3)
-                if record.date > sdate and record.date < edate:
+            if taco-3 == record.date.year:
+                sdate = sdate.replace(year=taco-3)
+                edate = edate.replace(year=taco-3)
+                if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold3 = numbersold3 + record.cases_sold
-            if timezone.now().year-4 == record.date.year:
-                sdate = sdate.replace(year=timezone.now().year-4)
-                edate = edate.replace(year=timezone.now().year-4)
-                if record.date > sdate and record.date < edate:
+            if taco-4 == record.date.year:
+                sdate = sdate.replace(year=taco-4)
+                edate = edate.replace(year=taco-4)
+                if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold4 = numbersold4 + record.cases_sold
     data = dict()
-    data['1 Year Ago'] = numbersold1
-    data['2 Years Ago'] = numbersold2
-    data['3 Years Ago'] = numbersold3
-    data['4 Years Ago'] = numbersold4
+    data['Time Range'] = 'Total Sold'
+    data[range1] = numbersold1
+    data[range2] = numbersold2
+    data[range3] = numbersold3
+    data[range4] = numbersold4
     dave = (numbersold1+numbersold2+numbersold3+numbersold4)/4
     stdev = math.sqrt(((numbersold1-dave)**2 + (numbersold2-dave)**2 + (numbersold3-dave)**2 + (numbersold4-dave)**2)/4)
     dave = int(round(dave,0))
