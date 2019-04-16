@@ -39,7 +39,7 @@
 	{% endif %}
 	{% if perms.auth.add_user or perms.auth.change_user or perms.sku_manage.add_sku or perms.sku_manage.change_skumfgline %}
 		<div class="dropdown">
-			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' or request.path|slice:":21" == '/manufacturinglinemap' or request.path|slice:":5" == '/user' %} class="active" {% endif %}>Administration</a>
+			<a {% if request.path|slice:":6" == '/admin' or request.path|slice:":9" == '/importer' or request.path|slice:":11" == '/mfglinemap' or request.path|slice:":5" == '/user' %} class="active" {% endif %}>Administration</a>
 			<div class="dropdown-content">
 				{% if perms.auth.add_user %}
 					<a href="/admin/">Site Administration</a>
@@ -51,7 +51,7 @@
 					<a href="/importer/">CSV Data Import</a>
 				{% endif %}
 				{% if perms.sku_manage.change_skumfgline %}
-					<a href="/manufacturinglinemap/">Manufacturing Line Mapping</a>
+					<a href="/mfglinemap/">Manufacturing Line Mapping</a>
 				{% endif %}
 			</div>
 		</div>
