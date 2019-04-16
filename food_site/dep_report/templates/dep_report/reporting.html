@@ -2,9 +2,15 @@
 {% block content %}
 	<div class="menu-buttons">
 		<h1>What do you wish to report on?</h1>
-		<a href="{% url 'ingr_dep' %}">Ingredient Dependency</a> 
-		<a href="{% url 'mfg_sch' %}">Manufacturing Schedule</a>
-		<a href="{% url 'sales_report_select' %}">Sales</a>		
+		{% if perms.sku_manage.report_ingredient %}
+			<a href="{% url 'ingr_dep' %}">Ingredient Dependency</a> 
+		{% endif %}
+		{% if perms.sku_manage.report_manufacturingline %}
+			<a href="{% url 'mfg_sch' %}">Manufacturing Schedule</a>
+		{% endif %}
+		{% if perms.sales.report_salesrecord %}
+			<a href="{% url 'sales_report_select' %}">Sales</a>	
+		{% endif %}	
 	</div>
 {% endblock content %}
 
