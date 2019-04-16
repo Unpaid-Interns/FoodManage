@@ -2,14 +2,18 @@
 {% block content %}
 	<h1>Sales projection data for {{ sku }} can be seen below:</h1>
 	<br>
-		<div class="table" style="overflow-x:auto;">
+	<div class="table">
+		<table style="width: auto;">
+			<tr><th>Time Range</th><th>Cases Sold</th></tr>
 			{% for key, value in data_table.items %}
-			<p> {{ key }} : {{ value }} </p>
+			<tr><td style="padding-right: 20px;">{{ key }}</td><td>{{ value }}</td></tr>
 			{% endfor %}
-		</div>
+		</table>
+	</div>
+	<br>
 	<div class="inline">
 		<form method="post">
-		{% csrf_token %}
+			{% csrf_token %}
 			<button type="submit">Autofill Average Value</button>
 		</form>
 		<a class="btn" href="{% url 'manufqty' %}">Return</a>

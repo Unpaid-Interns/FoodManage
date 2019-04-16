@@ -32,6 +32,11 @@ def authin(request):
 def invalidlogin(request):
 	return render(request, 'home/index.html', context={'invalidlogin': True})
 
+def authout(request):
+	logout(request)
+	return redirect('/')
+
+@login_required
 def help(request):
 	return render(request, 'home/help.html', context=None)
 
@@ -39,12 +44,9 @@ def help(request):
 def aboutus(request):
 	return render(request, 'home/aboutus.html', context=None)
 
+@login_required
 def privacy(request):
 	return render(request, 'home/hypomealsrus.html', context=None)
-
-def authout(request):
-	logout(request)
-	return redirect('/')
 
 @permission_required('auth.change_user')
 def selectuser(request):

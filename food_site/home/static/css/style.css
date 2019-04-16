@@ -299,7 +299,7 @@ body {
   border-radius: 5px;
 }
 
-.thin {
+.thin, .thin-wide {
   height: auto;
   width: auto;
   padding: auto;
@@ -309,6 +309,11 @@ body {
   height: 18px;
   width: 18px;
   padding: 0;
+}
+
+.thin-wide button {
+  height: 18px;
+  padding: 0 3px;
 }
 
 .thin input {

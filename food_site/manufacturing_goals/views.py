@@ -84,8 +84,10 @@ def manufqty(request):
         'selected_product_line': None,
         'errormsg': request.session.get('errormsg'),
         'startday': '',
+        'startdayrange': [str(i) for i in range(1, 32)],
         'startmonth': '',
         'endday': '',
+        'enddayrange': [str(i) for i in range(1, 32)],
         'endmonth': '',
     }   
     paginate = {
@@ -146,6 +148,14 @@ def manufqty(request):
     context['startmonth'] = smonth
     context['endday'] = eday
     context['endmonth'] = emonth
+    if smonth in ('9', '4', '6', '11'):
+        context['startdayrange'] = [str(i) for i in range(1, 31)]
+    elif smonth == '2':
+        context['startdayrange'] = [str(i) for i in range(1, 29)]
+    if emonth in ('9', '4', '6', '11'):
+        context['enddayrange'] = [str(i) for i in range(1, 31)]
+    elif emonth == '2':
+        context['enddayrange'] = [str(i) for i in range(1, 29)]
     RequestConfig(request, paginate=paginate).configure(input_table)
     RequestConfig(request, paginate=paginate).configure(mfgqty_table)
     return render(request, 'manufacturing_goals/data.html', context)
@@ -238,7 +248,7 @@ def manufdetails(request):
     goal_name = request.session['goal_name']
     goal_info = request.session['goal_export_info']
     goal_calc = request.session['goal_calc_list']
-    sched_dep = len(ScheduleItem.objects.filter(mfgqty__goal__pk=request.session['goal_id']))
+    sched_dep = len(ScheduleItem.objects.filter(mfgqty__goal__pk=request.session['goal_id'], provisional_user__isnull=True))
     goal = ManufacturingGoal.objects.get(pk=request.session['goal_id'])
     return render(request, 'manufacturing_goals/manufdetails.html', {'goal_name': goal_name, 'goal_info': goal_info, 'goal_calc': goal_calc, 'schedule_dep': sched_dep, 'goal': goal})
 
@@ -451,7 +461,7 @@ def enable_goal(request, pk):
 def auto_schedule_select(request):
     if 'mfgqtys' not in request.session or request.session.get('mfgqtys') == None:
         request.session['mfgqtys'] = list()
-    queryset = ManufacturingQty.objects.filter(scheduleitem__start__isnull=True, goal__enabled=True)
+    queryset = ManufacturingQty.objects.filter(scheduleitem__isnull=True, goal__enabled=True)
     selected_set = queryset.filter(id__in=request.session.get('mfgqtys'))
     queryset = queryset.exclude(id__in=request.session.get('mfgqtys'))
     input_table = AutoAddTable(queryset)
@@ -639,7 +649,6 @@ def project(request, pk):
                 if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold4 = numbersold4 + record.cases_sold
     data = dict()
-    data['Time Range'] = 'Total Sold'
     data[range1] = numbersold1
     data[range2] = numbersold2
     data[range3] = numbersold3
@@ -648,8 +657,7 @@ def project(request, pk):
     stdev = math.sqrt(((numbersold1-dave)**2 + (numbersold2-dave)**2 + (numbersold3-dave)**2 + (numbersold4-dave)**2)/4)
     dave = int(round(dave,0))
     stdev = round(stdev,1)
-    data['Average'] = dave
-    data['Std Dev'] = stdev
+    data['Average +/- Std. Dev.'] = str(dave) + ' +/- ' + str(stdev)
     if request.method == 'POST':    
         request.session['projection_autofill_value'] = dave
         request.session['projection_autofill_pk'] = pk

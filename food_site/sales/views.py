@@ -127,7 +127,7 @@ def sales_report(request):
 			
 			# Manufacturing run size
 			mfg_run_size = Decimal(sku.mfg_rate * 10) # num cases in 10 hrs
-			mfg_runs = ManufacturingQty.objects.filter(sku=sku, goal__enabled=True, scheduleitem__start__lte=date.today(), scheduleitem__start__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365))
+			mfg_runs = ManufacturingQty.objects.filter(sku=sku, goal__enabled=True, scheduleitem__start__lte=date.today(), scheduleitem__start__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365), scheduleitem__provisional_user__isnull=True)
 			if mfg_runs:
 				mfg_run_tot = 0
 				for run in mfg_runs:
@@ -247,7 +247,7 @@ def sku_drilldown(request, pk):
 			tot_cases += record.cases_sold
 		# Manufacturing run size
 		mfg_run_size = Decimal(sku.mfg_rate * 10) # num cases in 10 hrs
-		mfg_runs = ManufacturingQty.objects.filter(sku=sku, goal__enabled=True, scheduleitem__start__lte=date.today(), scheduleitem__start__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365))
+		mfg_runs = ManufacturingQty.objects.filter(sku=sku, goal__enabled=True, scheduleitem__start__lte=date.today(), scheduleitem__start__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365), scheduleitem__provisional_user__isnull=True)
 		if mfg_runs:
 			mfg_run_tot = 0
 			for run in mfg_runs:

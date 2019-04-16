@@ -194,7 +194,7 @@ class SKUDetailView(generic.DetailView):
 	model = SKU
 	template_name = 'sku_manage/sku_detail.html'
 
-@login_required(login_url='index')
+@login_required
 def FormulaView(request):
 	queryset = Formula.objects.all()
 	context = {
