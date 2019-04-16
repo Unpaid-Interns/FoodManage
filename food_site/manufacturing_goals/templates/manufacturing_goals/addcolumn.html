@@ -1,11 +1,11 @@
-<div class="inline">
-<form class="form-inline thin" action="{% url 'mfg_goal_add' record.pk %}" method="post">
-	{% csrf_token %}
-	<input class="narrow" type="number" name="case_qty" {% if record.pk == request.session.projection_autofill_pk %} value="{{ request.session.projection_autofill_value  }}" {% endif %} placeholder="Case Quantity">
-	<button type="submit"><i class="fa fa-plus"></i></button>
-</form>
-<form action="{% url 'projection' record.pk %}" method="get">
-        <button type="submit">Project Sales</button>
-</form>
+<div class="form-inline thin-wide">
+	<form class="thin" action="{% url 'mfg_goal_add' record.pk %}" method="post">
+		{% csrf_token %}
+		<input class="narrow" type="number" name="case_qty" {% if record.pk == request.session.projection_autofill_pk %} value="{{ request.session.projection_autofill_value  }}" {% endif %} placeholder="Case Quantity">
+		<button type="submit"><i class="fa fa-plus"></i></button>
+	</form>
+	<form class="thin-wide" action="{% url 'projection' record.pk %}" method="get">
+	        <button type="submit">Project Sales</button>
+	</form>
 </div>
 

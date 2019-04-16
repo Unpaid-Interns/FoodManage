@@ -1,24 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
 	<h1>Edit Manufacturing Goal:</h1>
-	<h2>{{ errormsg }}</h2>
-	{% include "data/filters.html" %}
-	<br>
-	<p>Sales projection date range can be set below:</p>
-	<br>
+	<div class="warnings">
+		{% if errormsg %}<p>{{ errormsg }}</p>{% endif %}
+	</div>
 	<form class="form-inline" method="POST" action="{% url 'dateset' %}">
 		{% csrf_token %}
-		<p>Start Day</p>
-		<input value="{{ startday }}" type="number" name="sday" required="required">
-		<p>Start Month</p>
-		<input value="{{ startmonth }}" type="number" name="smonth" required="required">
-		<p>End Date</p>
-		<input value="{{ endday }}" type="number" name="eday" required="required">
-		<p>End Month</p>
-		<input value="{{ endmonth }}" type="number" name="emonth" required="required">
-		<button type="submit" id="submit" name="submit">Set</button>
+		<p>Sales Projection Start Date:</p>
+		<select name="smonth" onchange='this.form.submit()'>
+			<option value="">Select Month</option>
+			<option value="1" {% if startmonth == '1' %}selected{% endif %}>January</option>
+			<option value="2" {% if startmonth == '2' %}selected{% endif %}>February</option>
+			<option value="3" {% if startmonth == '3' %}selected{% endif %}>March</option>
+			<option value="4" {% if startmonth == '4' %}selected{% endif %}>April</option>
+			<option value="5" {% if startmonth == '5' %}selected{% endif %}>May</option>
+			<option value="6" {% if startmonth == '6' %}selected{% endif %}>June</option>
+			<option value="7" {% if startmonth == '7' %}selected{% endif %}>July</option>
+			<option value="8" {% if startmonth == '8' %}selected{% endif %}>August</option>
+			<option value="9" {% if startmonth == '9' %}selected{% endif %}>September</option>
+			<option value="10" {% if startmonth == '10' %}selected{% endif %}>October</option>
+			<option value="11" {% if startmonth == '11' %}selected{% endif %}>November</option>
+			<option value="12" {% if startmonth == '12' %}selected{% endif %}>December</option>
+		</select>
+		<select name="sday" onchange='this.form.submit()'>
+			<option value="">Select Day</option>
+			{% for num in startdayrange %}
+				<option value="{{ num }}" {% if startday == num %}selected{% endif %}>{{ num }}</option>
+			{% endfor %}
+		</select>
+		<p>End Date:</p>
+		<select name="emonth" onchange='this.form.submit()'>
+			<option value="">Select Month</option>
+			<option value="1" {% if endmonth == '1' %}selected{% endif %}>January</option>
+			<option value="2" {% if endmonth == '2' %}selected{% endif %}>February</option>
+			<option value="3" {% if endmonth == '3' %}selected{% endif %}>March</option>
+			<option value="4" {% if endmonth == '4' %}selected{% endif %}>April</option>
+			<option value="5" {% if endmonth == '5' %}selected{% endif %}>May</option>
+			<option value="6" {% if endmonth == '6' %}selected{% endif %}>June</option>
+			<option value="7" {% if endmonth == '7' %}selected{% endif %}>July</option>
+			<option value="8" {% if endmonth == '8' %}selected{% endif %}>August</option>
+			<option value="9" {% if endmonth == '9' %}selected{% endif %}>September</option>
+			<option value="10" {% if endmonth == '10' %}selected{% endif %}>October</option>
+			<option value="11" {% if endmonth == '11' %}selected{% endif %}>November</option>
+			<option value="12" {% if endmonth == '12' %}selected{% endif %}>December</option>
+		</select>
+		<select name="eday" onchange='this.form.submit()'>
+			<option value="">Select Day</option>
+			{% for num in enddayrange %}
+				<option value="{{ num }}" {% if endday == num %}selected{% endif %}>{{ num }}</option>
+			{% endfor %}
+		</select>
 	</form>
-	<br>		
+	<br>	
+	{% include "data/filters.html" %}
+	<br>	
 	<form class="inline" method="post">
 		{% csrf_token %}
 		<button type="submit" name="done" {% if not selected_table.rows %} disabled {% endif %}><i class="fa fa-save"></i></button>	
