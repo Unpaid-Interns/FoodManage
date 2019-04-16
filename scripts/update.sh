@@ -14,6 +14,7 @@ git pull
 
 # Setup Django
 source site_env/bin/activate
+./food_site/manage.py makemigrations
 ./food_site/manage.py migrate
 ./food_site/manage.py collectstatic --noinput
 deactivate
