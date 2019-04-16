@@ -261,9 +261,6 @@ def timeline(request):
     # Get scheduled and unscheduled items on these manufacturing lines
     unscheduled_items = list()
     accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
-    print(accessible_lines)
-    print(PlantManager.objects.all())
-    print(PlantManager.objects.filter(user=request.user))
     if request.user.is_superuser:
         accessible_lines = ManufacturingLine.objects.all()
     for mfg_qty in mfg_qtys:
@@ -316,24 +313,18 @@ def timeline(request):
                 schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
                 if len(item['start'].split('.'))>1:
                     datatime = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
-                    if datatime.time() < time(8,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
-                    elif datatime.time() > time(18,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+                    if datatime.time() < datatime.replace(hour=8).time():
+                        datatime = datatime.replace(hour=8)
                     schedItem.start = datatime
                 elif len(item['start'].split(':'))>=4:
                     datatime = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
-                    if datatime.time() < time(8,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
-                    elif datatime.time() > time(18,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+                    if datatime.time() < datatime.replace(hour=8).time():
+                        datatime = datatime.replace(hour=8)
                     schedItem.start = datatime
                 else:
                     datatime = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
-                    if datatime.time() < time(8,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
-                    elif datatime.time() > time(18,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+                    if datatime.time() < datatime.replace(hour=8).time():
+                        datatime = datatime.replace(hour=8)
                     schedItem.start = datatime
                 ids_in_tl.append(item['id'])
                 schedItem.save()
