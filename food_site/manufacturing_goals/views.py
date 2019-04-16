@@ -542,6 +542,7 @@ def auto_schedule(request):
 
 @permission_required('manufacturing_goals.change_manufacturinggoal')
 def project(request, pk):
+    request.session['errormsg'] = ''
     sku = SKU.objects.get(pk=pk)    
     yearstart = date(2000,1,1)
     yearend = date(2000,12,31)
