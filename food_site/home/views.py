@@ -86,21 +86,20 @@ def edituser(request, pk):
 	plantmanager_group = Group.objects.get(name="Plant Manager")
 
 	mfglines = sku_models.ManufacturingLine.objects.all()
-	mfglines_managed = sku_models.ManufacturingLine.objects.filter(plantmanager__isnull=False, plantmanager__user=request.user)
+	mfglines_managed = sku_models.ManufacturingLine.objects.filter(plantmanager__isnull=False, plantmanager__user__pk=pk)
 
 	if request.method == "POST":
 		is_plantmanager = False
 		for group in groups:
 			if str(group.pk) in request.POST and group not in user.groups.all():
 				user.groups.add(group)
-				if group.name in ('Administrator', 'Product Manager'):
-					user.is_staff=True
-					user.save()
 			if str(group.pk) not in request.POST and group in user.groups.all():
 				user.groups.remove(group)
-				if group.name in ('Administrator', 'Product Manager'):
-					user.is_staff=False
-					user.save()
+		user.is_staff = False
+		for group in user.groups.all():
+			if group.name in ('Administrator', 'Product Manager'):
+				user.is_staff = True
+		user.save()
 		for mfgline in mfglines:
 			if mfgline.shortname in request.POST:
 				is_plantmanager = True
