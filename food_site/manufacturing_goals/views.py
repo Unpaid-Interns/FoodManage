@@ -550,9 +550,7 @@ def auto_schedule(request):
 @permission_required('manufacturing_goals.change_manufacturinggoal')
 def project(request, pk):
     request.session['errormsg'] = ''
-    sku = SKU.objects.get(pk=pk)    
-    yearstart = date(2000,1,1)
-    yearend = date(2000,12,31)
+    sku = SKU.objects.get(pk=pk)
     sday = request.session.get('start_day', '')
     smonth = request.session.get('start_month', '')
     eday = request.session.get('end_day', '')
@@ -600,7 +598,7 @@ def project(request, pk):
         sdate = sdate.replace(year=taco-4)
         edate = edate.replace(year=taco-4)
     range4 = sdate.strftime("%m/%d/%Y - ")+edate.strftime("%m/%d/%Y")
-    for record in SalesRecord.objects.all():
+    for record in SalesRecord.objects.filter(sku=sku):
         sdate = sdate.replace(year=2000)
         edate = edate.replace(year=2000)
         if sdate > edate:

@@ -98,9 +98,9 @@ def sales_report(request):
 	product_lines = ProductLine.objects.filter(pk__in=request.session.get('productlines'))
 	for sku in SKU.objects.filter(product_line__in=product_lines):
 		sales_records = SalesRecord.objects.filter(sku=sku, date__lte=date.today(), date__gte=date.today().replace(month=1, day=1) - timedelta(days=9*365)).order_by('date')
-		cust_id = request.session.get('customer')
-		if cust_id != 'all':
-			sales_records = sales_records.filter(customer__pk=cust_id)
+		cust_num = request.session.get('customer')
+		if cust_num != 'all':
+			sales_records = sales_records.filter(customer__number=int(cust_num))
 		
 		# Sales Calculations
 		tot_revenue = 0
@@ -205,14 +205,14 @@ def sku_drilldown(request, pk):
 	prev_customer = request.session.get('customer')
 	if prev_customer != None and prev_customer != 'all':
 		context['selected_customer'] = int(prev_customer)
-		queryset = queryset.filter(customer__pk=prev_customer)
-	request.session['customer'] = None
+		queryset = queryset.filter(customer__number=prev_customer)
+	request.session['customer'] = 'all'
 	if request.method == 'GET':
 		if 'custfilter' in request.GET:
-			cust_id = request.GET['custfilter']
-			if cust_id != 'all':
-				queryset = queryset.filter(customer__pk=cust_id)
-				context['selected_customer'] = int(cust_id)
+			cust_num = request.GET['custfilter']
+			if cust_num != 'all':
+				queryset = queryset.filter(customer__number=int(cust_num))
+				context['selected_customer'] = cust_num
 		if 'starttime' in request.GET and request.GET['starttime'] != '':
 			context['start_time'] = request.GET['starttime']
 		if 'endtime' in request.GET and request.GET['endtime'] != '':
