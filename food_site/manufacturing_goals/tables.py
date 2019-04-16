@@ -42,3 +42,7 @@ class SKUTable2(tables.Table):
 	class Meta:
 		model = SKU
 		fields = ['name', 'sku_num', 'add', 'proj']
+
+class ProjectionTable(tables.Table):
+	dates = tables.Column(verbose_name="Date Range")
+	cases = tables.Column(verbose_name="Cases Sold")

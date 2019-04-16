@@ -2,14 +2,11 @@
 {% block content %}
 	<h1>Sales projection data for {{ sku }} can be seen below:</h1>
 	<br>
-	<div class="table">
-		<table style="width: auto;">
-			<tr><th>Time Range</th><th>Cases Sold</th></tr>
-			{% for key, value in data_table.items %}
-			<tr><td style="padding-right: 20px;">{{ key }}</td><td>{{ value }}</td></tr>
-			{% endfor %}
-		</table>
-	</div>
+		<div class="table" style="overflow-x:auto;">
+			{% load render_table from django_tables2 %}
+			{% load bootstrap3 %}
+			{% render_table data_table %}
+		</div>
 	<br>
 	<div class="inline">
 		<form method="post">
