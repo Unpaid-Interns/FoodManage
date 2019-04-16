@@ -91,24 +91,24 @@ def edituser(request, pk):
 	if request.method == "POST":
 		is_plantmanager = False
 		for group in groups:
-			if str(group.pk) in request.POST and group not in user.groups.all():
+			if str(group.pk) in request.POST and group not in list(user.groups.all()):
 				user.groups.add(group)
-			if str(group.pk) not in request.POST and group in user.groups.all():
+			if str(group.pk) not in request.POST and group in list(user.groups.all()):
 				user.groups.remove(group)
 		for mfgline in mfglines:
 			if mfgline.shortname in request.POST:
 				is_plantmanager = True
-			if mfgline.shortname in request.POST and mfgline not in mfglines_managed:
+			if mfgline.shortname in request.POST and mfgline not in list(mfglines_managed):
 				print('adding ' + str(mfgline))
 				pm = PlantManager(user=user, mfgline=mfgline)
 				pm.full_clean()
 				pm.save()
-			if mfgline.shortname not in request.POST and mfgline in mfglines_managed:
+			if mfgline.shortname not in request.POST and mfgline in list(mfglines_managed):
 				print('removing ' + str(mfgline))
 				PlantManager.objects.filter(user=user, mfgline=mfgline).delete()
-			if is_plantmanager and plantmanager_group not in user.groups.all():
+			if is_plantmanager and plantmanager_group not in list(user.groups.all()):
 				user.groups.add(plantmanager_group)
-			if not is_plantmanager and plantmanager_group in user.groups.all():
+			if not is_plantmanager and plantmanager_group in list(user.groups.all()):
 				user.groups.remove(plantmanager_group)
 
 
