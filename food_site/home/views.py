@@ -93,8 +93,14 @@ def edituser(request, pk):
 		for group in groups:
 			if str(group.pk) in request.POST and group not in user.groups.all():
 				user.groups.add(group)
+				if group.name in ('Administrator', 'Product Manager'):
+					user.is_staff=True
+					user.save()
 			if str(group.pk) not in request.POST and group in user.groups.all():
 				user.groups.remove(group)
+				if group.name in ('Administrator', 'Product Manager'):
+					user.is_staff=False
+					user.save()
 		for mfgline in mfglines:
 			if mfgline.shortname in request.POST:
 				is_plantmanager = True
