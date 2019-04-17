@@ -41,14 +41,27 @@
 		<br>
 		{% if request.session.cya %}
 			<a href="/search/">Data</a>
-			<a href="/reporting/">Reporting</a>
-			<a href="/manufacturing/">Manufacturing</a>
+			{% if perms.sku_manage.report_ingredient or perms.sku_manage.report_manufacturingline or perms.sales.report_salesrecord %}
+				<a href="/reporting/">Reporting</a>
+			{% endif %}
+			{% if perms.manufacturing_goals.view_manufacturinggoal %}
+				<a href="/manufacturing/">Manufacturing</a>
+			}
+			{% endif %}
 			<br><br>
-			{% if user.is_staff %}
-				<a href="/admin/">Site Administration</a>
-				<a href="/user/">User Roles</a>
-				<a href="/importer/">CSV Import</a>
-				<a href="/mfglinemap/">Manufacturing Line Mapping</a>
+			{% if perms.auth.add_user or perms.auth.change_user or perms.sku_manage.add_sku or perms.sku_manage.change_skumfgline %}
+				{% if perms.auth.add_user %}
+					<a href="/admin/">Site Administration</a>
+				{% endif %}
+				{% if perms.auth.change_user %}
+					<a href="/user/">User Roles</a>
+				{% endif %}
+				{% if perms.sku_manage.add_sku %}
+					<a href="/importer/">CSV Data Import</a>
+				{% endif %}
+				{% if perms.sku_manage.change_skumfgline %}
+					<a href="/mfglinemap/">Manufacturing Line Mapping</a>
+				{% endif %}
 				<br><br>
 			{% endif %}
 			<a href="/authout/">Log Out</a>

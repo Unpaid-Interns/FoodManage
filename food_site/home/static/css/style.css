@@ -173,6 +173,17 @@ body {
   font-weight: bold;
 }
 
+.table ul.pagination {
+  margin: 0 0 0 0;
+  display: flex;
+  background-color: black;
+  list-style: none;
+}
+
+.table ul.pagination li {
+  margin-left: 10px;
+}
+
 /* Top Navigation Bar Styling */
 .topnav {
   background-color: #333;

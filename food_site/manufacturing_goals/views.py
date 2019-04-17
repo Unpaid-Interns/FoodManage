@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.db.models import Q
 from sku_manage.models import SKU, Ingredient, ProductLine, ManufacturingLine, IngredientQty, SkuMfgLine
 from django_tables2 import RequestConfig, paginators
-from .tables import SKUTable, MfgQtyTable, EnableTable, SKUTable2, AutoAddTable, AutoRemoveTable
+from .tables import SKUTable, MfgQtyTable, EnableTable, SKUTable2, AutoAddTable, AutoRemoveTable, ProjectionTable
 from .models import ManufacturingQty, ManufacturingGoal, ScheduleItem
 from home.models import PlantManager
 from .forms import GoalsForm, ManufacturingSchedForm
@@ -261,9 +261,6 @@ def timeline(request):
     # Get scheduled and unscheduled items on these manufacturing lines
     unscheduled_items = list()
     accessible_lines = ManufacturingLine.objects.filter(plantmanager__user=request.user)
-    print(accessible_lines)
-    print(PlantManager.objects.all())
-    print(PlantManager.objects.filter(user=request.user))
     if request.user.is_superuser:
         accessible_lines = ManufacturingLine.objects.all()
     for mfg_qty in mfg_qtys:
@@ -316,24 +313,18 @@ def timeline(request):
                 schedItem.mfgline = ManufacturingLine.objects.get(pk=item['group'])
                 if len(item['start'].split('.'))>1:
                     datatime = datetime.strptime(item['start'].split('.')[0]+'+0000', '%Y-%m-%dT%H:%M:%S%z')
-                    if datatime.time() < time(8,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
-                    elif datatime.time() > time(18,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+                    if datatime.time() < datatime.replace(hour=8).time():
+                        datatime = datatime.replace(hour=8)
                     schedItem.start = datatime
                 elif len(item['start'].split(':'))>=4:
                     datatime = datetime.strptime(item['start'].split(':')[0]+':'+item['start'].split(':')[1]+':'+item['start'].split(':')[2]+item['start'].split(':')[3], '%Y-%m-%dT%H:%M:%S%z')
-                    if datatime.time() < time(8,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
-                    elif datatime.time() > time(18,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+                    if datatime.time() < datatime.replace(hour=8).time():
+                        datatime = datatime.replace(hour=8)
                     schedItem.start = datatime
                 else:
                     datatime = datetime.strptime(item['start'], '%Y-%m-%dT%H:%M:%S%z')
-                    if datatime.time() < time(8,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 8, 0, 0, 0, datatime.tzinfo)
-                    elif datatime.time() > time(18,0,0):
-                        datatime.replace(datatime.year, datatime.month, datatime.day, 18, 0, 0, 0, datatime.tzinfo)
+                    if datatime.time() < datatime.replace(hour=8).time():
+                        datatime = datatime.replace(hour=8)
                     schedItem.start = datatime
                 ids_in_tl.append(item['id'])
                 schedItem.save()
@@ -647,22 +638,24 @@ def project(request, pk):
                 edate = edate.replace(year=taco-4)
                 if record.date.isocalendar()[1] >= sdate.isocalendar()[1] and record.date.isocalendar()[1] <= edate.isocalendar()[1]:
                     numbersold4 = numbersold4 + record.cases_sold
-    data = dict()
-    data[range1] = numbersold1
-    data[range2] = numbersold2
-    data[range3] = numbersold3
-    data[range4] = numbersold4
+    data = list()
+    data.append({'dates': range1, 'cases': numbersold1})
+    data.append({'dates': range2, 'cases': numbersold2})
+    data.append({'dates': range3, 'cases': numbersold3})
+    data.append({'dates': range4, 'cases': numbersold4})
     dave = (numbersold1+numbersold2+numbersold3+numbersold4)/4
     stdev = math.sqrt(((numbersold1-dave)**2 + (numbersold2-dave)**2 + (numbersold3-dave)**2 + (numbersold4-dave)**2)/4)
     dave = int(round(dave,0))
     stdev = round(stdev,1)
-    data['Average +/- Std. Dev.'] = str(dave) + ' +/- ' + str(stdev)
+    data.append({'dates': 'Average +/- Std. Dev.', 'cases': str(dave) + ' +/- ' + str(stdev)})
     if request.method == 'POST':    
         request.session['projection_autofill_value'] = dave
         request.session['projection_autofill_pk'] = pk
         return redirect('manufqty')
+    data_table = ProjectionTable(data)
+    RequestConfig(request, paginate=None).configure(data_table)
     context = {
-        'data_table': data,
+        'data_table': data_table,
         'sku': sku.name
     }
     return render(request, 'manufacturing_goals/projection.html', context)
