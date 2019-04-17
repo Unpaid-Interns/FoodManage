@@ -2,6 +2,7 @@ from datetime import datetime, time, timedelta
 from django.utils import timezone
 from sku_manage import models as data_models
 from manufacturing_goals import models as mfg_models
+from django.db.models import Q
 
 
 def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, current_user):
@@ -19,10 +20,15 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
         return False, "ERROR: Plant Manager user does not have any Manufacturing Lines associated with them.", \
                None, None
     manufacturingqtys_to_be_scheduled = check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled.order_by("goal__deadline"))
+    print(start_time)
+    print(stop_time)
+    print(manufacturingqtys_to_be_scheduled)
+    print(valid_manufacturing_lines)
+    print(current_user)
     scheduled_items, unscheduled_items, unscheduled_items_dict = create_schedule(start_time, stop_time,
                                                                                  manufacturingqtys_to_be_scheduled,
                                                                                  valid_manufacturing_lines,
-                                                                                 current_user, tz)
+                                                                                 current_user)
     print_schedule(start_time, stop_time, valid_manufacturing_lines, scheduled_items, unscheduled_items)
     if len(unscheduled_items) < 1:
         return True, "SUCCESS: Schedule created without error. All items scheduled.", scheduled_items, None
@@ -35,8 +41,7 @@ def autoschedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, curre
         return True, message_string, scheduled_items, unscheduled_items
 
 
-def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, valid_manufacturing_lines, current_user,
-                    tz):
+def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, valid_manufacturing_lines, current_user):
     new_scheduled_items = []
     unscheduled_items = []
     unscheduled_items_dict = {}
@@ -68,13 +73,14 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
             temp_prev_schuled_items = []
             for item in previously_scheduled_items:
                 if item.start is not None:
-                    temp_prev_schuled_items.append(item)
+                    if not ((item.start >= stop_time) or (item.end() <= start_time)):
+                        temp_prev_schuled_items.append(item)
             previously_scheduled_items = temp_prev_schuled_items
 
             # if nothing scheduled on this line, check if it fits in given time
             if len(previously_scheduled_items) < 1:
                 if stop_time - start_time >= duration:
-                    # print("Scheduling at start time because line is empty and there is adequate time.")
+                    print("Scheduling at start time because line is empty and there is adequate time.")
                     earliest_start_time = start_time
                     chosen_line = line
                     continue
@@ -87,7 +93,7 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
 
             # check if earliest start time is the beginning of time on that line
             if previously_scheduled_items[0].start - start_time >= duration:
-                # print("Scheduling at beginning of start time since there is time between first scheduled item and start time.")
+                print("Scheduling at beginning of start time since there is time between first scheduled item and start time.")
                 earliest_start_time = start_time
                 chosen_line = line
                 continue
@@ -98,12 +104,12 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
                 item_end = previously_scheduled_items[index].end()
                 if next_item_start - item_end >= duration:
                     if earliest_start_time is None:
-                        # print("Scheduling between lines.")
+                        print("Scheduling between lines.")
                         earliest_start_time = item_end
                         chosen_line = line
                     else:
                         if item_end < earliest_start_time:
-                            # print("Scheduling between lines.")
+                            print("Scheduling between lines.")
                             earliest_start_time = item_end
                             chosen_line = line
 
@@ -111,12 +117,12 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
             last_end_time = previously_scheduled_items[len(previously_scheduled_items)-1].end()
             if stop_time - last_end_time >= duration:
                 if earliest_start_time is None:
-                    # print("Scheduling at end of time between last scheduled item and end of deadline.")
+                    print("Scheduling at end of time between last scheduled item and end of deadline.")
                     earliest_start_time = last_end_time
                     chosen_line = line
                 else:
                     if last_end_time < earliest_start_time:
-                        # print("Scheduling at end of time between last scheduled item and end of deadline.")
+                        print("Scheduling at end of time between last scheduled item and end of deadline.")
                         earliest_start_time = last_end_time
                         chosen_line = line
 
@@ -124,15 +130,20 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
         # print("CHOSEN LINE:")
         # print(chosen_line)
 
-        if add_to_schedule and (chosen_line is not None) and finishes_before_deadline(mfgqty, earliest_start_time):
+        item_was_scheduled = False
+
+        if add_to_schedule and (chosen_line is not None):
             new_schedule_item = create_schedule_item(mfgqty, chosen_line, earliest_start_time, current_user)
-            new_scheduled_items.append(new_schedule_item)
-            # print("Scheduled:")
-            # print(new_schedule_item.mfgqty.sku.sku_num)
-            # print(new_schedule_item.start)
-            new_schedule_item.save()
-            # save_schedule_item(new_schedule_item) # deprecated
-        else:
+            if finishes_before_deadline(new_schedule_item):
+                new_scheduled_items.append(new_schedule_item)
+                # print("Scheduled:")
+                # print(new_schedule_item.mfgqty.sku.sku_num)
+                # print(new_schedule_item.start)
+                new_schedule_item.save()
+                # save_schedule_item(new_schedule_item) # deprecated
+                item_was_scheduled = True
+
+        if not item_was_scheduled:
             # print("Unscheduled")
             # print(mfgqty.sku.name)
             reason_message= ""
@@ -140,8 +151,6 @@ def create_schedule(start_time, stop_time, manufacturingqtys_to_be_scheduled, va
                 reason_message = "There is not enough time between start and end time."
             elif chosen_line is None:
                 reason_message = "There is no manufacturing line that this can be scheduled on available."
-            elif not finishes_before_deadline(mfgqty, earliest_start_time):
-                reason_message = "Will not finish before goal deadline."
             else:
                 reason_message = "Does not fit into existing schedule."
             unscheduled_items.append(mfgqty)
@@ -204,13 +213,13 @@ def check_ties_for_mfgqty_to_be_scheduled(manufacturingqtys_to_be_scheduled):
 
 
 def mfgqty_duration(mfgqty):
+    if (mfgqty.caseqty / mfgqty.sku.mfg_rate) < 1:
+        return timedelta(hours=1)
     return timedelta(hours=(mfgqty.caseqty / mfgqty.sku.mfg_rate))
 
 
-def finishes_before_deadline(mfgqty, start_time):
-    duration = mfgqty_duration(mfgqty)
-    deadline = mfgqty.goal.deadline
-    return (start_time + duration).date() <= deadline
+def finishes_before_deadline(schedule_item):
+    return (schedule_item.end()).date() <= schedule_item.mfgqty.goal.deadline
 
 
 def print_schedule(start_time, end_time, valid_mfg_lines, new_scheduled_items, unscheduled_items):
