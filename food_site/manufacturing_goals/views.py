@@ -130,6 +130,8 @@ def manufqty(request):
             context['paginated'] = False
 
     if request.method == 'POST':
+        request.session['projection_autofill_value'] = None
+        request.session['projection_autofill_pk'] = None
         if 'done' in request.POST:
             return redirect('manufacturing')
         if 'delete' in request.POST:
